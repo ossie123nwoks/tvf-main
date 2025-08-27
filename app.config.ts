@@ -39,8 +39,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   scheme: 'tvf-app',
   // React 19 experimental configuration
   experiments: {
-    react19: true,
-    useLegacyRenderer: true,
-    useLegacyContext: true
+          // react19: true, // Commented out as it's not supported in current Expo version
+      // useLegacyRenderer: true, // Commented out as it's not supported in current Expo version
+      // useLegacyContext: true // Commented out as it's not supported in current Expo version
   }
 });
