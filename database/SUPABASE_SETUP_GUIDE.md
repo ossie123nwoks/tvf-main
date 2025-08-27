@@ -293,3 +293,4 @@ If you encounter issues:
 ---
 
 **Note**: This schema is designed for production use but should be tested thoroughly in a development environment first. Consider creating a development branch in Supabase for testing before applying to production.
+

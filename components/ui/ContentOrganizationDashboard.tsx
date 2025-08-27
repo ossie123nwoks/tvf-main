@@ -505,7 +505,7 @@ export default function ContentOrganizationDashboard({
                     {category.subcategoryCount} subcategories
                   </Chip>
                 )}
-                {!category.isActive && (
+                {!category.is_active && (
                   <Badge size={16}>Inactive</Badge>
                 )}
               </View>

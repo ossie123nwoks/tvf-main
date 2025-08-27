@@ -512,9 +512,9 @@ $$ LANGUAGE plpgsql;
 INSERT INTO public.categories (name, description, color, icon, sort_order) VALUES
 ('Sermons', 'Weekly sermon recordings and teachings', '#1976D2', 'volume-high', 1),
 ('Articles', 'Spiritual articles and devotionals', '#388E3C', 'book-open', 2),
-('Announcements', 'Church announcements and updates', '#F57C00', 'megaphone', 3),
+('Announcements', 'Church announcements and updates', '#F57C00', 'bullhorn', 3),
 ('Events', 'Church events and activities', '#7B1FA2', 'calendar', 4),
-('Ministries', 'Information about church ministries', '#D32F2F', 'people', 5);
+('Ministries', 'Information about church ministries', '#D32F2F', 'account-group', 5);
 
 -- Insert default tags
 INSERT INTO public.tags (name, description, color) VALUES

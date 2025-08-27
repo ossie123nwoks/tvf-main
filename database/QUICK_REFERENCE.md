@@ -346,3 +346,4 @@ WHERE id = $1 AND user_id = $2;
 ---
 
 **Note**: Always test queries in a development environment before using in production. Use parameterized queries to prevent SQL injection.
+

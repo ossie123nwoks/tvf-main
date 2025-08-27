@@ -209,7 +209,7 @@ export default function ContentCard({
 
   const getContentDate = () => {
     if (isSermon) return content.date;
-    if (isArticle) return content.publishedAt;
+    if (isArticle) return content.published_at;
     return '';
   };
 
@@ -229,7 +229,7 @@ export default function ContentCard({
         <Card style={getCardStyle()}>
           <Card.Cover 
             source={{ 
-              uri: content.thumbnailUrl || 'https://via.placeholder.com/300x200?text=No+Image' 
+              uri: content.thumbnail_url || 'https://via.placeholder.com/300x200?text=No+Image' 
             }}
             style={styles.thumbnail}
           />
@@ -239,7 +239,7 @@ export default function ContentCard({
               <Text style={styles.title} numberOfLines={(variant === 'compact' ? 2 : 3) as number}>
                 {content.title}
               </Text>
-              {content.isFeatured && (
+              {content.is_featured && (
                 <Badge style={styles.featuredBadge} size={16}>
                   Featured
                 </Badge>

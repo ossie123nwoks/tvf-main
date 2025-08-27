@@ -288,9 +288,9 @@ export default function ArticleDetailScreen() {
       setArticle(articleData);
       
       // Load category information
-      if (articleData.category) {
-        try {
-          const categoryData = await ContentService.getCategoryById(articleData.category);
+              if (articleData.category_id) {
+          try {
+            const categoryData = await ContentService.getCategoryById(articleData.category_id);
           setCategory(categoryData);
         } catch (error) {
           console.warn('Failed to load category:', error);
@@ -443,9 +443,9 @@ export default function ArticleDetailScreen() {
             style={{ position: 'absolute', top: theme.spacing.md, left: theme.spacing.md, zIndex: 1 }}
           />
           
-          {article.thumbnailUrl && (
+          {article.thumbnail_url && (
             <Card.Cover 
-              source={{ uri: article.thumbnailUrl }} 
+              source={{ uri: article.thumbnail_url }} 
               style={styles.thumbnail}
             />
           )}
@@ -462,10 +462,10 @@ export default function ArticleDetailScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.author}>{article.author}</Text>
               <Text style={styles.metaText}>
-                {formatDate(article.publishedAt)} • {calculateReadingTime(article.content)} min read
+                {formatDate(article.published_at)} • {calculateReadingTime(article.content)} min read
               </Text>
             </View>
-            {article.isFeatured && (
+            {article.is_featured && (
               <Badge size={16} style={styles.featuredBadge}>
                 Featured
               </Badge>
@@ -548,7 +548,7 @@ export default function ArticleDetailScreen() {
                 <Text style={styles.statLabel}>Views</Text>
               </View>
               <View style={styles.stat}>
-                <Text style={styles.statNumber}>{article.tags.length}</Text>
+                <Text style={styles.statNumber}>{article.tags && Array.isArray(article.tags) ? article.tags.length : 0}</Text>
                 <Text style={styles.statLabel}>Tags</Text>
               </View>
               <View style={styles.stat}>
@@ -561,7 +561,7 @@ export default function ArticleDetailScreen() {
           </View>
 
           {/* Tags Section */}
-          {article.tags.length > 0 && (
+          {article.tags && Array.isArray(article.tags) && article.tags.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Tags</Text>
               <View style={styles.tags}>

@@ -27,7 +27,7 @@ export default function ArticlesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<'date' | 'title' | 'popularity'>('date');
+  const [sortBy, setSortBy] = useState<'published_at' | 'title' | 'popularity'>('published_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showFeaturedOnly, setShowFeaturedOnly] = useState(false);
   
@@ -229,7 +229,11 @@ export default function ArticlesScreen() {
     try {
       const { data: articles } = await ContentService.getArticles({ limit: 100 });
       const tags = new Set<string>();
-      articles.forEach(article => article.tags.forEach(tag => tags.add(tag)));
+      articles?.forEach(article => {
+        if (article.tags && Array.isArray(article.tags)) {
+          article.tags.forEach(tag => tags.add(tag));
+        }
+      });
       return Array.from(tags);
     } catch (error) {
       console.error('Failed to get tags:', error);
@@ -332,11 +336,11 @@ export default function ArticlesScreen() {
     Alert.alert('Coming Soon', 'Bookmark functionality will be implemented in the next phase.');
   };
 
-  const clearFilters = () => {
+  const     clearFilters = () => {
     setSelectedCategory(null);
     setSelectedTags([]);
     setShowFeaturedOnly(false);
-    setSortBy('date');
+    setSortBy('published_at');
     setSortOrder('desc');
   };
 
@@ -433,7 +437,7 @@ export default function ArticlesScreen() {
           <Button
             mode="outlined"
             onPress={clearFilters}
-            icon="clear-all"
+            icon="delete-sweep"
             compact
           >
             Clear
@@ -506,7 +510,7 @@ export default function ArticlesScreen() {
             >
               <Card.Cover 
                 source={{ 
-                  uri: article.thumbnailUrl || 'https://via.placeholder.com/300x200?text=No+Image' 
+                  uri: article.thumbnail_url || 'https://via.placeholder.com/300x200?text=No+Image' 
                 }} 
               />
               <Card.Content style={styles.cardContent}>
@@ -520,10 +524,10 @@ export default function ArticlesScreen() {
                   <View style={styles.authorInfo}>
                     <Text style={styles.cardAuthor}>{article.author}</Text>
                     <Text variant="bodySmall">
-                      {formatDate(article.publishedAt)}
+                      {formatDate(article.published_at)}
                     </Text>
                   </View>
-                  {article.isFeatured && (
+                  {article.is_featured && (
                     <Badge size={16}>
                       Featured
                     </Badge>
@@ -538,7 +542,7 @@ export default function ArticlesScreen() {
                 {/* Article Meta */}
                 <View style={styles.cardMeta}>
                   <Text variant="bodySmall">
-                    {formatDate(article.publishedAt)}
+                    {formatDate(article.published_at)}
                   </Text>
                   <Text style={styles.readingTime}>
                     {calculateReadingTime(article.content)} min read
@@ -557,7 +561,7 @@ export default function ArticlesScreen() {
                      <Text style={styles.statLabel}>Views</Text>
                    </View>
                    <View style={styles.stat}>
-                     <Text style={styles.statNumber}>{article.tags.length}</Text>
+                     <Text style={styles.statNumber}>{article.tags && Array.isArray(article.tags) ? article.tags.length : 0}</Text>
                      <Text style={styles.statLabel}>Tags</Text>
                    </View>
                    <View style={styles.stat}>
@@ -662,7 +666,7 @@ export default function ArticlesScreen() {
            leadingIcon="calendar"
            title="Date (Newest First)"
            onPress={() => {
-             setSortBy('date');
+             setSortBy('published_at');
              setSortOrder('desc');
              setSortMenuVisible(false);
            }}
@@ -671,7 +675,7 @@ export default function ArticlesScreen() {
            leadingIcon="calendar"
            title="Date (Oldest First)"
            onPress={() => {
-             setSortBy('date');
+             setSortBy('published_at');
              setSortOrder('asc');
              setSortMenuVisible(false);
            }}

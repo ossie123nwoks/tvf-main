@@ -176,8 +176,16 @@ export class SearchService {
 
       // Extract tag suggestions
       const allTags = new Set<string>();
-      sermons.data.forEach(sermon => sermon.tags.forEach(tag => allTags.add(tag)));
-      articles.data.forEach(article => article.tags.forEach(tag => allTags.add(tag)));
+      sermons.data?.forEach(sermon => {
+        if (sermon.tags && Array.isArray(sermon.tags)) {
+          sermon.tags.forEach(tag => allTags.add(tag));
+        }
+      });
+      articles.data?.forEach(article => {
+        if (article.tags && Array.isArray(article.tags)) {
+          article.tags.forEach(tag => allTags.add(tag));
+        }
+      });
 
       allTags.forEach(tag => {
         if (tag.toLowerCase().includes(partialQuery.toLowerCase())) {
@@ -225,8 +233,16 @@ export class SearchService {
       ]);
 
       const allTags = new Set<string>();
-      sermons.data.forEach(sermon => sermon.tags.forEach(tag => allTags.add(tag)));
-      articles.data.forEach(article => article.tags.forEach(tag => allTags.add(tag)));
+      sermons.data?.forEach(sermon => {
+        if (sermon.tags && Array.isArray(sermon.tags)) {
+          sermon.tags.forEach(tag => allTags.add(tag));
+        }
+      });
+      articles.data?.forEach(article => {
+        if (article.tags && Array.isArray(article.tags)) {
+          article.tags.forEach(tag => allTags.add(tag));
+        }
+      });
 
       return {
         categories: categories.map(cat => cat.id),
@@ -278,11 +294,13 @@ export class SearchService {
     }
 
     // Tag matches get good weight
-    tags.forEach(tag => {
-      if (tag.toLowerCase().includes(queryLower)) {
-        score += 6;
-      }
-    });
+    if (tags && Array.isArray(tags)) {
+      tags.forEach(tag => {
+        if (tag.toLowerCase().includes(queryLower)) {
+          score += 6;
+        }
+      });
+    }
 
     // Boost score for multiple matches
     const matchCount = [
@@ -385,7 +403,7 @@ export class SearchService {
       // Apply date range filter if specified
       if (dateRange) {
         results = results.filter(item => {
-          const itemDate = 'publishedAt' in item.data ? item.data.publishedAt : item.data.date;
+          const itemDate = 'published_at' in item.data ? item.data.published_at : item.data.date;
           const itemDateObj = new Date(itemDate);
           const startDate = new Date(dateRange.start);
           const endDate = new Date(dateRange.end);
@@ -398,8 +416,8 @@ export class SearchService {
         results.sort((a, b) => b.relevance - a.relevance);
       } else if (sortBy === 'date') {
         results.sort((a, b) => {
-          const aDate = 'publishedAt' in a.data ? a.data.publishedAt : a.data.date;
-          const bDate = 'publishedAt' in b.data ? b.data.publishedAt : b.data.date;
+                const aDate = 'published_at' in a.data ? a.data.published_at : a.data.date;
+      const bDate = 'published_at' in b.data ? b.data.published_at : b.data.date;
           return sortOrder === 'asc' 
             ? new Date(aDate).getTime() - new Date(bDate).getTime()
             : new Date(bDate).getTime() - new Date(aDate).getTime();

@@ -422,17 +422,46 @@ export class AuthService {
    * Transform Supabase user to our User interface
    */
   private static transformSupabaseUser(supabaseUser: any): User {
+    // Ensure supabaseUser is valid
+    if (!supabaseUser) {
+      console.error('Invalid Supabase user object:', supabaseUser);
+      // Return a default user object to prevent errors
+      return {
+        id: '',
+        email: '',
+        firstName: '',
+        lastName: '',
+        avatarUrl: '',
+        role: 'member',
+        isEmailVerified: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        preferences: {
+          theme: 'auto',
+          notifications: {
+            newContent: true,
+            reminders: true,
+            updates: true,
+            marketing: false,
+          },
+          audioQuality: 'medium',
+          autoDownload: false,
+          language: 'en',
+        },
+      };
+    }
+
     return {
-      id: supabaseUser.id,
+      id: supabaseUser.id || '',
       email: supabaseUser.email || '',
       firstName: supabaseUser.user_metadata?.first_name || '',
       lastName: supabaseUser.user_metadata?.last_name || '',
-      avatarUrl: supabaseUser.user_metadata?.avatar_url,
+      avatarUrl: supabaseUser.user_metadata?.avatar_url || '',
       role: 'member', // Default role, will be updated from custom table
       isEmailVerified: supabaseUser.email_confirmed_at !== null,
-      lastSignInAt: supabaseUser.last_sign_in_at,
-      createdAt: supabaseUser.created_at,
-      updatedAt: supabaseUser.updated_at || supabaseUser.created_at,
+      lastSignInAt: supabaseUser.last_sign_in_at || '',
+      createdAt: supabaseUser.created_at || new Date().toISOString(),
+      updatedAt: supabaseUser.updated_at || supabaseUser.created_at || new Date().toISOString(),
       preferences: {
         theme: 'auto',
         notifications: {
@@ -452,10 +481,22 @@ export class AuthService {
    * Transform Supabase session to our Session interface
    */
   private static transformSupabaseSession(supabaseSession: any): Session {
+    // Ensure supabaseSession is valid
+    if (!supabaseSession) {
+      console.error('Invalid Supabase session object:', supabaseSession);
+      // Return a default session object to prevent errors
+      return {
+        accessToken: '',
+        refreshToken: '',
+        expiresAt: Date.now() + 3600000, // 1 hour from now
+        user: this.transformSupabaseUser(null),
+      };
+    }
+    
     return {
-      accessToken: supabaseSession.access_token,
-      refreshToken: supabaseSession.refresh_token,
-      expiresAt: supabaseSession.expires_at,
+      accessToken: supabaseSession.access_token || '',
+      refreshToken: supabaseSession.refresh_token || '',
+      expiresAt: supabaseSession.expires_at || (Date.now() + 3600000), // 1 hour from now if missing
       user: this.transformSupabaseUser(supabaseSession.user),
     };
   }

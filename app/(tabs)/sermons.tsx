@@ -223,7 +223,11 @@ export default function SermonsScreen() {
     try {
       const { data: sermons } = await ContentService.getSermons({ limit: 100 });
       const tags = new Set<string>();
-      sermons.forEach(sermon => sermon.tags.forEach(tag => tags.add(tag)));
+      sermons?.forEach(sermon => {
+        if (sermon.tags && Array.isArray(sermon.tags)) {
+          sermon.tags.forEach(tag => tags.add(tag));
+        }
+      });
       return Array.from(tags);
     } catch (error) {
       console.error('Failed to get tags:', error);
@@ -457,7 +461,7 @@ export default function SermonsScreen() {
           <Button
             mode="outlined"
             onPress={clearFilters}
-            icon="clear-all"
+            icon="delete-sweep"
             compact
           >
             Clear
@@ -537,7 +541,7 @@ export default function SermonsScreen() {
             >
               <Card.Cover 
                 source={{ 
-                  uri: sermon.thumbnailUrl || 'https://via.placeholder.com/300x200?text=No+Image' 
+                  uri: sermon.thumbnail_url || 'https://via.placeholder.com/300x200?text=No+Image' 
                 }} 
               />
               <Card.Content style={styles.cardContent}>
@@ -548,7 +552,7 @@ export default function SermonsScreen() {
                   <Text variant="bodySmall">
                     {formatDate(sermon.date)} • {formatDuration(sermon.duration)}
                   </Text>
-                  {sermon.isFeatured && (
+                  {sermon.is_featured && (
                     <Badge size={16}>
                       Featured
                     </Badge>
@@ -569,7 +573,7 @@ export default function SermonsScreen() {
                     <Text style={styles.statLabel}>Downloads</Text>
                   </View>
                   <View style={styles.stat}>
-                    <Text style={styles.statNumber}>{sermon.tags.length}</Text>
+                    <Text style={styles.statNumber}>{sermon.tags && Array.isArray(sermon.tags) ? sermon.tags.length : 0}</Text>
                     <Text style={styles.statLabel}>Tags</Text>
                   </View>
                 </View>

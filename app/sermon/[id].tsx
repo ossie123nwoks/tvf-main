@@ -246,9 +246,9 @@ export default function SermonDetailScreen() {
       setSermon(sermonData);
       
       // Load category information
-      if (sermonData.category) {
-        try {
-          const categoryData = await ContentService.getCategoryById(sermonData.category);
+              if (sermonData.category_id) {
+          try {
+            const categoryData = await ContentService.getCategoryById(sermonData.category_id);
           setCategory(categoryData);
         } catch (error) {
           console.warn('Failed to load category:', error);
@@ -286,7 +286,7 @@ export default function SermonDetailScreen() {
 
       // Load audio
       const { sound: audioSound } = await Audio.Sound.createAsync(
-        { uri: sermon?.audioUrl || '' },
+        { uri: sermon?.audio_url || '' },
         { shouldPlay: false },
         onPlaybackStatusUpdate
       );
@@ -451,9 +451,9 @@ export default function SermonDetailScreen() {
             style={{ position: 'absolute', top: theme.spacing.md, left: theme.spacing.md, zIndex: 1 }}
           />
           
-          {sermon.thumbnailUrl && (
+          {sermon.thumbnail_url && (
             <Card.Cover 
-              source={{ uri: sermon.thumbnailUrl }} 
+              source={{ uri: sermon.thumbnail_url }} 
               style={styles.thumbnail}
             />
           )}
@@ -468,7 +468,7 @@ export default function SermonDetailScreen() {
             <MaterialIcons name="access-time" size={16} color={theme.colors.textSecondary} />
             <Text style={styles.metaText}>{formatDuration(sermon.duration)}</Text>
             
-            {sermon.isFeatured && (
+            {sermon.is_featured && (
               <Badge size={16} style={styles.featuredBadge}>
                 Featured
               </Badge>
@@ -566,7 +566,7 @@ export default function SermonDetailScreen() {
                 <Text style={styles.statLabel}>Downloads</Text>
               </View>
               <View style={styles.stat}>
-                <Text style={styles.statNumber}>{sermon.tags.length}</Text>
+                <Text style={styles.statNumber}>{sermon.tags && Array.isArray(sermon.tags) ? sermon.tags.length : 0}</Text>
                 <Text style={styles.statLabel}>Tags</Text>
               </View>
             </View>
@@ -578,7 +578,7 @@ export default function SermonDetailScreen() {
             <Text style={styles.description} numberOfLines={showFullDescription ? undefined : 6}>
               {sermon.description}
             </Text>
-            {sermon.description.length > 200 && (
+            {sermon.description && sermon.description.length > 200 && (
               <Button
                 mode="text"
                 onPress={() => setShowFullDescription(!showFullDescription)}
@@ -590,7 +590,7 @@ export default function SermonDetailScreen() {
           </View>
 
           {/* Tags Section */}
-          {sermon.tags.length > 0 && (
+          {sermon.tags && Array.isArray(sermon.tags) && sermon.tags.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Tags</Text>
               <View style={styles.tags}>

@@ -4,17 +4,17 @@ export interface Sermon {
   preacher: string;
   date: string;
   duration: number; // in seconds
-  audioUrl: string;
-  thumbnailUrl?: string;
+  audio_url: string;
+  thumbnail_url?: string;
   description: string;
-  category: string;
+  category_id: string;
   tags: string[];
   downloads: number;
   views: number;
-  isFeatured: boolean;
-  isPublished: boolean;
-  createdAt: string;
-  updatedAt: string;
+  is_featured: boolean;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Article {
@@ -23,15 +23,15 @@ export interface Article {
   author: string;
   content: string;
   excerpt: string;
-  thumbnailUrl?: string;
-  category: string;
+  thumbnail_url?: string;
+  category_id: string;
   tags: string[];
   views: number;
-  isFeatured: boolean;
-  isPublished: boolean;
-  publishedAt: string;
-  createdAt: string;
-  updatedAt: string;
+  is_featured: boolean;
+  is_published: boolean;
+  published_at: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Category {
@@ -40,11 +40,11 @@ export interface Category {
   description: string;
   color: string;
   icon: string;
-  parentId?: string; // For nested categories
-  sortOrder: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  parent_id?: string; // For nested categories
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ContentSearchParams {

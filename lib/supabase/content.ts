@@ -35,7 +35,7 @@ export class ContentService {
     }
 
     if (category) {
-      queryBuilder = queryBuilder.eq('category', category);
+      queryBuilder = queryBuilder.eq('category_id', category);
     }
 
     if (tags && tags.length > 0) {
@@ -43,11 +43,11 @@ export class ContentService {
     }
 
     if (featured !== undefined) {
-      queryBuilder = queryBuilder.eq('isFeatured', featured);
+      queryBuilder = queryBuilder.eq('is_featured', featured);
     }
 
     if (published !== undefined) {
-      queryBuilder = queryBuilder.eq('isPublished', published);
+      queryBuilder = queryBuilder.eq('is_published', published);
     }
 
     // Apply sorting
@@ -78,7 +78,7 @@ export class ContentService {
       .from('sermons')
       .select('*')
       .eq('id', id)
-      .eq('isPublished', true)
+      .eq('is_published', true)
       .single();
 
     if (error) {
@@ -92,15 +92,15 @@ export class ContentService {
     return data;
   }
 
-  static async createSermon(sermon: Omit<Sermon, 'id' | 'createdAt' | 'updatedAt' | 'downloads' | 'views'>): Promise<Sermon> {
+  static async createSermon(sermon: Omit<Sermon, 'id' | 'created_at' | 'updated_at' | 'downloads' | 'views'>): Promise<Sermon> {
     const { data, error } = await supabase
       .from('sermons')
       .insert({
         ...sermon,
         downloads: 0,
         views: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
       .select()
       .single();
@@ -112,12 +112,12 @@ export class ContentService {
     return data;
   }
 
-  static async updateSermon(id: string, updates: Partial<Omit<Sermon, 'id' | 'createdAt'>>): Promise<Sermon> {
+  static async updateSermon(id: string, updates: Partial<Omit<Sermon, 'id' | 'created_at'>>): Promise<Sermon> {
     const { data, error } = await supabase
       .from('sermons')
       .update({
         ...updates,
-        updatedAt: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq('id', id)
       .select()
@@ -181,7 +181,7 @@ export class ContentService {
       tags,
       page = 1,
       limit = 20,
-      sortBy = 'publishedAt',
+      sortBy = 'published_at',
       sortOrder = 'desc',
       featured,
       published = true
@@ -197,7 +197,7 @@ export class ContentService {
     }
 
     if (category) {
-      queryBuilder = queryBuilder.eq('category', category);
+      queryBuilder = queryBuilder.eq('category_id', category);
     }
 
     if (tags && tags.length > 0) {
@@ -205,11 +205,11 @@ export class ContentService {
     }
 
     if (featured !== undefined) {
-      queryBuilder = queryBuilder.eq('isFeatured', featured);
+      queryBuilder = queryBuilder.eq('is_featured', featured);
     }
 
     if (published !== undefined) {
-      queryBuilder = queryBuilder.eq('isPublished', published);
+      queryBuilder = queryBuilder.eq('is_published', published);
     }
 
     // Apply sorting
@@ -240,7 +240,7 @@ export class ContentService {
       .from('articles')
       .select('*')
       .eq('id', id)
-      .eq('isPublished', true)
+      .eq('is_published', true)
       .single();
 
     if (error) {
@@ -254,14 +254,14 @@ export class ContentService {
     return data;
   }
 
-  static async createArticle(article: Omit<Article, 'id' | 'createdAt' | 'updatedAt' | 'views'>): Promise<Article> {
+  static async createArticle(article: Omit<Article, 'id' | 'created_at' | 'updated_at' | 'views'>): Promise<Article> {
     const { data, error } = await supabase
       .from('articles')
       .insert({
         ...article,
         views: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
       .select()
       .single();
@@ -273,12 +273,12 @@ export class ContentService {
     return data;
   }
 
-  static async updateArticle(id: string, updates: Partial<Omit<Article, 'id' | 'createdAt'>>): Promise<Article> {
+  static async updateArticle(id: string, updates: Partial<Omit<Article, 'id' | 'created_at'>>): Promise<Article> {
     const { data, error } = await supabase
       .from('articles')
       .update({
         ...updates,
-        updatedAt: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq('id', id)
       .select()
@@ -323,10 +323,10 @@ export class ContentService {
     let queryBuilder = supabase
       .from('categories')
       .select('*')
-      .order('sortOrder', { ascending: true });
+      .order('sort_order', { ascending: true });
 
     if (!includeInactive) {
-      queryBuilder = queryBuilder.eq('isActive', true);
+      queryBuilder = queryBuilder.eq('is_active', true);
     }
 
     const { data, error } = await queryBuilder;
@@ -356,13 +356,13 @@ export class ContentService {
     return data;
   }
 
-  static async createCategory(category: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>): Promise<Category> {
+  static async createCategory(category: Omit<Category, 'id' | 'created_at' | 'updated_at'>): Promise<Category> {
     const { data, error } = await supabase
       .from('categories')
       .insert({
         ...category,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
       .select()
       .single();
@@ -374,12 +374,12 @@ export class ContentService {
     return data;
   }
 
-  static async updateCategory(id: string, updates: Partial<Omit<Category, 'id' | 'createdAt'>>): Promise<Category> {
+  static async updateCategory(id: string, updates: Partial<Omit<Category, 'id' | 'created_at'>>): Promise<Category> {
     const { data, error } = await supabase
       .from('categories')
       .update({
         ...updates,
-        updatedAt: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq('id', id)
       .select()
@@ -419,8 +419,8 @@ export class ContentService {
 
     // Sort by relevance (simplified - could be enhanced with proper search ranking)
     return results.sort((a, b) => {
-      const aDate = 'publishedAt' in a ? a.publishedAt : a.date;
-      const bDate = 'publishedAt' in b ? b.publishedAt : b.date;
+      const aDate = 'published_at' in a ? a.published_at : (a as Sermon).date;
+      const bDate = 'published_at' in b ? b.published_at : (b as Sermon).date;
       return new Date(bDate).getTime() - new Date(aDate).getTime();
     });
   }
@@ -448,16 +448,16 @@ export class ContentService {
       supabase.from('sermons').select('*', { count: 'exact', head: true }),
       supabase.from('articles').select('*', { count: 'exact', head: true }),
       supabase.from('categories').select('*', { count: 'exact', head: true }),
-      supabase.from('sermons').select('*').order('createdAt', { ascending: false }).limit(5),
-      supabase.from('articles').select('*').order('publishedAt', { ascending: false }).limit(5)
+      supabase.from('sermons').select('*').order('created_at', { ascending: false }).limit(5),
+      supabase.from('articles').select('*').order('published_at', { ascending: false }).limit(5)
     ]);
 
     const recentContent = [
       ...(recentSermons || []),
       ...(recentArticles || [])
     ].sort((a, b) => {
-      const aDate = 'publishedAt' in a ? a.publishedAt : a.date;
-      const bDate = 'publishedAt' in b ? b.publishedAt : b.date;
+      const aDate = 'published_at' in a ? a.published_at : (a as Sermon).date;
+      const bDate = 'published_at' in b ? b.published_at : (b as Sermon).date;
       return new Date(bDate).getTime() - new Date(aDate).getTime();
     }).slice(0, 10);
 

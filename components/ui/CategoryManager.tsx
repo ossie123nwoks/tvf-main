@@ -61,7 +61,7 @@ export default function CategoryManager({
     icon: 'folder',
     parentId: '',
     sortOrder: 0,
-    isActive: true
+    is_active: true
   });
 
   const styles = StyleSheet.create({
@@ -292,7 +292,7 @@ export default function CategoryManager({
       icon: 'folder',
       parentId: '',
       sortOrder: 0,
-      isActive: true
+      is_active: true
     });
     setCreateDialogVisible(true);
   };
@@ -306,7 +306,7 @@ export default function CategoryManager({
       icon: category.icon,
       parentId: category.parentId || '',
       sortOrder: category.sortOrder,
-      isActive: category.isActive
+      is_active: category.is_active
     });
     setEditDialogVisible(true);
   };
@@ -394,7 +394,7 @@ export default function CategoryManager({
                     {category.subcategoryCount} subcategories
                   </Chip>
                 )}
-                {!category.isActive && (
+                {!category.is_active && (
                   <Badge size={16}>Inactive</Badge>
                 )}
               </View>
@@ -595,8 +595,8 @@ export default function CategoryManager({
             <View style={styles.formField}>
               <Text>Active</Text>
               <Switch
-                value={formData.isActive}
-                onValueChange={(value) => setFormData({ ...formData, isActive: value })}
+                value={formData.is_active}
+                onValueChange={(value) => setFormData({ ...formData, is_active: value })}
               />
             </View>
           </Dialog.Content>
@@ -639,8 +639,8 @@ export default function CategoryManager({
             <View style={styles.formField}>
               <Text>Active</Text>
               <Switch
-                value={formData.isActive}
-                onValueChange={(value) => setFormData({ ...formData, isActive: value })}
+                value={formData.is_active}
+                onValueChange={(value) => setFormData({ ...formData, is_active: value })}
               />
             </View>
           </Dialog.Content>

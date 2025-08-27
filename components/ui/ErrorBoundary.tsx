@@ -150,3 +150,4 @@ function ErrorFallback({ error, onRetry, onReport }: ErrorFallbackProps) {
     </View>
   );
 }
+
