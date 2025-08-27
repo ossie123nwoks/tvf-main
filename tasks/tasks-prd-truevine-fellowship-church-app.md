@@ -76,14 +76,15 @@
   - [x] 1.9 Set up theme configuration and color scheme definitions
 
 - [ ] 2.0 Authentication & User Management System
-  - [ ] 2.1 Create user authentication types and interfaces
-  - [ ] 2.2 Implement Supabase authentication service (sign up, sign in, sign out)
-  - [ ] 2.3 Create authentication context and provider for state management
-  - [ ] 2.4 Implement guest access functionality for unauthenticated users
-  - [ ] 2.5 Create user profile management (view, edit, delete account)
-  - [ ] 2.6 Implement authentication guards and protected routes
-  - [ ] 2.7 Add password reset and email verification functionality
-  - [ ] 2.8 Create authentication error handling and user feedback
+  - [x] 2.1 Create user authentication types and interfaces
+  - [x] 2.2 Implement Supabase authentication service (sign up, sign in, sign out)
+  - [x] 2.3 Create authentication context and provider for state management
+  - [x] 2.4 Implement mandatory authentication flow (no guest access)
+  - [x] 2.5 Create user profile management (view, edit, delete account)
+  - [x] 2.6 Implement authentication guards and protected routes for all app content
+  - [x] 2.7 Add password reset and email verification functionality
+  - [x] 2.8 Create authentication error handling and user feedback
+  - [x] 2.9 Add session persistence and automatic re-authentication
 
 - [ ] 3.0 Content Management & Display System
   - [ ] 3.1 Define content data models and types (sermons, articles, categories)
@@ -152,3 +153,6 @@
 - Test thoroughly on both iOS and Android devices to ensure cross-platform compatibility.
 - When implementing dark mode, ensure all components and screens properly support both themes with appropriate color schemes.
 - Test dark mode functionality in various lighting conditions to ensure readability and accessibility.
+- **Authentication is mandatory** - all users must sign up before accessing any app content.
+- **No guest access** - implement proper authentication guards on all routes and content.
+- **Onboarding required** - new users should complete a brief onboarding process after signup.

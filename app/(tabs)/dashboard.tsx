@@ -3,6 +3,7 @@ import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text, Card, Button, useTheme as usePaperTheme } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
+import { ContentGuard } from '@/components/auth/ContentGuard';
 
 export default function DashboardScreen() {
   const { theme } = useTheme();
@@ -56,12 +57,13 @@ export default function DashboardScreen() {
   });
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Welcome to TRUEVINE</Text>
-          <Text style={styles.subtitle}>Fellowship Church</Text>
-        </View>
+    <ContentGuard requireAuth={true} fallbackMessage="Sign in to access your personalized dashboard">
+      <View style={styles.container}>
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Welcome to TRUEVINE</Text>
+            <Text style={styles.subtitle}>Fellowship Church</Text>
+          </View>
 
         <View style={styles.actionButtons}>
           <Button
@@ -121,5 +123,6 @@ export default function DashboardScreen() {
         </View>
       </ScrollView>
     </View>
+    </ContentGuard>
   );
 }

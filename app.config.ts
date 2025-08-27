@@ -36,5 +36,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-notifications',
     'expo-file-system'
   ],
-  scheme: 'tvf-app'
+  scheme: 'tvf-app',
+  // React 19 experimental configuration
+  experiments: {
+    react19: true,
+    useLegacyRenderer: true,
+    useLegacyContext: true
+  }
 });
