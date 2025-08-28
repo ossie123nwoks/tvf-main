@@ -1,564 +1,568 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Text, Card, Button, ProgressBar, IconButton, List, Chip, useTheme as usePaperTheme } from 'react-native-paper';
+import React, { useState, useCallback } from 'react';
+import { View, StyleSheet, ScrollView, Alert, Dimensions } from 'react-native';
+import {
+  Text,
+  Card,
+  Button,
+  ProgressBar,
+  Chip,
+  IconButton,
+  List,
+  Divider,
+  useTheme as usePaperTheme,
+  ActivityIndicator,
+  Menu,
+  Dialog,
+  Portal,
+  TextInput,
+  Switch,
+  Badge,
+} from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
+import { useOfflineDownloads } from '@/lib/storage/useOfflineDownloads';
+import { DownloadItem } from '@/lib/storage/offline';
 import { MaterialIcons } from '@expo/vector-icons';
 
-interface DownloadItem {
-  id: string;
-  title: string;
-  type: 'sermon' | 'article';
-  size: number; // in bytes
-  progress: number; // 0-100
-  status: 'pending' | 'downloading' | 'completed' | 'failed' | 'paused';
-  url: string;
-  thumbnailUrl?: string;
-  error?: string;
-  createdAt: Date;
-  completedAt?: Date;
-}
+const { width: screenWidth } = Dimensions.get('window');
 
 interface DownloadManagerProps {
-  downloads: DownloadItem[];
-  onDownload: (item: DownloadItem) => void;
-  onPause: (id: string) => void;
-  onResume: (id: string) => void;
-  onCancel: (id: string) => void;
-  onDelete: (id: string) => void;
-  onRetry: (id: string) => void;
-  onClearCompleted?: () => void;
-  onClearFailed?: () => void;
-  showActions?: boolean;
-  variant?: 'default' | 'compact' | 'minimal';
+  visible: boolean;
+  onDismiss: () => void;
 }
 
-export default function DownloadManager({
-  downloads,
-  onDownload,
-  onPause,
-  onResume,
-  onCancel,
-  onDelete,
-  onRetry,
-  onClearCompleted,
-  onClearFailed,
-  showActions = true,
-  variant = 'default'
-}: DownloadManagerProps) {
+export const DownloadManager: React.FC<DownloadManagerProps> = ({
+  visible,
+  onDismiss,
+}) => {
   const { theme } = useTheme();
   const paperTheme = usePaperTheme();
-  
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'active' | 'completed' | 'failed'>('all');
+  const {
+    downloads,
+    activeDownloads,
+    completedDownloads,
+    pendingDownloads,
+    failedDownloads,
+    storageInfo,
+    addDownload,
+    pauseDownload,
+    resumeDownload,
+    cancelDownload,
+    cleanupDownloads,
+    refreshData,
+    isLoading,
+  } = useOfflineDownloads();
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    scrollView: {
-      flex: 1,
-      padding: theme.spacing.md,
-    },
-    header: {
-      marginBottom: theme.spacing.lg,
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.sm,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-      lineHeight: 24,
-    },
-    stats: {
-      flexDirection: 'row',
-      gap: theme.spacing.md,
-      marginBottom: theme.spacing.lg,
-    },
-    statCard: {
-      flex: 1,
-      backgroundColor: theme.colors.cardBackground,
-      borderColor: theme.colors.cardBorder,
-      borderWidth: 1,
-      padding: theme.spacing.md,
-      alignItems: 'center',
-      ...theme.shadows.small,
-    },
-    statNumber: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: theme.colors.primary,
-      marginBottom: theme.spacing.xs,
-    },
-    statLabel: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
-      textAlign: 'center',
-      textTransform: 'uppercase',
-    },
-    filters: {
-      flexDirection: 'row',
-      gap: theme.spacing.sm,
-      marginBottom: theme.spacing.lg,
-    },
-    filterChip: {
-      backgroundColor: theme.colors.surfaceVariant,
-      borderColor: theme.colors.border,
-    },
-    selectedFilterChip: {
-      backgroundColor: theme.colors.primary,
-      borderColor: theme.colors.primary,
-    },
-    filterChipText: {
-      color: theme.colors.textSecondary,
-    },
-    selectedFilterChipText: {
-      color: '#FFFFFF',
-    },
-    downloadCard: {
-      backgroundColor: theme.colors.cardBackground,
-      borderColor: theme.colors.cardBorder,
-      borderWidth: 1,
-      marginBottom: theme.spacing.md,
-      ...theme.shadows.small,
-    },
-    downloadHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: theme.spacing.sm,
-    },
-    downloadIcon: {
-      marginRight: theme.spacing.sm,
-    },
-    downloadInfo: {
-      flex: 1,
-    },
-    downloadTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.xs,
-    },
-    downloadMeta: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: theme.spacing.sm,
-    },
-    downloadType: {
-      // Style properties moved to textStyle
-    },
-    downloadSize: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
-    },
-    downloadStatus: {
-      fontSize: 12,
-      fontWeight: '500',
-    },
-    statusPending: {
-      color: theme.colors.warning,
-    },
-    statusDownloading: {
-      color: theme.colors.info,
-    },
-    statusCompleted: {
-      color: theme.colors.success,
-    },
-    statusFailed: {
-      color: theme.colors.error,
-    },
-    statusPaused: {
-      color: theme.colors.textSecondary,
-    },
-    progressContainer: {
-      marginBottom: theme.spacing.sm,
-    },
-    progressBar: {
-      height: variant === 'minimal' ? 4 : 6,
-      borderRadius: variant === 'minimal' ? 2 : 3,
-      backgroundColor: theme.colors.audioProgressBackground,
-    },
-    progressFill: {
-      backgroundColor: theme.colors.audioProgress,
-    },
-    progressText: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
-      textAlign: 'right',
-      marginTop: theme.spacing.xs,
-    },
-    actions: {
-      flexDirection: 'row',
-      gap: theme.spacing.sm,
-      justifyContent: 'flex-end',
-    },
-    actionButton: {
-      backgroundColor: theme.colors.surfaceVariant,
-      borderColor: theme.colors.border,
-    },
-    primaryActionButton: {
-      backgroundColor: theme.colors.primary,
-    },
-    dangerActionButton: {
-      backgroundColor: theme.colors.error,
-    },
-    actionButtonText: {
-      color: theme.colors.text,
-    },
-    primaryActionButtonText: {
-      color: '#FFFFFF',
-    },
-    dangerActionButtonText: {
-      color: '#FFFFFF',
-    },
-    emptyState: {
-      alignItems: 'center',
-      padding: theme.spacing.xl,
-    },
-    emptyIcon: {
-      marginBottom: theme.spacing.lg,
-    },
-    emptyTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.sm,
-      textAlign: 'center',
-    },
-    emptyText: {
-      fontSize: 14,
-      color: theme.colors.textSecondary,
-      textAlign: 'center',
-      lineHeight: 20,
-    },
-    bulkActions: {
-      flexDirection: 'row',
-      gap: theme.spacing.sm,
-      marginTop: theme.spacing.lg,
-      paddingTop: theme.spacing.lg,
-      borderTopColor: theme.colors.border,
-      borderTopWidth: 1,
-    },
-  });
+  const [selectedTab, setSelectedTab] = useState<'all' | 'active' | 'completed' | 'pending' | 'failed'>('all');
+  const [menuVisible, setMenuVisible] = useState<string | null>(null);
+  const [cleanupDialogVisible, setCleanupDialogVisible] = useState(false);
+  const [settingsDialogVisible, setSettingsDialogVisible] = useState(false);
+  const [autoCleanupEnabled, setAutoCleanupEnabled] = useState(true);
+  const [cleanupThreshold, setCleanupThreshold] = useState('30');
 
-  const filteredDownloads = downloads.filter(item => {
-    switch (selectedFilter) {
-      case 'active':
-        return item.status === 'pending' || item.status === 'downloading';
-      case 'completed':
-        return item.status === 'completed';
-      case 'failed':
-        return item.status === 'failed';
-      default:
-        return true;
-    }
-  });
-
-  const stats = {
-    total: downloads.length,
-    active: downloads.filter(d => d.status === 'pending' || d.status === 'downloading').length,
-    completed: downloads.filter(d => d.status === 'completed').length,
-    failed: downloads.filter(d => d.status === 'failed').length,
-  };
-
+  // Format file size
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 B';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const getStatusColor = (status: string) => {
+  // Format date
+  const formatDate = (timestamp: number): string => {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Get status color
+  const getStatusColor = (status: DownloadItem['status']): string => {
     switch (status) {
-      case 'pending':
-        return styles.statusPending;
-      case 'downloading':
-        return styles.statusDownloading;
       case 'completed':
-        return styles.statusCompleted;
-      case 'failed':
-        return styles.statusFailed;
-      case 'paused':
-        return styles.statusPaused;
-      default:
-        return styles.statusPending;
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'Pending';
+        return theme.colors.success;
       case 'downloading':
-        return 'Downloading';
-      case 'completed':
-        return 'Completed';
-      case 'failed':
-        return 'Failed';
-      case 'paused':
-        return 'Paused';
-      default:
-        return 'Unknown';
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'sermon':
-        return 'headphones';
-      case 'article':
-        return 'article';
-      default:
-        return 'file-download';
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'sermon':
-        return theme.colors.sermon;
-      case 'article':
-        return theme.colors.article;
-      default:
         return theme.colors.primary;
+      case 'pending':
+        return theme.colors.warning;
+      case 'paused':
+        return theme.colors.warning;
+      case 'failed':
+        return theme.colors.error;
+      default:
+        return theme.colors.text;
     }
   };
 
+  // Get status icon
+  const getStatusIcon = (status: DownloadItem['status']): string => {
+    switch (status) {
+      case 'completed':
+        return 'check-circle';
+      case 'downloading':
+        return 'download';
+      case 'pending':
+        return 'clock';
+      case 'paused':
+        return 'pause-circle';
+      case 'failed':
+        return 'error';
+      default:
+        return 'help';
+    }
+  };
+
+  // Handle download actions
+  const handleDownloadAction = useCallback(async (action: string, downloadId: string) => {
+    try {
+      switch (action) {
+        case 'pause':
+          await pauseDownload(downloadId);
+          break;
+        case 'resume':
+          await resumeDownload(downloadId);
+          break;
+        case 'cancel':
+          await cancelDownload(downloadId);
+          break;
+        case 'retry':
+          // For failed downloads, we'll need to re-add them
+          const download = downloads.find(d => d.id === downloadId);
+          if (download) {
+            await cancelDownload(downloadId);
+            await addDownload(download.type, download.title, download.url, download.metadata);
+          }
+          break;
+      }
+      setMenuVisible(null);
+    } catch (error) {
+      console.error('Download action failed:', error);
+      Alert.alert('Error', 'Failed to perform download action');
+    }
+  }, [pauseDownload, resumeDownload, cancelDownload, addDownload, downloads]);
+
+  // Handle cleanup
+  const handleCleanup = useCallback(async () => {
+    try {
+      await cleanupDownloads();
+      setCleanupDialogVisible(false);
+      Alert.alert('Success', 'Old downloads have been cleaned up');
+    } catch (error) {
+      console.error('Cleanup failed:', error);
+      Alert.alert('Error', 'Failed to cleanup downloads');
+    }
+  }, [cleanupDownloads]);
+
+  // Get downloads for current tab
+  const getDownloadsForTab = (): DownloadItem[] => {
+    switch (selectedTab) {
+      case 'active':
+        return activeDownloads;
+      case 'completed':
+        return completedDownloads;
+      case 'pending':
+        return pendingDownloads;
+      case 'failed':
+        return failedDownloads;
+      default:
+        return downloads;
+    }
+  };
+
+  // Render download item
   const renderDownloadItem = (item: DownloadItem) => (
-    <Card key={item.id} style={styles.downloadCard}>
+    <Card key={item.id} style={[styles.downloadCard, { backgroundColor: theme.colors.surface }]}>
       <Card.Content>
         <View style={styles.downloadHeader}>
-          <MaterialIcons
-            name={getTypeIcon(item.type) as any}
-            size={24}
-            color={getTypeColor(item.type)}
-            style={styles.downloadIcon}
-          />
           <View style={styles.downloadInfo}>
-            <Text style={styles.downloadTitle} numberOfLines={1}>
+            <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
               {item.title}
             </Text>
-            <View style={styles.downloadMeta}>
-              <Chip
-                style={[{ backgroundColor: getTypeColor(item.type) + '20' }]}
-                textStyle={{ color: getTypeColor(item.type), fontSize: 12, textTransform: 'uppercase' }}
-                compact
-              >
-                {item.type}
-              </Chip>
-              <Text style={styles.downloadSize}>
-                {formatFileSize(item.size)}
-              </Text>
-              <Text style={[styles.downloadStatus, getStatusColor(item.status)]}>
-                {getStatusText(item.status)}
-              </Text>
-            </View>
+            <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+              {item.type.toUpperCase()} • {formatFileSize(item.size || 0)}
+            </Text>
+          </View>
+          <View style={styles.downloadActions}>
+            <Chip
+              mode="outlined"
+              textStyle={{ color: getStatusColor(item.status) }}
+              style={{ borderColor: getStatusColor(item.status) }}
+            >
+              {item.status}
+            </Chip>
+            <Menu
+              visible={menuVisible === item.id}
+              onDismiss={() => setMenuVisible(null)}
+              anchor={
+                <IconButton
+                  icon="dots-vertical"
+                  onPress={() => setMenuVisible(item.id)}
+                  iconColor={theme.colors.onSurfaceVariant}
+                />
+              }
+            >
+              {item.status === 'downloading' && (
+                <Menu.Item
+                  leadingIcon="pause"
+                  title="Pause"
+                  onPress={() => handleDownloadAction('pause', item.id)}
+                />
+              )}
+              {item.status === 'paused' && (
+                <Menu.Item
+                  leadingIcon="play"
+                  title="Resume"
+                  onPress={() => handleDownloadAction('resume', item.id)}
+                />
+              )}
+              {item.status === 'failed' && (
+                <Menu.Item
+                  leadingIcon="refresh"
+                  title="Retry"
+                  onPress={() => handleDownloadAction('retry', item.id)}
+                />
+              )}
+              <Menu.Item
+                leadingIcon="delete"
+                title="Cancel"
+                onPress={() => handleDownloadAction('cancel', item.id)}
+              />
+            </Menu>
           </View>
         </View>
 
-        {(item.status === 'downloading' || item.status === 'pending') && (
+        {item.status === 'downloading' && (
           <View style={styles.progressContainer}>
             <ProgressBar
-              progress={item.progress / 100}
-              color={theme.colors.audioProgress}
+              progress={item.progress}
+              color={theme.colors.primary}
               style={styles.progressBar}
-              theme={{
-                ...paperTheme,
-                colors: {
-                  ...paperTheme.colors,
-                  primary: theme.colors.audioProgress,
-                  surface: theme.colors.audioProgressBackground,
-                },
-              }}
             />
-            <Text style={styles.progressText}>
-              {item.progress.toFixed(1)}%
+            <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+              {Math.round(item.progress * 100)}% • {formatFileSize(item.downloadedSize)} / {formatFileSize(item.size)}
             </Text>
           </View>
         )}
 
-        {item.error && (
-          <Text style={[styles.downloadStatus, styles.statusFailed]}>
+        {item.status === 'failed' && item.error && (
+          <Text variant="bodySmall" style={{ color: theme.colors.error, marginTop: 8 }}>
             Error: {item.error}
           </Text>
         )}
 
-        {showActions && (
-          <View style={styles.actions}>
-            {item.status === 'pending' && (
-              <Button
-                mode="contained"
-                onPress={() => onDownload(item)}
-                style={styles.primaryActionButton}
-                labelStyle={styles.primaryActionButtonText}
-                compact
-              >
-                Start
-              </Button>
-            )}
-
-            {item.status === 'downloading' && (
-              <>
-                <Button
-                  mode="outlined"
-                  onPress={() => onPause(item.id)}
-                  style={styles.actionButton}
-                  labelStyle={styles.actionButtonText}
-                  compact
-                >
-                  Pause
-                </Button>
-                <Button
-                  mode="outlined"
-                  onPress={() => onCancel(item.id)}
-                  style={styles.actionButton}
-                  labelStyle={styles.actionButtonText}
-                  compact
-                >
-                  Cancel
-                </Button>
-              </>
-            )}
-
-            {item.status === 'paused' && (
-              <Button
-                mode="contained"
-                onPress={() => onResume(item.id)}
-                style={styles.primaryActionButton}
-                labelStyle={styles.primaryActionButtonText}
-                compact
-              >
-                Resume
-              </Button>
-            )}
-
-            {item.status === 'failed' && (
-              <Button
-                mode="contained"
-                onPress={() => onRetry(item.id)}
-                style={styles.primaryActionButton}
-                labelStyle={styles.primaryActionButtonText}
-                compact
-              >
-                Retry
-              </Button>
-            )}
-
-            <Button
-              mode="outlined"
-              onPress={() => onDelete(item.id)}
-              style={styles.dangerActionButton}
-              labelStyle={styles.dangerActionButtonText}
-              compact
-            >
-              Delete
-            </Button>
-          </View>
-        )}
+        <View style={styles.downloadMeta}>
+          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+            Added: {formatDate(item.createdAt)}
+          </Text>
+          {item.updatedAt !== item.createdAt && (
+            <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+              Updated: {formatDate(item.updatedAt)}
+            </Text>
+          )}
+        </View>
       </Card.Content>
     </Card>
   );
 
-  if (downloads.length === 0) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.emptyState}>
-          <MaterialIcons
-            name="cloud-download"
-            size={64}
-            color={theme.colors.textSecondary}
-            style={styles.emptyIcon}
+  // Render storage info
+  const renderStorageInfo = () => (
+    <Card style={[styles.storageCard, { backgroundColor: theme.colors.surface }]}>
+      <Card.Content>
+                     <Text variant="titleMedium" style={{ color: theme.colors.text, marginBottom: 16 }}>
+               Storage Information
+             </Text>
+             
+             <View style={styles.storageRow}>
+               <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
+                 Total Space:
+               </Text>
+               <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
+                   {formatFileSize(storageInfo.totalSpace)}
+                 </Text>
+               </View>
+               
+               <View style={styles.storageRow}>
+                 <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
+                   Used Space:
+                 </Text>
+                 <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
+                   {formatFileSize(storageInfo.usedSpace)}
+                 </Text>
+               </View>
+               
+               <View style={styles.storageRow}>
+                 <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
+                   Available Space:
+                 </Text>
+                 <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
+                   {formatFileSize(storageInfo.availableSpace)}
+                 </Text>
+               </View>
+               
+               <View style={styles.storageRow}>
+                 <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
+                   Downloads:
+                 </Text>
+                 <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
+                   {storageInfo.downloadCount}
+                 </Text>
+               </View>
+
+        <View style={styles.storageProgress}>
+          <ProgressBar
+            progress={storageInfo.totalSpace > 0 ? storageInfo.usedSpace / storageInfo.totalSpace : 0}
+            color={theme.colors.primary}
+            style={styles.storageProgressBar}
           />
-          <Text style={styles.emptyTitle}>No Downloads</Text>
-          <Text style={styles.emptyText}>
-            You haven't downloaded any content yet. Start downloading sermons and articles to access them offline.
-          </Text>
         </View>
-      </View>
-    );
-  }
+      </Card.Content>
+    </Card>
+  );
 
-  return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Download Manager</Text>
-          <Text style={styles.subtitle}>
-            Manage your offline content and monitor download progress.
-          </Text>
-        </View>
-
-        <View style={styles.stats}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{stats.total}</Text>
-            <Text style={styles.statLabel}>Total</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{stats.active}</Text>
-            <Text style={styles.statLabel}>Active</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{stats.completed}</Text>
-            <Text style={styles.statLabel}>Completed</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{stats.failed}</Text>
-            <Text style={styles.statLabel}>Failed</Text>
-          </View>
-        </View>
-
-        <View style={styles.filters}>
-          {(['all', 'active', 'completed', 'failed'] as const).map((filter) => (
-            <Chip
-              key={filter}
-              selected={selectedFilter === filter}
-              onPress={() => setSelectedFilter(filter)}
-              style={[
-                styles.filterChip,
-                selectedFilter === filter && styles.selectedFilterChip
-              ]}
-              textStyle={[
-                styles.filterChipText,
-                selectedFilter === filter && styles.selectedFilterChipText
-              ]}
-              compact
-            >
-              {filter.charAt(0).toUpperCase() + filter.slice(1)}
-            </Chip>
-          ))}
-        </View>
-
-        {filteredDownloads.map(renderDownloadItem)}
-
-        {(onClearCompleted || onClearFailed) && (
-          <View style={styles.bulkActions}>
-            {onClearCompleted && stats.completed > 0 && (
-              <Button
-                mode="outlined"
-                onPress={onClearCompleted}
-                style={styles.actionButton}
-                labelStyle={styles.actionButtonText}
-              >
-                Clear Completed ({stats.completed})
-              </Button>
-            )}
-            {onClearFailed && stats.failed > 0 && (
-              <Button
-                mode="outlined"
-                onPress={onClearFailed}
-                style={styles.actionButton}
-                labelStyle={styles.actionButtonText}
-              >
-                Clear Failed ({stats.failed})
-              </Button>
-            )}
-          </View>
-        )}
-      </ScrollView>
+  // Render tab navigation
+  const renderTabNavigation = () => (
+    <View style={styles.tabContainer}>
+      {[
+        { key: 'all', label: 'All', count: downloads.length },
+        { key: 'active', label: 'Active', count: activeDownloads.length },
+        { key: 'completed', label: 'Completed', count: completedDownloads.length },
+        { key: 'pending', label: 'Pending', count: pendingDownloads.length },
+        { key: 'failed', label: 'Failed', count: failedDownloads.length },
+      ].map((tab) => (
+        <Button
+          key={tab.key}
+          mode={selectedTab === tab.key ? 'contained' : 'outlined'}
+          onPress={() => setSelectedTab(tab.key as any)}
+          style={styles.tabButton}
+          contentStyle={styles.tabButtonContent}
+        >
+          {tab.label}
+          {tab.count > 0 && (
+            <Badge size={16} style={styles.tabBadge}>
+              {tab.count}
+            </Badge>
+          )}
+        </Button>
+      ))}
     </View>
   );
-}
+
+  // Render empty state
+  const renderEmptyState = () => (
+    <View style={styles.emptyState}>
+      <MaterialIcons
+        name="cloud-download"
+        size={64}
+        color={theme.colors.onSurfaceVariant}
+      />
+      <Text variant="titleMedium" style={{ color: theme.colors.onSurfaceVariant, marginTop: 16 }}>
+        No downloads yet
+      </Text>
+      <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center' }}>
+        Start downloading content to access it offline
+      </Text>
+    </View>
+  );
+
+  return (
+    <Portal>
+      <Dialog visible={visible} onDismiss={onDismiss} style={styles.dialog}>
+        <Dialog.Title style={{ color: theme.colors.text }}>
+          Download Manager
+        </Dialog.Title>
+        
+        <Dialog.Content style={styles.dialogContent}>
+          {renderStorageInfo()}
+          
+          <View style={styles.actionsContainer}>
+            <Button
+              mode="outlined"
+              onPress={() => setCleanupDialogVisible(true)}
+              icon="broom"
+              style={styles.actionButton}
+            >
+              Cleanup
+            </Button>
+            <Button
+              mode="outlined"
+              onPress={() => setSettingsDialogVisible(true)}
+              icon="cog"
+              style={styles.actionButton}
+            >
+              Settings
+            </Button>
+            <Button
+              mode="outlined"
+              onPress={refreshData}
+              icon="refresh"
+              style={styles.actionButton}
+            >
+              Refresh
+            </Button>
+          </View>
+
+          {renderTabNavigation()}
+
+          <ScrollView style={styles.downloadsList} showsVerticalScrollIndicator={false}>
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <Text style={{ color: theme.colors.onSurfaceVariant, marginTop: 16 }}>
+                  Loading downloads...
+                </Text>
+              </View>
+            ) : getDownloadsForTab().length > 0 ? (
+              getDownloadsForTab().map(renderDownloadItem)
+            ) : (
+              renderEmptyState()
+            )}
+          </ScrollView>
+        </Dialog.Content>
+
+        <Dialog.Actions>
+          <Button onPress={onDismiss}>Close</Button>
+        </Dialog.Actions>
+      </Dialog>
+
+      {/* Cleanup Confirmation Dialog */}
+      <Portal>
+        <Dialog visible={cleanupDialogVisible} onDismiss={() => setCleanupDialogVisible(false)}>
+          <Dialog.Title>Cleanup Downloads</Dialog.Title>
+          <Dialog.Content>
+            <Text>
+              This will remove downloads older than 30 days and failed downloads older than 7 days. 
+              This action cannot be undone.
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setCleanupDialogVisible(false)}>Cancel</Button>
+            <Button onPress={handleCleanup}>Cleanup</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
+      {/* Settings Dialog */}
+      <Portal>
+        <Dialog visible={settingsDialogVisible} onDismiss={() => setSettingsDialogVisible(false)}>
+          <Dialog.Title>Download Settings</Dialog.Title>
+          <Dialog.Content>
+            <View style={styles.settingRow}>
+              <Text>Auto-cleanup old downloads</Text>
+              <Switch
+                value={autoCleanupEnabled}
+                onValueChange={setAutoCleanupEnabled}
+              />
+            </View>
+            <View style={styles.settingRow}>
+              <Text>Cleanup threshold (days)</Text>
+              <TextInput
+                value={cleanupThreshold}
+                onChangeText={setCleanupThreshold}
+                keyboardType="numeric"
+                style={styles.settingInput}
+              />
+            </View>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setSettingsDialogVisible(false)}>Close</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+    </Portal>
+  );
+};
+
+const styles = StyleSheet.create({
+  dialog: {
+    maxWidth: screenWidth * 0.95,
+    maxHeight: '90%',
+  },
+  dialogContent: {
+    paddingHorizontal: 0,
+  },
+  storageCard: {
+    marginBottom: 16,
+  },
+  storageRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  storageProgress: {
+    marginTop: 16,
+  },
+  storageProgressBar: {
+    height: 8,
+    borderRadius: 4,
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16,
+  },
+  actionButton: {
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    flexWrap: 'wrap',
+  },
+  tabButton: {
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  tabButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tabBadge: {
+    marginLeft: 8,
+  },
+  downloadsList: {
+    maxHeight: 400,
+  },
+  downloadCard: {
+    marginBottom: 12,
+  },
+  downloadHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  downloadInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  downloadActions: {
+    alignItems: 'flex-end',
+  },
+  progressContainer: {
+    marginBottom: 12,
+  },
+  progressBar: {
+    marginBottom: 8,
+  },
+  downloadMeta: {
+    marginTop: 8,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    padding: 32,
+  },
+  emptyState: {
+    alignItems: 'center',
+    padding: 32,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  settingInput: {
+    width: 80,
+    height: 40,
+  },
+});

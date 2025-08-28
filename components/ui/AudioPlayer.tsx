@@ -63,13 +63,13 @@ export default function AudioPlayer({
     title: {
       fontSize: variant === 'minimal' ? 14 : 16,
       fontWeight: '600',
-      color: theme.colors.text,
+      color: theme.colors.onSurface || theme.colors.text,
       flex: 1,
       marginRight: theme.spacing.sm,
     },
     subtitle: {
       fontSize: variant === 'minimal' ? 12 : 14,
-      color: theme.colors.textSecondary,
+      color: theme.colors.onSurfaceVariant || theme.colors.textSecondary,
       marginTop: theme.spacing.xs,
     },
     controls: {
@@ -80,7 +80,7 @@ export default function AudioPlayer({
       marginBottom: variant === 'minimal' ? theme.spacing.sm : theme.spacing.md,
     },
     playButton: {
-      backgroundColor: theme.colors.audioControl,
+      backgroundColor: theme.colors.audioControl || theme.colors.primary,
       borderRadius: variant === 'minimal' ? 20 : 28,
       width: variant === 'minimal' ? 40 : 56,
       height: variant === 'minimal' ? 40 : 56,
@@ -97,10 +97,10 @@ export default function AudioPlayer({
     progressBar: {
       height: variant === 'minimal' ? 4 : 6,
       borderRadius: variant === 'minimal' ? 2 : 3,
-      backgroundColor: theme.colors.audioProgressBackground,
+      backgroundColor: theme.colors.audioProgressBackground || theme.colors.surfaceVariant,
     },
     progressFill: {
-      backgroundColor: theme.colors.audioProgress,
+      backgroundColor: theme.colors.audioProgress || theme.colors.primary,
     },
     timeInfo: {
       flexDirection: 'row',
@@ -110,7 +110,7 @@ export default function AudioPlayer({
     },
     timeText: {
       fontSize: 12,
-      color: theme.colors.textSecondary,
+      color: theme.colors.onSurfaceVariant || theme.colors.textSecondary,
     },
     loadingContainer: {
       alignItems: 'center',
@@ -118,12 +118,16 @@ export default function AudioPlayer({
     },
     loadingText: {
       fontSize: 14,
-      color: theme.colors.textSecondary,
+      color: theme.colors.onSurfaceVariant || theme.colors.textSecondary,
       marginTop: theme.spacing.sm,
     },
     errorContainer: {
       alignItems: 'center',
       padding: theme.spacing.md,
+      backgroundColor: 'rgba(211, 47, 47, 0.1)',
+      borderRadius: theme.borderRadius.md,
+      borderWidth: 1,
+      borderColor: theme.colors.error,
     },
     errorText: {
       fontSize: 14,
@@ -284,7 +288,7 @@ export default function AudioPlayer({
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <MaterialIcons name="hourglass-empty" size={24} color={theme.colors.textSecondary} />
+          <MaterialIcons name="hourglass-empty" size={24} color={theme.colors.onSurfaceVariant || theme.colors.textSecondary} />
           <Text style={styles.loadingText}>Loading audio...</Text>
         </View>
       </View>
@@ -313,7 +317,7 @@ export default function AudioPlayer({
             size={variant === 'minimal' ? 20 : 24}
             onPress={() => handleSkip('backward')}
             style={styles.controlButton}
-            iconColor={theme.colors.textSecondary}
+            iconColor={theme.colors.onSurfaceVariant || theme.colors.textSecondary}
           />
           
           <IconButton
@@ -321,7 +325,7 @@ export default function AudioPlayer({
             size={variant === 'minimal' ? 24 : 32}
             onPress={handlePlayPause}
             style={styles.playButton}
-            iconColor="#FFFFFF"
+            iconColor={theme.colors.onBackground || "#FFFFFF"}
           />
           
           <IconButton
@@ -329,7 +333,7 @@ export default function AudioPlayer({
             size={variant === 'minimal' ? 20 : 24}
             onPress={() => handleSkip('forward')}
             style={styles.controlButton}
-            iconColor={theme.colors.textSecondary}
+            iconColor={theme.colors.onSurfaceVariant || theme.colors.textSecondary}
           />
         </View>
       )}
@@ -338,14 +342,14 @@ export default function AudioPlayer({
         <View style={styles.progressContainer}>
           <ProgressBar
             progress={position / duration}
-            color={theme.colors.audioProgress}
+            color={theme.colors.audioProgress || theme.colors.primary}
             style={styles.progressBar}
             theme={{
               ...paperTheme,
               colors: {
                 ...paperTheme.colors,
-                primary: theme.colors.audioProgress,
-                surface: theme.colors.audioProgressBackground,
+                primary: theme.colors.audioProgress || theme.colors.primary,
+                surface: theme.colors.audioProgressBackground || theme.colors.surfaceVariant,
               },
             }}
           />

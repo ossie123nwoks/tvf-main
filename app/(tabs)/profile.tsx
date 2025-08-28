@@ -421,6 +421,23 @@ export default function Profile() {
                   }
                 />
               </View>
+              
+              <View style={styles.switchContainer}>
+                <Text style={styles.switchText}>Dark Theme</Text>
+                <Switch
+                  value={theme.isDark}
+                  onValueChange={(value) => {
+                    theme.setTheme(value);
+                    setEditData(prev => ({
+                      ...prev,
+                      preferences: {
+                        ...prev.preferences,
+                        theme: value ? 'dark' : 'light',
+                      },
+                    }));
+                  }}
+                />
+              </View>
             </Card.Content>
           </Card>
 

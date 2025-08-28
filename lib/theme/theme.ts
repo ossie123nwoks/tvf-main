@@ -5,6 +5,10 @@ export interface AppTheme {
     background: string;
     surface: string;
     surfaceVariant: string;
+    onBackground: string;
+    onSurface: string;
+    onSurfaceVariant: string;
+    disabled: string;
     text: string;
     textSecondary: string;
     textTertiary: string;
@@ -77,6 +81,10 @@ export const lightTheme: AppTheme = {
     background: '#FFFFFF',
     surface: '#F5F5F5',
     surfaceVariant: '#FAFAFA',
+    onBackground: '#212121',
+    onSurface: '#212121',
+    onSurfaceVariant: '#757575',
+    disabled: '#BDBDBD',
     text: '#212121',
     textSecondary: '#757575',
     textTertiary: '#9E9E9E',
@@ -149,6 +157,10 @@ export const darkTheme: AppTheme = {
     background: '#121212',
     surface: '#1E1E1E',
     surfaceVariant: '#2A2A2A',
+    onBackground: '#FFFFFF',
+    onSurface: '#FFFFFF',
+    onSurfaceVariant: '#BDBDBD',
+    disabled: '#616161',
     text: '#FFFFFF',
     textSecondary: '#BDBDBD',
     textTertiary: '#757575',
