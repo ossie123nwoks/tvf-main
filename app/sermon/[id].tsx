@@ -20,6 +20,7 @@ import { useLocalSearchParams, router, useRouter } from 'expo-router';
 import { ContentService } from '@/lib/supabase/content';
 import { Sermon, Category } from '@/types/content';
 import { Audio } from 'expo-av';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -440,193 +441,195 @@ export default function SermonDetailScreen() {
   const progress = duration > 0 ? position / duration : 0;
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        {/* Header Section */}
-        <View style={styles.header}>
-          <IconButton
-            icon="arrow-left"
-            size={24}
-            onPress={handleBack}
-            style={{ position: 'absolute', top: theme.spacing.md, left: theme.spacing.md, zIndex: 1 }}
-          />
-          
-          {sermon.thumbnail_url && (
-            <Card.Cover 
-              source={{ uri: sermon.thumbnail_url }} 
-              style={styles.thumbnail}
+    <ErrorBoundary>
+      <View style={styles.container}>
+        <ScrollView style={styles.scrollView}>
+          {/* Header Section */}
+          <View style={styles.header}>
+            <IconButton
+              icon="arrow-left"
+              size={24}
+              onPress={handleBack}
+              style={{ position: 'absolute', top: theme.spacing.md, left: theme.spacing.md, zIndex: 1 }}
             />
-          )}
-          
-          <Text style={styles.title}>{sermon.title}</Text>
-          <Text style={styles.preacher}>{sermon.preacher}</Text>
-          
-          <View style={styles.meta}>
-            <MaterialIcons name="calendar-today" size={16} color={theme.colors.textSecondary} />
-            <Text style={styles.metaText}>{formatDate(sermon.date)}</Text>
             
-            <MaterialIcons name="access-time" size={16} color={theme.colors.textSecondary} />
-            <Text style={styles.metaText}>{formatDuration(sermon.duration)}</Text>
-            
-            {sermon.is_featured && (
-              <Badge size={16} style={styles.featuredBadge}>
-                Featured
-              </Badge>
+            {sermon.thumbnail_url && (
+              <Card.Cover 
+                source={{ uri: sermon.thumbnail_url }} 
+                style={styles.thumbnail}
+              />
             )}
-          </View>
-        </View>
-
-        {/* Content Section */}
-        <View style={styles.content}>
-          {/* Audio Player */}
-          <View style={styles.audioPlayer}>
-            <View style={styles.playerHeader}>
-              <Text style={styles.playerTitle}>Audio Player</Text>
-              {isBuffering && (
-                <ActivityIndicator size="small" color={theme.colors.primary} />
+            
+            <Text style={styles.title}>{sermon.title}</Text>
+            <Text style={styles.preacher}>{sermon.preacher}</Text>
+            
+            <View style={styles.meta}>
+              <MaterialIcons name="calendar-today" size={16} color={theme.colors.textSecondary} />
+              <Text style={styles.metaText}>{formatDate(sermon.date)}</Text>
+              
+              <MaterialIcons name="access-time" size={16} color={theme.colors.textSecondary} />
+              <Text style={styles.metaText}>{formatDuration(sermon.duration)}</Text>
+              
+              {sermon.is_featured && (
+                <Badge size={16} style={styles.featuredBadge}>
+                  Featured
+                </Badge>
               )}
             </View>
-            
-            {/* Progress Bar */}
-            <View style={styles.progressContainer}>
-              <View style={styles.timeDisplay}>
-                <Text style={styles.timeText}>{formatTime(position)}</Text>
-                <Text style={styles.timeText}>{formatTime(duration)}</Text>
-              </View>
-              <ProgressBar
-                progress={progress}
-                color={theme.colors.primary}
-                style={styles.progressBar}
-                onTouchEnd={(event) => {
-                  const { locationX } = event.nativeEvent;
-                  const newProgress = locationX / (screenWidth - 2 * theme.spacing.lg);
-                  handleSeek(newProgress);
-                }}
-              />
-            </View>
-            
-            {/* Controls */}
-            <View style={styles.controls}>
-              <IconButton
-                icon="skip-previous"
-                size={32}
-                onPress={() => handleSkip(-30)}
-                style={styles.controlButton}
-              />
-              
-              <IconButton
-                icon={isPlaying ? "pause" : "play-arrow"}
-                size={40}
-                onPress={handlePlayPause}
-                style={[styles.controlButton, styles.playButton]}
-                disabled={isLoading}
-              />
-              
-              <IconButton
-                icon="skip-next"
-                size={32}
-                onPress={() => handleSkip(30)}
-                style={styles.controlButton}
-              />
-            </View>
-            
-            {/* Actions */}
-            <View style={styles.actions}>
-              <Button
-                mode="outlined"
-                icon="download"
-                onPress={handleDownload}
-                style={styles.actionButton}
-                loading={isDownloading}
-              >
-                Download
-              </Button>
-              
-              <Button
-                mode="outlined"
-                icon="share"
-                onPress={handleShare}
-                style={styles.actionButton}
-              >
-                Share
-              </Button>
-            </View>
           </View>
 
-          {/* Stats Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Statistics</Text>
-            <View style={styles.stats}>
-              <View style={styles.stat}>
-                <Text style={styles.statNumber}>{sermon.views}</Text>
-                <Text style={styles.statLabel}>Views</Text>
+          {/* Content Section */}
+          <View style={styles.content}>
+            {/* Audio Player */}
+            <View style={styles.audioPlayer}>
+              <View style={styles.playerHeader}>
+                <Text style={styles.playerTitle}>Audio Player</Text>
+                {isBuffering && (
+                  <ActivityIndicator size="small" color={theme.colors.primary} />
+                )}
               </View>
-              <View style={styles.stat}>
-                <Text style={styles.statNumber}>{sermon.downloads}</Text>
-                <Text style={styles.statLabel}>Downloads</Text>
+              
+              {/* Progress Bar */}
+              <View style={styles.progressContainer}>
+                <View style={styles.timeDisplay}>
+                  <Text style={styles.timeText}>{formatTime(position)}</Text>
+                  <Text style={styles.timeText}>{formatTime(duration)}</Text>
+                </View>
+                <ProgressBar
+                  progress={progress}
+                  color={theme.colors.primary}
+                  style={styles.progressBar}
+                  onTouchEnd={(event) => {
+                    const { locationX } = event.nativeEvent;
+                    const newProgress = locationX / (screenWidth - 2 * theme.spacing.lg);
+                    handleSeek(newProgress);
+                  }}
+                />
               </View>
-              <View style={styles.stat}>
-                <Text style={styles.statNumber}>{sermon.tags && Array.isArray(sermon.tags) ? sermon.tags.length : 0}</Text>
-                <Text style={styles.statLabel}>Tags</Text>
+              
+              {/* Controls */}
+              <View style={styles.controls}>
+                <IconButton
+                  icon="skip-previous"
+                  size={32}
+                  onPress={() => handleSkip(-30)}
+                  style={styles.controlButton}
+                />
+                
+                <IconButton
+                  icon={isPlaying ? "pause" : "play-arrow"}
+                  size={40}
+                  onPress={handlePlayPause}
+                  style={[styles.controlButton, styles.playButton]}
+                  disabled={isLoading}
+                />
+                
+                <IconButton
+                  icon="skip-next"
+                  size={32}
+                  onPress={() => handleSkip(30)}
+                  style={styles.controlButton}
+                />
+              </View>
+              
+              {/* Actions */}
+              <View style={styles.actions}>
+                <Button
+                  mode="outlined"
+                  icon="download"
+                  onPress={handleDownload}
+                  style={styles.actionButton}
+                  loading={isDownloading}
+                >
+                  Download
+                </Button>
+                
+                <Button
+                  mode="outlined"
+                  icon="share"
+                  onPress={handleShare}
+                  style={styles.actionButton}
+                >
+                  Share
+                </Button>
               </View>
             </View>
-          </View>
 
-          {/* Description Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Description</Text>
-            <Text style={styles.description} numberOfLines={showFullDescription ? undefined : 6}>
-              {sermon.description}
-            </Text>
-            {sermon.description && sermon.description.length > 200 && (
-              <Button
-                mode="text"
-                onPress={() => setShowFullDescription(!showFullDescription)}
-                style={{ alignSelf: 'flex-start' }}
-              >
-                {showFullDescription ? 'Show Less' : 'Read More'}
-              </Button>
+            {/* Stats Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Statistics</Text>
+              <View style={styles.stats}>
+                <View style={styles.stat}>
+                  <Text style={styles.statNumber}>{sermon.views}</Text>
+                  <Text style={styles.statLabel}>Views</Text>
+                </View>
+                <View style={styles.stat}>
+                  <Text style={styles.statNumber}>{sermon.downloads}</Text>
+                  <Text style={styles.statLabel}>Downloads</Text>
+                </View>
+                <View style={styles.stat}>
+                  <Text style={styles.statNumber}>{sermon.tags && Array.isArray(sermon.tags) ? sermon.tags.length : 0}</Text>
+                  <Text style={styles.statLabel}>Tags</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Description Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Description</Text>
+              <Text style={styles.description} numberOfLines={showFullDescription ? undefined : 6}>
+                {sermon.description}
+              </Text>
+              {sermon.description && sermon.description.length > 200 && (
+                <Button
+                  mode="text"
+                  onPress={() => setShowFullDescription(!showFullDescription)}
+                  style={{ alignSelf: 'flex-start' }}
+                >
+                  {showFullDescription ? 'Show Less' : 'Read More'}
+                </Button>
+              )}
+            </View>
+
+            {/* Tags Section */}
+            {sermon.tags && Array.isArray(sermon.tags) && sermon.tags.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Tags</Text>
+                <View style={styles.tags}>
+                  {sermon.tags.map((tag, index) => (
+                    <Chip key={index} style={{ marginBottom: theme.spacing.sm }}>
+                      {tag}
+                    </Chip>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Category Section */}
+            {category && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Category</Text>
+                <Chip
+                  icon={category.icon}
+                  style={{ alignSelf: 'flex-start' }}
+                >
+                  {category.name}
+                </Chip>
+              </View>
             )}
           </View>
+        </ScrollView>
 
-          {/* Tags Section */}
-          {sermon.tags && Array.isArray(sermon.tags) && sermon.tags.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Tags</Text>
-              <View style={styles.tags}>
-                {sermon.tags.map((tag, index) => (
-                  <Chip key={index} style={{ marginBottom: theme.spacing.sm }}>
-                    {tag}
-                  </Chip>
-                ))}
-              </View>
-            </View>
-          )}
-
-          {/* Category Section */}
-          {category && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Category</Text>
-              <Chip
-                icon={category.icon}
-                style={{ alignSelf: 'flex-start' }}
-              >
-                {category.name}
-              </Chip>
-            </View>
-          )}
-        </View>
-      </ScrollView>
-
-      {/* FAB for quick actions */}
-      <FAB
-        icon="more-vert"
-        style={styles.fab}
-        onPress={() => {
-          // TODO: Implement quick actions menu
-          Alert.alert('Coming Soon', 'Quick actions will be implemented in the next phase.');
-        }}
-      />
-    </View>
+        {/* FAB for quick actions */}
+        <FAB
+          icon="more-vert"
+          style={styles.fab}
+          onPress={() => {
+            // TODO: Implement quick actions menu
+            Alert.alert('Coming Soon', 'Quick actions will be implemented in the next phase.');
+          }}
+        />
+      </View>
+    </ErrorBoundary>
   );
 }

@@ -3,6 +3,7 @@ import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { ThemeProvider, useTheme } from '@/lib/theme/ThemeProvider';
 import { AuthProvider } from '@/lib/auth/AuthContext';
 import { useDeepLinking } from '@/lib/hooks/useDeepLinking';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 
 // Component to provide Paper theme based on our custom theme
 function PaperThemeProvider({ children }: { children: React.ReactNode }) {
@@ -62,21 +63,23 @@ function DeepLinkingInitializer({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <PaperThemeProvider>
-          <DeepLinkingInitializer>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="sermon/[id]" options={{ headerShown: false }} />
-              <Stack.Screen name="article/[id]" options={{ headerShown: false }} />
-              <Stack.Screen name="auth" options={{ headerShown: false }} />
-              <Stack.Screen name="password-reset" options={{ headerShown: false }} />
-              <Stack.Screen name="email-verification" options={{ headerShown: false }} />
-            </Stack>
-          </DeepLinkingInitializer>
-        </PaperThemeProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <PaperThemeProvider>
+            <DeepLinkingInitializer>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="sermon/[id]" options={{ headerShown: false }} />
+                <Stack.Screen name="article/[id]" options={{ headerShown: false }} />
+                <Stack.Screen name="auth" options={{ headerShown: false }} />
+                <Stack.Screen name="password-reset" options={{ headerShown: false }} />
+                <Stack.Screen name="email-verification" options={{ headerShown: false }} />
+              </Stack>
+            </DeepLinkingInitializer>
+          </PaperThemeProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }

@@ -20,6 +20,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, router, useRouter } from 'expo-router';
 import { ContentService } from '@/lib/supabase/content';
 import { Article, Category } from '@/types/content';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -432,282 +433,284 @@ export default function ArticleDetailScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        {/* Header Section */}
-        <View style={styles.header}>
-          <IconButton
-            icon="arrow-left"
-            size={24}
-            onPress={handleBack}
-            style={{ position: 'absolute', top: theme.spacing.md, left: theme.spacing.md, zIndex: 1 }}
-          />
-          
-          {article.thumbnail_url && (
-            <Card.Cover 
-              source={{ uri: article.thumbnail_url }} 
-              style={styles.thumbnail}
+    <ErrorBoundary>
+      <View style={styles.container}>
+        <ScrollView style={styles.scrollView}>
+          {/* Header Section */}
+          <View style={styles.header}>
+            <IconButton
+              icon="arrow-left"
+              size={24}
+              onPress={handleBack}
+              style={{ position: 'absolute', top: theme.spacing.md, left: theme.spacing.md, zIndex: 1 }}
             />
-          )}
-          
-          <Text style={styles.title}>{article.title}</Text>
-          
-          {/* Author Section */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.sm }}>
-            <Avatar.Text 
-              size={40} 
-              label={getInitials(article.author)}
-              style={{ backgroundColor: theme.colors.primary, marginRight: theme.spacing.sm }}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.author}>{article.author}</Text>
-              <Text style={styles.metaText}>
-                {formatDate(article.published_at)} • {calculateReadingTime(article.content)} min read
+            
+            {article.thumbnail_url && (
+              <Card.Cover 
+                source={{ uri: article.thumbnail_url }} 
+                style={styles.thumbnail}
+              />
+            )}
+            
+            <Text style={styles.title}>{article.title}</Text>
+            
+            {/* Author Section */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.sm }}>
+              <Avatar.Text 
+                size={40} 
+                label={getInitials(article.author)}
+                style={{ backgroundColor: theme.colors.primary, marginRight: theme.spacing.sm }}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.author}>{article.author}</Text>
+                <Text style={styles.metaText}>
+                  {formatDate(article.published_at)} • {calculateReadingTime(article.content)} min read
+                </Text>
+              </View>
+              {article.is_featured && (
+                <Badge size={16} style={styles.featuredBadge}>
+                  Featured
+                </Badge>
+              )}
+            </View>
+          </View>
+
+          {/* Content Section */}
+          <View style={styles.content}>
+            {/* Reading Controls */}
+            <View style={styles.readingControls}>
+              <View style={styles.controlsRow}>
+                <Text style={styles.controlLabel}>Font Size</Text>
+                <View style={styles.controlButtons}>
+                  <IconButton
+                    icon="format-size"
+                    size={20}
+                    onPress={() => setFontSize('small')}
+                    iconColor={fontSize === 'small' ? theme.colors.primary : theme.colors.textSecondary}
+                  />
+                  <IconButton
+                    icon="format-size"
+                    size={24}
+                    onPress={() => setFontSize('medium')}
+                    iconColor={fontSize === 'medium' ? theme.colors.primary : theme.colors.textSecondary}
+                  />
+                  <IconButton
+                    icon="format-size"
+                    size={28}
+                    onPress={() => setFontSize('large')}
+                    iconColor={fontSize === 'large' ? theme.colors.primary : theme.colors.textSecondary}
+                  />
+                </View>
+              </View>
+              
+              <View style={styles.controlsRow}>
+                <Text style={styles.controlLabel}>Line Spacing</Text>
+                <View style={styles.controlButtons}>
+                  <IconButton
+                    icon="format-line-spacing"
+                    size={20}
+                    onPress={() => setLineHeight('tight')}
+                    iconColor={lineHeight === 'tight' ? theme.colors.primary : theme.colors.textSecondary}
+                  />
+                  <IconButton
+                    icon="format-line-spacing"
+                    size={24}
+                    onPress={() => setLineHeight('normal')}
+                    iconColor={lineHeight === 'normal' ? theme.colors.primary : theme.colors.textSecondary}
+                  />
+                  <IconButton
+                    icon="format-line-spacing"
+                    size={28}
+                    onPress={() => setLineHeight('loose')}
+                    iconColor={lineHeight === 'loose' ? theme.colors.primary : theme.colors.textSecondary}
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* Article Excerpt */}
+            <View style={styles.section}>
+              <Text style={styles.excerpt}>
+                "{article.excerpt}"
               </Text>
             </View>
-            {article.is_featured && (
-              <Badge size={16} style={styles.featuredBadge}>
-                Featured
-              </Badge>
+
+            {/* Article Content */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Article Content</Text>
+              {parseContent(article.content)}
+            </View>
+
+            {/* Stats Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Statistics</Text>
+              <View style={styles.stats}>
+                <View style={styles.stat}>
+                  <Text style={styles.statNumber}>{article.views}</Text>
+                  <Text style={styles.statLabel}>Views</Text>
+                </View>
+                <View style={styles.stat}>
+                  <Text style={styles.statNumber}>{article.tags && Array.isArray(article.tags) ? article.tags.length : 0}</Text>
+                  <Text style={styles.statLabel}>Tags</Text>
+                </View>
+                <View style={styles.stat}>
+                  <Text style={styles.statNumber}>
+                    {calculateReadingTime(article.content)}
+                  </Text>
+                  <Text style={styles.statLabel}>Min Read</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Tags Section */}
+            {article.tags && Array.isArray(article.tags) && article.tags.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Tags</Text>
+                <View style={styles.tags}>
+                  {article.tags.map((tag, index) => (
+                    <Chip key={index} style={{ marginBottom: theme.spacing.sm }}>
+                      {tag}
+                    </Chip>
+                  ))}
+                </View>
+              </View>
             )}
+
+            {/* Category Section */}
+            {category && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Category</Text>
+                <Chip
+                  icon={category.icon}
+                  style={{ alignSelf: 'flex-start' }}
+                >
+                  {category.name}
+                </Chip>
+              </View>
+            )}
+
+            {/* Related Content Placeholder */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Related Articles</Text>
+              <View style={styles.relatedContent}>
+                <View style={styles.relatedItem}>
+                  <MaterialIcons name="article" size={20} color={theme.colors.textSecondary} />
+                  <Text style={styles.relatedItemText}>Related article title would appear here</Text>
+                  <IconButton icon="chevron-right" size={20} />
+                </View>
+                <View style={styles.relatedItem}>
+                  <MaterialIcons name="article" size={20} color={theme.colors.textSecondary} />
+                  <Text style={styles.relatedItemText}>Another related article title</Text>
+                  <IconButton icon="chevron-right" size={20} />
+                </View>
+              </View>
+            </View>
           </View>
+        </ScrollView>
+
+        {/* Actions */}
+        <View style={styles.actions}>
+          <Button
+            mode="outlined"
+            icon="download"
+            onPress={handleDownload}
+            style={styles.actionButton}
+            loading={isDownloading}
+          >
+            Download
+          </Button>
+          
+          <Button
+            mode="outlined"
+            icon="share"
+            onPress={handleShare}
+            style={styles.actionButton}
+          >
+            Share
+          </Button>
+          
+          <Button
+            mode="outlined"
+            icon={isBookmarked ? "bookmark" : "bookmark-outline"}
+            onPress={handleBookmark}
+            style={styles.actionButton}
+          >
+            {isBookmarked ? 'Saved' : 'Save'}
+          </Button>
         </View>
 
-        {/* Content Section */}
-        <View style={styles.content}>
-          {/* Reading Controls */}
-          <View style={styles.readingControls}>
-            <View style={styles.controlsRow}>
-              <Text style={styles.controlLabel}>Font Size</Text>
-              <View style={styles.controlButtons}>
-                <IconButton
-                  icon="format-size"
-                  size={20}
-                  onPress={() => setFontSize('small')}
-                  iconColor={fontSize === 'small' ? theme.colors.primary : theme.colors.textSecondary}
-                />
-                <IconButton
-                  icon="format-size"
-                  size={24}
-                  onPress={() => setFontSize('medium')}
-                  iconColor={fontSize === 'medium' ? theme.colors.primary : theme.colors.textSecondary}
-                />
-                <IconButton
-                  icon="format-size"
-                  size={28}
-                  onPress={() => setFontSize('large')}
-                  iconColor={fontSize === 'large' ? theme.colors.primary : theme.colors.textSecondary}
-                />
-              </View>
-            </View>
-            
-            <View style={styles.controlsRow}>
-              <Text style={styles.controlLabel}>Line Spacing</Text>
-              <View style={styles.controlButtons}>
-                <IconButton
-                  icon="format-line-spacing"
-                  size={20}
-                  onPress={() => setLineHeight('tight')}
-                  iconColor={lineHeight === 'tight' ? theme.colors.primary : theme.colors.textSecondary}
-                />
-                <IconButton
-                  icon="format-line-spacing"
-                  size={24}
-                  onPress={() => setLineHeight('normal')}
-                  iconColor={lineHeight === 'normal' ? theme.colors.primary : theme.colors.textSecondary}
-                />
-                <IconButton
-                  icon="format-line-spacing"
-                  size={28}
-                  onPress={() => setLineHeight('loose')}
-                  iconColor={lineHeight === 'loose' ? theme.colors.primary : theme.colors.textSecondary}
-                />
-              </View>
-            </View>
-          </View>
-
-          {/* Article Excerpt */}
-          <View style={styles.section}>
-            <Text style={styles.excerpt}>
-              "{article.excerpt}"
-            </Text>
-          </View>
-
-          {/* Article Content */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Article Content</Text>
-            {parseContent(article.content)}
-          </View>
-
-          {/* Stats Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Statistics</Text>
-            <View style={styles.stats}>
-              <View style={styles.stat}>
-                <Text style={styles.statNumber}>{article.views}</Text>
-                <Text style={styles.statLabel}>Views</Text>
-              </View>
-              <View style={styles.stat}>
-                <Text style={styles.statNumber}>{article.tags && Array.isArray(article.tags) ? article.tags.length : 0}</Text>
-                <Text style={styles.statLabel}>Tags</Text>
-              </View>
-              <View style={styles.stat}>
-                <Text style={styles.statNumber}>
-                  {calculateReadingTime(article.content)}
-                </Text>
-                <Text style={styles.statLabel}>Min Read</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Tags Section */}
-          {article.tags && Array.isArray(article.tags) && article.tags.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Tags</Text>
-              <View style={styles.tags}>
-                {article.tags.map((tag, index) => (
-                  <Chip key={index} style={{ marginBottom: theme.spacing.sm }}>
-                    {tag}
-                  </Chip>
-                ))}
-              </View>
-            </View>
-          )}
-
-          {/* Category Section */}
-          {category && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Category</Text>
-              <Chip
-                icon={category.icon}
-                style={{ alignSelf: 'flex-start' }}
-              >
-                {category.name}
-              </Chip>
-            </View>
-          )}
-
-          {/* Related Content Placeholder */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Related Articles</Text>
-            <View style={styles.relatedContent}>
-              <View style={styles.relatedItem}>
-                <MaterialIcons name="article" size={20} color={theme.colors.textSecondary} />
-                <Text style={styles.relatedItemText}>Related article title would appear here</Text>
-                <IconButton icon="chevron-right" size={20} />
-              </View>
-              <View style={styles.relatedItem}>
-                <MaterialIcons name="article" size={20} color={theme.colors.textSecondary} />
-                <Text style={styles.relatedItemText}>Another related article title</Text>
-                <IconButton icon="chevron-right" size={20} />
-              </View>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* Actions */}
-      <View style={styles.actions}>
-        <Button
-          mode="outlined"
-          icon="download"
-          onPress={handleDownload}
-          style={styles.actionButton}
-          loading={isDownloading}
+        {/* Font Size Menu */}
+        <Menu
+          visible={fontMenuVisible}
+          onDismiss={() => setFontMenuVisible(false)}
+          anchor={<View />}
         >
-          Download
-        </Button>
-        
-        <Button
-          mode="outlined"
-          icon="share"
-          onPress={handleShare}
-          style={styles.actionButton}
+          <Menu.Item
+            leadingIcon="format-size"
+            title="Small"
+            onPress={() => {
+              setFontSize('small');
+              setFontMenuVisible(false);
+            }}
+          />
+          <Menu.Item
+            leadingIcon="format-size"
+            title="Medium"
+            onPress={() => {
+              setFontSize('medium');
+              setFontMenuVisible(false);
+            }}
+          />
+          <Menu.Item
+            leadingIcon="format-size"
+            title="Large"
+            onPress={() => {
+              setFontSize('large');
+              setFontMenuVisible(false);
+            }}
+          />
+        </Menu>
+
+        {/* More Options Menu */}
+        <Menu
+          visible={moreMenuVisible}
+          onDismiss={() => setMoreMenuVisible(false)}
+          anchor={<View />}
         >
-          Share
-        </Button>
-        
-        <Button
-          mode="outlined"
-          icon={isBookmarked ? "bookmark" : "bookmark-outline"}
-          onPress={handleBookmark}
-          style={styles.actionButton}
-        >
-          {isBookmarked ? 'Saved' : 'Save'}
-        </Button>
+          <Menu.Item
+            leadingIcon="text-to-speech"
+            title="Read Aloud"
+            onPress={() => {
+              setMoreMenuVisible(false);
+              Alert.alert('Coming Soon', 'Text-to-speech functionality will be implemented in the next phase.');
+            }}
+          />
+          <Menu.Item
+            leadingIcon="translate"
+            title="Translate"
+            onPress={() => {
+              setMoreMenuVisible(false);
+              Alert.alert('Coming Soon', 'Translation functionality will be implemented in the next phase.');
+            }}
+          />
+          <Divider />
+          <Menu.Item
+            leadingIcon="report"
+            title="Report Issue"
+            onPress={() => {
+              setMoreMenuVisible(false);
+              Alert.alert('Coming Soon', 'Report functionality will be implemented in the next phase.');
+            }}
+          />
+        </Menu>
+
+        {/* FAB for more options */}
+        <FAB
+          icon="more-vert"
+          style={styles.fab}
+          onPress={() => setMoreMenuVisible(true)}
+        />
       </View>
-
-      {/* Font Size Menu */}
-      <Menu
-        visible={fontMenuVisible}
-        onDismiss={() => setFontMenuVisible(false)}
-        anchor={<View />}
-      >
-        <Menu.Item
-          leadingIcon="format-size"
-          title="Small"
-          onPress={() => {
-            setFontSize('small');
-            setFontMenuVisible(false);
-          }}
-        />
-        <Menu.Item
-          leadingIcon="format-size"
-          title="Medium"
-          onPress={() => {
-            setFontSize('medium');
-            setFontMenuVisible(false);
-          }}
-        />
-        <Menu.Item
-          leadingIcon="format-size"
-          title="Large"
-          onPress={() => {
-            setFontSize('large');
-            setFontMenuVisible(false);
-          }}
-        />
-      </Menu>
-
-      {/* More Options Menu */}
-      <Menu
-        visible={moreMenuVisible}
-        onDismiss={() => setMoreMenuVisible(false)}
-        anchor={<View />}
-      >
-        <Menu.Item
-          leadingIcon="text-to-speech"
-          title="Read Aloud"
-          onPress={() => {
-            setMoreMenuVisible(false);
-            Alert.alert('Coming Soon', 'Text-to-speech functionality will be implemented in the next phase.');
-          }}
-        />
-        <Menu.Item
-          leadingIcon="translate"
-          title="Translate"
-          onPress={() => {
-            setMoreMenuVisible(false);
-            Alert.alert('Coming Soon', 'Translation functionality will be implemented in the next phase.');
-          }}
-        />
-        <Divider />
-        <Menu.Item
-          leadingIcon="report"
-          title="Report Issue"
-          onPress={() => {
-            setMoreMenuVisible(false);
-            Alert.alert('Coming Soon', 'Report functionality will be implemented in the next phase.');
-          }}
-        />
-      </Menu>
-
-      {/* FAB for more options */}
-      <FAB
-        icon="more-vert"
-        style={styles.fab}
-        onPress={() => setMoreMenuVisible(true)}
-      />
-    </View>
+    </ErrorBoundary>
   );
 }

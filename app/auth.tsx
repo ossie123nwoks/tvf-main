@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { useRouter } from 'expo-router';
 import { SignInScreen } from '@/components/auth/SignInScreen';
 import { SignUpScreen } from '@/components/auth/SignUpScreen';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 
 type AuthMode = 'signin' | 'signup';
 
@@ -124,68 +125,70 @@ export default function Auth() {
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>TRUEVINE FELLOWSHIP</Text>
-        <Text style={styles.headerSubtitle}>Sign in to access your spiritual journey</Text>
-      </View>
-
-      {/* Mode Toggle */}
-      <View style={styles.content}>
-        <View style={styles.modeToggle}>
-          <Button
-            mode={authMode === 'signin' ? 'contained' : 'text'}
-            onPress={handleSwitchToSignIn}
-            style={[
-              styles.modeButton,
-              authMode === 'signin' ? styles.modeButtonActive : styles.modeButtonInactive,
-            ]}
-            labelStyle={
-              authMode === 'signin' ? styles.modeButtonTextActive : styles.modeButtonText
-            }
-          >
-            Sign In
-          </Button>
-          <Button
-            mode={authMode === 'signup' ? 'contained' : 'text'}
-            onPress={handleSwitchToSignUp}
-            style={[
-              styles.modeButton,
-              authMode === 'signup' ? styles.modeButtonActive : styles.modeButtonInactive,
-            ]}
-            labelStyle={
-              authMode === 'signup' ? styles.modeButtonTextActive : styles.modeButtonText
-            }
-          >
-            Sign Up
-          </Button>
+    <ErrorBoundary>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>TRUEVINE FELLOWSHIP</Text>
+          <Text style={styles.headerSubtitle}>Sign in to access your spiritual journey</Text>
         </View>
 
-        {/* Auth Forms */}
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {authMode === 'signin' ? (
-            <SignInScreen
-              onSwitchToSignUp={handleSwitchToSignUp}
-              onForgotPassword={handleForgotPassword}
-            />
-          ) : (
-            <SignUpScreen onSwitchToSignIn={handleSwitchToSignIn} />
-          )}
-        </ScrollView>
-      </View>
+        {/* Mode Toggle */}
+        <View style={styles.content}>
+          <View style={styles.modeToggle}>
+            <Button
+              mode={authMode === 'signin' ? 'contained' : 'text'}
+              onPress={handleSwitchToSignIn}
+              style={[
+                styles.modeButton,
+                authMode === 'signin' ? styles.modeButtonActive : styles.modeButtonInactive,
+              ]}
+              labelStyle={
+                authMode === 'signin' ? styles.modeButtonTextActive : styles.modeButtonText
+              }
+            >
+              Sign In
+            </Button>
+            <Button
+              mode={authMode === 'signup' ? 'contained' : 'text'}
+              onPress={handleSwitchToSignUp}
+              style={[
+                styles.modeButton,
+                authMode === 'signup' ? styles.modeButtonActive : styles.modeButtonInactive,
+              ]}
+              labelStyle={
+                authMode === 'signup' ? styles.modeButtonTextActive : styles.modeButtonText
+              }
+            >
+              Sign Up
+            </Button>
+          </View>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          Welcome to TRUEVINE FELLOWSHIP Church
-        </Text>
-        <Text style={styles.termsText}>
-          By signing up, you agree to our Terms of Service and Privacy Policy.
-          Your account will be created and you'll have access to all church content,
-          sermons, articles, and personalized features.
-        </Text>
+          {/* Auth Forms */}
+          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+            {authMode === 'signin' ? (
+              <SignInScreen
+                onSwitchToSignUp={handleSwitchToSignUp}
+                onForgotPassword={handleForgotPassword}
+              />
+            ) : (
+              <SignUpScreen onSwitchToSignIn={handleSwitchToSignIn} />
+            )}
+          </ScrollView>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Welcome to TRUEVINE FELLOWSHIP Church
+          </Text>
+          <Text style={styles.termsText}>
+            By signing up, you agree to our Terms of Service and Privacy Policy.
+            Your account will be created and you'll have access to all church content,
+            sermons, articles, and personalized features.
+          </Text>
+        </View>
       </View>
-    </View>
+    </ErrorBoundary>
   );
 }

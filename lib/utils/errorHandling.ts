@@ -306,6 +306,53 @@ export class ErrorHandler {
 
     return stats;
   }
+
+  /**
+   * Check if an error is network-related
+   */
+  isNetworkError(error: any): boolean {
+    if (!error) return false;
+
+    // Check error code
+    if (error.code && [
+      ERROR_CODES.NETWORK_ERROR,
+      ERROR_CODES.TIMEOUT,
+      ERROR_CODES.CONNECTION_REFUSED,
+      ERROR_CODES.INVALID_URL
+    ].includes(error.code)) {
+      return true;
+    }
+
+    // Check error message
+    if (error.message) {
+      const message = error.message.toLowerCase();
+      const networkKeywords = [
+        'network',
+        'connection',
+        'timeout',
+        'fetch',
+        'axios',
+        'http',
+        'internet',
+        'offline',
+        'unreachable'
+      ];
+      
+      return networkKeywords.some(keyword => message.includes(keyword));
+    }
+
+    // Check error category
+    if (error.category === 'network') {
+      return true;
+    }
+
+    // Check for common network error types
+    if (error.name === 'TypeError' && error.message?.includes('fetch')) {
+      return true;
+    }
+
+    return false;
+  }
 }
 
 // Export singleton instance
