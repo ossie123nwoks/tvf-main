@@ -2,14 +2,14 @@ import { parseDeepLink, generateDeepLink, buildQueryString } from './deepLinking
 
 // Mock expo-linking
 jest.mock('expo-linking', () => ({
-  parse: jest.fn()
+  parse: jest.fn(),
 }));
 
 // Mock expo-router
 jest.mock('expo-router', () => ({
   router: {
-    push: jest.fn()
-  }
+    push: jest.fn(),
+  },
 }));
 
 describe('Deep Linking Utilities', () => {
@@ -23,14 +23,14 @@ describe('Deep Linking Utilities', () => {
       mockParse.mockReturnValue({
         hostname: 'tvf-app',
         path: '/sermon/123',
-        queryParams: {}
+        queryParams: {},
       });
 
       const result = parseDeepLink('tvf-app://sermon/123');
-      
+
       expect(result).toEqual({
         type: 'sermon',
-        id: '123'
+        id: '123',
       });
     });
 
@@ -39,14 +39,14 @@ describe('Deep Linking Utilities', () => {
       mockParse.mockReturnValue({
         hostname: 'tvf-app',
         path: '/article/456',
-        queryParams: {}
+        queryParams: {},
       });
 
       const result = parseDeepLink('tvf-app://article/456');
-      
+
       expect(result).toEqual({
         type: 'article',
-        id: '456'
+        id: '456',
       });
     });
 
@@ -55,15 +55,15 @@ describe('Deep Linking Utilities', () => {
       mockParse.mockReturnValue({
         hostname: 'tvf-app',
         path: '/category/sermons',
-        queryParams: { tab: 'sermons' }
+        queryParams: { tab: 'sermons' },
       });
 
       const result = parseDeepLink('tvf-app://category/sermons?tab=sermons');
-      
+
       expect(result).toEqual({
         type: 'category',
         category: 'sermons',
-        tab: 'sermons'
+        tab: 'sermons',
       });
     });
 
@@ -72,14 +72,14 @@ describe('Deep Linking Utilities', () => {
       mockParse.mockReturnValue({
         hostname: 'tvf-app',
         path: '/dashboard',
-        queryParams: {}
+        queryParams: {},
       });
 
       const result = parseDeepLink('tvf-app://dashboard');
-      
+
       expect(result).toEqual({
         type: 'dashboard',
-        tab: 'dashboard'
+        tab: 'dashboard',
       });
     });
 
@@ -88,11 +88,11 @@ describe('Deep Linking Utilities', () => {
       mockParse.mockReturnValue({
         hostname: 'invalid-app',
         path: '/sermon/123',
-        queryParams: {}
+        queryParams: {},
       });
 
       const result = parseDeepLink('invalid-app://sermon/123');
-      
+
       expect(result).toBeNull();
     });
 
@@ -101,13 +101,13 @@ describe('Deep Linking Utilities', () => {
       mockParse.mockReturnValue({
         hostname: 'tvf-app',
         path: '',
-        queryParams: {}
+        queryParams: {},
       });
 
       const result = parseDeepLink('tvf-app://');
-      
+
       expect(result).toEqual({
-        type: 'dashboard'
+        type: 'dashboard',
       });
     });
 
@@ -118,7 +118,7 @@ describe('Deep Linking Utilities', () => {
       });
 
       const result = parseDeepLink('invalid-url');
-      
+
       expect(result).toBeNull();
     });
   });
@@ -126,28 +126,28 @@ describe('Deep Linking Utilities', () => {
   describe('generateDeepLink', () => {
     it('should generate sermon deep links correctly', () => {
       const result = generateDeepLink('sermon', '123');
-      
+
       expect(result).toBe('tvf-app://sermon/123');
     });
 
     it('should generate article deep links correctly', () => {
       const result = generateDeepLink('article', '456');
-      
+
       expect(result).toBe('tvf-app://article/456');
     });
 
     it('should generate category deep links correctly', () => {
       const result = generateDeepLink('category', 'sermons');
-      
+
       expect(result).toBe('tvf-app://category/sermons');
     });
 
     it('should include additional parameters when provided', () => {
       const result = generateDeepLink('sermon', '123', {
         title: 'Test Sermon',
-        author: 'Pastor John'
+        author: 'Pastor John',
       });
-      
+
       expect(result).toBe('tvf-app://sermon/123?title=Test%20Sermon&author=Pastor%20John');
     });
 
@@ -155,10 +155,9 @@ describe('Deep Linking Utilities', () => {
       const result = generateDeepLink('sermon', '123', {
         title: 'Test Sermon',
         author: '',
-        date: undefined,
-        valid: 'value'
+        valid: 'value',
       });
-      
+
       expect(result).toBe('tvf-app://sermon/123?title=Test%20Sermon&valid=value');
     });
   });
@@ -167,41 +166,40 @@ describe('Deep Linking Utilities', () => {
     it('should build query string from parameters', () => {
       const params = {
         title: 'Test Title',
-        author: 'Test Author'
+        author: 'Test Author',
       };
-      
+
       const result = buildQueryString(params);
-      
+
       expect(result).toBe('?title=Test%20Title&author=Test%20Author');
     });
 
     it('should return empty string for no parameters', () => {
       const result = buildQueryString({});
-      
+
       expect(result).toBe('');
     });
 
     it('should filter out undefined and empty values', () => {
-      const params = {
+      const params: Record<string, string> = {
         title: 'Test Title',
         author: '',
-        date: undefined,
-        valid: 'value'
+        valid: 'value',
       };
-      
+
       const result = buildQueryString(params);
-      
+
       expect(result).toBe('?title=Test%20Title&valid=value');
     });
 
     it('should handle special characters in parameters', () => {
       const params = {
         title: 'Test & Title',
-        author: 'John Doe'
+        author: 'John Doe',
       };
-      
+
       const result = buildQueryString(params);
-      
+
       expect(result).toBe('?title=Test%20%26%20Title&author=John%20Doe');
     });
   });

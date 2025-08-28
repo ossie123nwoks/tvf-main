@@ -50,7 +50,7 @@ export class RetryManager {
       try {
         attempt++;
         const result = await operation();
-        
+
         return {
           success: true,
           data: result,
@@ -59,16 +59,18 @@ export class RetryManager {
         };
       } catch (error) {
         lastError = error;
-        
+
         // Check if we should retry
-        if (attempt >= finalConfig.maxAttempts || 
-            (finalConfig.retryCondition && !finalConfig.retryCondition(error))) {
+        if (
+          attempt >= finalConfig.maxAttempts ||
+          (finalConfig.retryCondition && !finalConfig.retryCondition(error))
+        ) {
           break;
         }
 
         // Calculate delay for next attempt
         const delay = this.calculateDelay(attempt, finalConfig);
-        
+
         // Wait before retrying
         await this.sleep(delay);
       }
@@ -137,16 +139,16 @@ export class RetryManager {
   private calculateDelay(attempt: number, config: RetryConfig): number {
     // Calculate base delay with exponential backoff
     let delay = config.baseDelay * Math.pow(config.backoffMultiplier, attempt - 1);
-    
+
     // Apply maximum delay cap
     delay = Math.min(delay, config.maxDelay);
-    
+
     // Add jitter to prevent thundering herd
     if (config.jitter) {
       const jitterRange = delay * 0.1; // 10% jitter
       delay += (Math.random() - 0.5) * jitterRange;
     }
-    
+
     return Math.max(delay, 0);
   }
 
@@ -242,10 +244,12 @@ export const retryUtils = {
    */
   async retryOnNetworkError<T>(operation: () => Promise<T>): Promise<RetryResult<T>> {
     const isNetworkError = (error: any) => {
-      return error.code === 'NETWORK_ERROR' || 
-             error.message?.includes('network') ||
-             error.message?.includes('timeout') ||
-             error.message?.includes('connection');
+      return (
+        error.code === 'NETWORK_ERROR' ||
+        error.message?.includes('network') ||
+        error.message?.includes('timeout') ||
+        error.message?.includes('connection')
+      );
     };
 
     return retryManager.executeWithCondition(operation, isNetworkError, RETRY_CONFIGS.NETWORK);
@@ -256,13 +260,14 @@ export const retryUtils = {
    */
   async retryOnRateLimit<T>(operation: () => Promise<T>): Promise<RetryResult<T>> {
     const isRateLimitError = (error: any) => {
-      return error.code === 'RATE_LIMIT_EXCEEDED' || 
-             error.status === 429 ||
-             error.message?.includes('rate limit') ||
-             error.message?.includes('too many requests');
+      return (
+        error.code === 'RATE_LIMIT_EXCEEDED' ||
+        error.status === 429 ||
+        error.message?.includes('rate limit') ||
+        error.message?.includes('too many requests')
+      );
     };
 
     return retryManager.executeWithCondition(operation, isRateLimitError, RETRY_CONFIGS.AUTH);
   },
 };
-

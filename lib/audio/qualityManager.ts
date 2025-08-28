@@ -129,7 +129,7 @@ export class AudioQualityManager {
   async getNetworkConditions(): Promise<NetworkCondition> {
     try {
       const netInfo = await NetInfo.fetch();
-      
+
       if (!netInfo.isConnected) {
         return {
           type: 'unknown',
@@ -155,19 +155,20 @@ export class AudioQualityManager {
           else if (signalStrength > 40) strength = 'fair';
           else strength = 'poor';
         }
-        
+
         // Estimate speed based on WiFi generation
         if (netInfo.details && 'frequency' in netInfo.details) {
           const frequency = (netInfo.details as any).frequency;
-          if (frequency > 5000) speed = 'fast'; // 5GHz WiFi
+          if (frequency > 5000)
+            speed = 'fast'; // 5GHz WiFi
           else speed = 'medium'; // 2.4GHz WiFi
         }
-        
+
         isMetered = false;
       } else if (netInfo.type === 'cellular') {
         type = 'cellular';
         isMetered = true;
-        
+
         // Estimate cellular strength and speed
         if (netInfo.details && 'cellularGeneration' in netInfo.details) {
           const generation = (netInfo.details as any).cellularGeneration;
@@ -270,10 +271,10 @@ export class AudioQualityManager {
 
       // Merge user preferences
       const finalPreferences = { ...preferences, ...userPreferences };
-      
+
       // Get available qualities
       const availableQualities = this.getAvailableQualities(contentUrl, duration);
-      
+
       // Determine recommended quality based on conditions
       let recommendedQuality: AudioQuality;
       let reason: string;
@@ -300,7 +301,10 @@ export class AudioQualityManager {
           if (!finalPreferences.allowCellular) {
             recommendedQuality = availableQualities[4]; // Data saver
             reason = 'Cellular not allowed, using data saver';
-          } else if (networkCondition.strength === 'excellent' && finalPreferences.mediumQualityCellular) {
+          } else if (
+            networkCondition.strength === 'excellent' &&
+            finalPreferences.mediumQualityCellular
+          ) {
             recommendedQuality = availableQualities[2]; // Medium quality
             reason = 'Excellent cellular connection';
           } else {
@@ -328,7 +332,9 @@ export class AudioQualityManager {
 
         // Apply max bitrate limit
         if (recommendedQuality.bitrate > finalPreferences.maxBitrate) {
-          const limitedQuality = availableQualities.find(q => q.bitrate <= finalPreferences.maxBitrate);
+          const limitedQuality = availableQualities.find(
+            q => q.bitrate <= finalPreferences.maxBitrate
+          );
           if (limitedQuality) {
             recommendedQuality = limitedQuality;
             reason = `Limited by max bitrate (${finalPreferences.maxBitrate} kbps)`;
@@ -425,7 +431,7 @@ export class AudioQualityManager {
     // This is a placeholder implementation
     // In a real app, you would have different URLs for different quality levels
     // or use query parameters to specify quality
-    
+
     if (qualityId === 'ultra') {
       return `${baseUrl}?quality=ultra&bitrate=320`;
     } else if (qualityId === 'high') {
@@ -437,7 +443,7 @@ export class AudioQualityManager {
     } else if (qualityId === 'data-saver') {
       return `${baseUrl}?quality=data-saver&bitrate=32`;
     }
-    
+
     return baseUrl;
   }
 
@@ -469,7 +475,7 @@ export class AudioQualityManager {
   }> {
     try {
       const recommendation = await this.getRecommendedQuality(contentUrl, duration);
-      
+
       if (recommendation.recommendedQuality.id !== currentQuality.id) {
         return {
           shouldChange: true,
@@ -477,7 +483,7 @@ export class AudioQualityManager {
           reason: recommendation.reason,
         };
       }
-      
+
       return { shouldChange: false };
     } catch (error) {
       console.error('Failed to check if quality should change:', error);
@@ -488,7 +494,10 @@ export class AudioQualityManager {
   /**
    * Get quality comparison for user decision
    */
-  getQualityComparison(quality1: AudioQuality, quality2: AudioQuality): {
+  getQualityComparison(
+    quality1: AudioQuality,
+    quality2: AudioQuality
+  ): {
     bitrateDifference: number;
     fileSizeDifference: number;
     qualityDifference: string;
@@ -496,18 +505,18 @@ export class AudioQualityManager {
   } {
     const bitrateDifference = quality1.bitrate - quality2.bitrate;
     const fileSizeDifference = quality1.fileSize - quality2.fileSize;
-    
+
     let qualityDifference: string;
     let recommendation: string;
-    
+
     if (quality1.bitrate > quality2.bitrate) {
       qualityDifference = `${quality1.name} is ${Math.round(quality1.bitrate / quality2.bitrate)}x higher quality`;
-      recommendation = `Higher quality but ${Math.round(fileSizeDifference / (1024 * 1024) * 100) / 100} MB more data`;
+      recommendation = `Higher quality but ${Math.round((fileSizeDifference / (1024 * 1024)) * 100) / 100} MB more data`;
     } else {
       qualityDifference = `${quality2.name} is ${Math.round(quality2.bitrate / quality1.bitrate)}x higher quality`;
-      recommendation = `Lower quality but ${Math.round(Math.abs(fileSizeDifference) / (1024 * 1024) * 100) / 100} MB less data`;
+      recommendation = `Lower quality but ${Math.round((Math.abs(fileSizeDifference) / (1024 * 1024)) * 100) / 100} MB less data`;
     }
-    
+
     return {
       bitrateDifference,
       fileSizeDifference,

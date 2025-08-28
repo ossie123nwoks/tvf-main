@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { syncManager, SyncItem, SyncProgress, SyncOptions, SyncConflict, SyncStats } from './syncManager';
+import {
+  syncManager,
+  SyncItem,
+  SyncProgress,
+  SyncOptions,
+  SyncConflict,
+  SyncStats,
+} from './syncManager';
 
 export interface UseSyncManagerReturn {
   syncQueue: SyncItem[];
@@ -10,14 +17,19 @@ export interface UseSyncManagerReturn {
   syncStats: SyncStats | null;
   isSyncInProgress: boolean;
   isLoading: boolean;
-  addToSyncQueue: (syncItem: Omit<SyncItem, 'id' | 'createdAt' | 'lastAttempt' | 'status' | 'retryCount'>) => Promise<string>;
+  addToSyncQueue: (
+    syncItem: Omit<SyncItem, 'id' | 'createdAt' | 'lastAttempt' | 'status' | 'retryCount'>
+  ) => Promise<string>;
   startSync: () => Promise<void>;
   pauseSync: () => void;
   resumeSync: () => void;
   retryFailedSyncs: () => Promise<void>;
   clearCompletedSyncs: () => Promise<void>;
   updateSyncOptions: (options: Partial<SyncOptions>) => Promise<void>;
-  resolveSyncConflict: (conflictId: string, resolution: SyncConflict['resolution']) => Promise<void>;
+  resolveSyncConflict: (
+    conflictId: string,
+    resolution: SyncConflict['resolution']
+  ) => Promise<void>;
   triggerOfflineContentSync: () => Promise<void>;
   getSyncStatusSummary: () => {
     totalItems: number;
@@ -53,7 +65,7 @@ export const useSyncManager = (): UseSyncManagerReturn => {
   const loadInitialData = useCallback(async () => {
     try {
       setIsLoading(true);
-      
+
       const [queue, options, conflicts, stats] = await Promise.all([
         syncManager.getSyncQueue(),
         syncManager.getSyncOptions(),
@@ -65,12 +77,11 @@ export const useSyncManager = (): UseSyncManagerReturn => {
       setSyncOptions(options);
       setSyncConflicts(conflicts);
       setSyncStats(stats);
-      
+
       // Update progress and status
       setSyncProgress(syncManager.getSyncProgress());
       setIsSyncInProgress(syncManager.isSyncInProgress());
       setActiveSyncs(syncManager.getActiveSyncs());
-      
     } catch (error) {
       console.error('Failed to load initial sync data:', error);
     } finally {
@@ -84,25 +95,30 @@ export const useSyncManager = (): UseSyncManagerReturn => {
   }, [loadInitialData]);
 
   // Add item to sync queue
-  const addToSyncQueue = useCallback(async (syncItem: Omit<SyncItem, 'id' | 'createdAt' | 'lastAttempt' | 'status' | 'retryCount'>) => {
-    try {
-      const id = await syncManager.addToSyncQueue(syncItem);
-      
-      // Refresh data to show new item
-      await refreshData();
-      
-      return id;
-    } catch (error) {
-      console.error('Failed to add item to sync queue:', error);
-      throw error;
-    }
-  }, [refreshData]);
+  const addToSyncQueue = useCallback(
+    async (
+      syncItem: Omit<SyncItem, 'id' | 'createdAt' | 'lastAttempt' | 'status' | 'retryCount'>
+    ) => {
+      try {
+        const id = await syncManager.addToSyncQueue(syncItem);
+
+        // Refresh data to show new item
+        await refreshData();
+
+        return id;
+      } catch (error) {
+        console.error('Failed to add item to sync queue:', error);
+        throw error;
+      }
+    },
+    [refreshData]
+  );
 
   // Start sync
   const startSync = useCallback(async () => {
     try {
       await syncManager.startSync();
-      
+
       // Refresh data to show updated status
       await refreshData();
     } catch (error) {
@@ -120,7 +136,7 @@ export const useSyncManager = (): UseSyncManagerReturn => {
   const resumeSync = useCallback(async () => {
     try {
       syncManager.resumeSync();
-      
+
       // Refresh data to show updated status
       await refreshData();
     } catch (error) {
@@ -132,7 +148,7 @@ export const useSyncManager = (): UseSyncManagerReturn => {
   const retryFailedSyncs = useCallback(async () => {
     try {
       await syncManager.retryFailedSyncs();
-      
+
       // Refresh data to show updated status
       await refreshData();
     } catch (error) {
@@ -144,7 +160,7 @@ export const useSyncManager = (): UseSyncManagerReturn => {
   const clearCompletedSyncs = useCallback(async () => {
     try {
       await syncManager.clearCompletedSyncs();
-      
+
       // Refresh data to show updated queue
       await refreshData();
     } catch (error) {
@@ -156,7 +172,7 @@ export const useSyncManager = (): UseSyncManagerReturn => {
   const updateSyncOptions = useCallback(async (options: Partial<SyncOptions>) => {
     try {
       await syncManager.updateSyncOptions(options);
-      
+
       // Refresh options
       const updatedOptions = await syncManager.getSyncOptions();
       setSyncOptions(updatedOptions);
@@ -166,33 +182,35 @@ export const useSyncManager = (): UseSyncManagerReturn => {
   }, []);
 
   // Resolve sync conflict
-  const resolveSyncConflict = useCallback(async (conflictId: string, resolution: SyncConflict['resolution']) => {
-    try {
-      await syncManager.resolveSyncConflict(conflictId, resolution);
-      
-      // Refresh conflicts and queue
-      const [conflicts, queue] = await Promise.all([
-        syncManager.getSyncConflicts(),
-        syncManager.getSyncQueue(),
-      ]);
-      
-      setSyncConflicts(conflicts);
-      setSyncQueue(queue);
-      
-      // Update progress
-      setSyncProgress(syncManager.getSyncProgress());
-      
-    } catch (error) {
-      console.error('Failed to resolve sync conflict:', error);
-      throw error;
-    }
-  }, []);
+  const resolveSyncConflict = useCallback(
+    async (conflictId: string, resolution: SyncConflict['resolution']) => {
+      try {
+        await syncManager.resolveSyncConflict(conflictId, resolution);
+
+        // Refresh conflicts and queue
+        const [conflicts, queue] = await Promise.all([
+          syncManager.getSyncConflicts(),
+          syncManager.getSyncQueue(),
+        ]);
+
+        setSyncConflicts(conflicts);
+        setSyncQueue(queue);
+
+        // Update progress
+        setSyncProgress(syncManager.getSyncProgress());
+      } catch (error) {
+        console.error('Failed to resolve sync conflict:', error);
+        throw error;
+      }
+    },
+    []
+  );
 
   // Trigger offline content synchronization
   const triggerOfflineContentSync = useCallback(async () => {
     try {
       await syncManager.triggerOfflineContentSync();
-      
+
       // Refresh data to show updated sync queue
       await refreshData();
     } catch (error) {
@@ -241,11 +259,11 @@ export const useSyncManager = (): UseSyncManagerReturn => {
         // Check if there are new items or status changes
         const currentQueue = syncManager.getSyncQueue();
         const currentProgress = syncManager.getSyncProgress();
-        
+
         if (JSON.stringify(currentQueue) !== JSON.stringify(syncQueue)) {
           setSyncQueue(currentQueue);
         }
-        
+
         if (JSON.stringify(currentProgress) !== JSON.stringify(syncProgress)) {
           setSyncProgress(currentProgress);
         }

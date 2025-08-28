@@ -19,7 +19,9 @@ export interface AsyncLoadingActions {
   ) => Promise<T>;
 }
 
-export function useAsyncLoading(initialState: Partial<AsyncLoadingState> = {}): AsyncLoadingState & AsyncLoadingActions {
+export function useAsyncLoading(
+  initialState: Partial<AsyncLoadingState> = {}
+): AsyncLoadingState & AsyncLoadingActions {
   const [isLoading, setIsLoading] = useState(initialState.isLoading || false);
   const [error, setErrorState] = useState<string | null>(initialState.error || null);
   const retryRef = useRef<(() => void) | undefined>(initialState.retry);
@@ -44,55 +46,61 @@ export function useAsyncLoading(initialState: Partial<AsyncLoadingState> = {}): 
     retryRef.current = undefined;
   }, []);
 
-  const executeAsync = useCallback(async <T>(asyncFn: () => Promise<T>): Promise<T> => {
-    try {
-      startLoading();
-      const result = await asyncFn();
-      stopLoading();
-      return result;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
-      setError(errorMessage);
-      throw err;
-    }
-  }, [startLoading, stopLoading, setError]);
-
-  const executeAsyncWithRetry = useCallback(async <T>(
-    asyncFn: () => Promise<T>,
-    maxRetries: number = 3,
-    retryDelay: number = 1000
-  ): Promise<T> => {
-    let lastError: Error;
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  const executeAsync = useCallback(
+    async <T>(asyncFn: () => Promise<T>): Promise<T> => {
       try {
         startLoading();
         const result = await asyncFn();
         stopLoading();
         return result;
       } catch (err) {
-        lastError = err instanceof Error ? err : new Error('An unexpected error occurred');
-        
-        if (attempt === maxRetries) {
-          const errorMessage = `Failed after ${maxRetries} attempts: ${lastError.message}`;
-          setError(errorMessage);
-          
-          // Set up retry function for the next attempt
-          retryRef.current = () => {
-            executeAsyncWithRetry(asyncFn, maxRetries, retryDelay);
-          };
-          
-          throw lastError;
-        }
-        
-        // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
+        const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+        setError(errorMessage);
+        throw err;
       }
-    }
-    
-    // This should never be reached, but TypeScript requires it
-    throw new Error('Unexpected error in retry logic');
-  }, [startLoading, stopLoading, setError]);
+    },
+    [startLoading, stopLoading, setError]
+  );
+
+  const executeAsyncWithRetry = useCallback(
+    async <T>(
+      asyncFn: () => Promise<T>,
+      maxRetries: number = 3,
+      retryDelay: number = 1000
+    ): Promise<T> => {
+      let lastError: Error;
+
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          startLoading();
+          const result = await asyncFn();
+          stopLoading();
+          return result;
+        } catch (err) {
+          lastError = err instanceof Error ? err : new Error('An unexpected error occurred');
+
+          if (attempt === maxRetries) {
+            const errorMessage = `Failed after ${maxRetries} attempts: ${lastError.message}`;
+            setError(errorMessage);
+
+            // Set up retry function for the next attempt
+            retryRef.current = () => {
+              executeAsyncWithRetry(asyncFn, maxRetries, retryDelay);
+            };
+
+            throw lastError;
+          }
+
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
+        }
+      }
+
+      // This should never be reached, but TypeScript requires it
+      throw new Error('Unexpected error in retry logic');
+    },
+    [startLoading, stopLoading, setError]
+  );
 
   return {
     isLoading,
@@ -118,13 +126,7 @@ export function useAsyncOperation<T>(
   } = {}
 ): AsyncLoadingState & AsyncLoadingActions & { data: T | null } {
   const [data, setData] = useState<T | null>(null);
-  const {
-    autoExecute = false,
-    onSuccess,
-    onError,
-    maxRetries = 3,
-    retryDelay = 1000,
-  } = options;
+  const { autoExecute = false, onSuccess, onError, maxRetries = 3, retryDelay = 1000 } = options;
 
   const loadingState = useAsyncLoading();
 

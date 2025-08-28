@@ -314,12 +314,15 @@ export class ErrorHandler {
     if (!error) return false;
 
     // Check error code
-    if (error.code && [
-      ERROR_CODES.NETWORK_ERROR,
-      ERROR_CODES.TIMEOUT,
-      ERROR_CODES.CONNECTION_REFUSED,
-      ERROR_CODES.INVALID_URL
-    ].includes(error.code)) {
+    if (
+      error.code &&
+      [
+        ERROR_CODES.NETWORK_ERROR,
+        ERROR_CODES.TIMEOUT,
+        ERROR_CODES.CONNECTION_REFUSED,
+        ERROR_CODES.INVALID_URL,
+      ].includes(error.code)
+    ) {
       return true;
     }
 
@@ -335,9 +338,9 @@ export class ErrorHandler {
         'http',
         'internet',
         'offline',
-        'unreachable'
+        'unreachable',
       ];
-      
+
       return networkKeywords.some(keyword => message.includes(keyword));
     }
 
@@ -397,4 +400,3 @@ export const ERROR_MESSAGES = {
   VALIDATION: 'Please check your input and try again.',
   SYSTEM: 'A system error occurred. Please try again later.',
 } as const;
-

@@ -26,27 +26,27 @@ export default class NetworkErrorBoundary extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props);
-    this.state = { 
-      hasError: false, 
-      error: null, 
+    this.state = {
+      hasError: false,
+      error: null,
       errorInfo: null,
       isNetworkError: false,
-      retryCount: 0
+      retryCount: 0,
     };
   }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
-    return { 
-      hasError: true, 
+    return {
+      hasError: true,
       error,
-      isNetworkError: errorHandler.isNetworkError(error)
+      isNetworkError: errorHandler.isNetworkError(error),
     };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({
       error,
-      errorInfo
+      errorInfo,
     });
 
     // Log error to console in development
@@ -73,18 +73,18 @@ export default class NetworkErrorBoundary extends Component<Props, State> {
 
   private scheduleRetry = () => {
     const delay = Math.min(1000 * Math.pow(2, this.state.retryCount), 10000); // Exponential backoff, max 10s
-    
+
     this.retryTimeout = setTimeout(() => {
       this.handleRetry();
     }, delay);
   };
 
   private handleRetry = () => {
-    this.setState(prevState => ({ 
+    this.setState(prevState => ({
       retryCount: prevState.retryCount + 1,
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
     }));
 
     if (this.props.onRetry) {
@@ -111,7 +111,7 @@ export default class NetworkErrorBoundary extends Component<Props, State> {
       hasError: false,
       error: null,
       errorInfo: null,
-      retryCount: 0
+      retryCount: 0,
     });
   };
 
@@ -148,14 +148,14 @@ interface NetworkErrorFallbackProps {
   onGoBack: () => void;
 }
 
-function NetworkErrorFallback({ 
-  error, 
-  isNetworkError, 
-  retryCount, 
+function NetworkErrorFallback({
+  error,
+  isNetworkError,
+  retryCount,
   maxRetries,
-  onRetry, 
-  onReport, 
-  onGoBack 
+  onRetry,
+  onReport,
+  onGoBack,
 }: NetworkErrorFallbackProps) {
   const { theme } = useTheme();
 
@@ -178,9 +178,9 @@ function NetworkErrorFallback({
       if (retryCount >= maxRetries) {
         return 'Unable to connect to the server after multiple attempts. Please check your internet connection and try again.';
       }
-      return 'We\'re having trouble connecting to our servers. This might be due to a poor internet connection or server maintenance.';
+      return "We're having trouble connecting to our servers. This might be due to a poor internet connection or server maintenance.";
     }
-    return 'We\'re sorry, but something unexpected happened. Please try again or report this issue if it persists.';
+    return "We're sorry, but something unexpected happened. Please try again or report this issue if it persists.";
   };
 
   const getRetryButtonText = () => {
@@ -259,19 +259,19 @@ function NetworkErrorFallback({
           color={theme.colors.error}
           style={styles.icon}
         />
-        
+
         <Text style={styles.title}>{getErrorTitle()}</Text>
         <Text style={styles.message}>{getErrorMessage()}</Text>
-        
+
         {__DEV__ && error && (
           <Text style={styles.errorDetails} numberOfLines={5}>
             {error.message}
           </Text>
         )}
-        
+
         <View style={styles.actions}>
-          <Button 
-            mode="contained" 
+          <Button
+            mode="contained"
             onPress={onRetry}
             style={styles.retryButton}
             textColor={theme.colors.onPrimary}
@@ -279,18 +279,18 @@ function NetworkErrorFallback({
           >
             {getRetryButtonText()}
           </Button>
-          
-          <Button 
-            mode="outlined" 
+
+          <Button
+            mode="outlined"
             onPress={onReport}
             style={styles.reportButton}
             textColor={theme.colors.primary}
           >
             Report Issue
           </Button>
-          
-          <Button 
-            mode="outlined" 
+
+          <Button
+            mode="outlined"
             onPress={onGoBack}
             style={styles.backButton}
             textColor={theme.colors.textSecondary}

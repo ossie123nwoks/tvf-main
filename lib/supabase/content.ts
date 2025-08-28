@@ -7,7 +7,7 @@ import {
   ContentResponse,
   ContentFilters,
   ContentStats,
-  ContentMetadata
+  ContentMetadata,
 } from '../../types/content';
 
 export class ContentService {
@@ -22,16 +22,16 @@ export class ContentService {
       sortBy = 'date',
       sortOrder = 'desc',
       featured,
-      published = true
+      published = true,
     } = params;
 
-    let queryBuilder = supabase
-      .from('sermons')
-      .select('*', { count: 'exact' });
+    let queryBuilder = supabase.from('sermons').select('*', { count: 'exact' });
 
     // Apply filters
     if (query) {
-      queryBuilder = queryBuilder.or(`title.ilike.%${query}%,description.ilike.%${query}%,preacher.ilike.%${query}%`);
+      queryBuilder = queryBuilder.or(
+        `title.ilike.%${query}%,description.ilike.%${query}%,preacher.ilike.%${query}%`
+      );
     }
 
     if (category) {
@@ -69,7 +69,7 @@ export class ContentService {
       total: count || 0,
       page,
       limit,
-      hasMore: (data?.length || 0) === limit
+      hasMore: (data?.length || 0) === limit,
     };
   }
 
@@ -92,7 +92,9 @@ export class ContentService {
     return data;
   }
 
-  static async createSermon(sermon: Omit<Sermon, 'id' | 'created_at' | 'updated_at' | 'downloads' | 'views'>): Promise<Sermon> {
+  static async createSermon(
+    sermon: Omit<Sermon, 'id' | 'created_at' | 'updated_at' | 'downloads' | 'views'>
+  ): Promise<Sermon> {
     const { data, error } = await supabase
       .from('sermons')
       .insert({
@@ -100,7 +102,7 @@ export class ContentService {
         downloads: 0,
         views: 0,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -112,12 +114,15 @@ export class ContentService {
     return data;
   }
 
-  static async updateSermon(id: string, updates: Partial<Omit<Sermon, 'id' | 'created_at'>>): Promise<Sermon> {
+  static async updateSermon(
+    id: string,
+    updates: Partial<Omit<Sermon, 'id' | 'created_at'>>
+  ): Promise<Sermon> {
     const { data, error } = await supabase
       .from('sermons')
       .update({
         ...updates,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', id)
       .select()
@@ -131,10 +136,7 @@ export class ContentService {
   }
 
   static async deleteSermon(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('sermons')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('sermons').delete().eq('id', id);
 
     if (error) {
       throw new Error(`Failed to delete sermon: ${error.message}`);
@@ -143,7 +145,7 @@ export class ContentService {
 
   static async incrementSermonViews(id: string): Promise<void> {
     const { error } = await supabase.rpc('increment_sermon_views', { sermon_id: id });
-    
+
     if (error) {
       // Fallback to manual update if RPC function doesn't exist
       const { error: updateError } = await supabase
@@ -159,7 +161,7 @@ export class ContentService {
 
   static async incrementSermonDownloads(id: string): Promise<void> {
     const { error } = await supabase.rpc('increment_sermon_downloads', { sermon_id: id });
-    
+
     if (error) {
       // Fallback to manual update if RPC function doesn't exist
       const { error: updateError } = await supabase
@@ -184,16 +186,16 @@ export class ContentService {
       sortBy = 'published_at',
       sortOrder = 'desc',
       featured,
-      published = true
+      published = true,
     } = params;
 
-    let queryBuilder = supabase
-      .from('articles')
-      .select('*', { count: 'exact' });
+    let queryBuilder = supabase.from('articles').select('*', { count: 'exact' });
 
     // Apply filters
     if (query) {
-      queryBuilder = queryBuilder.or(`title.ilike.%${query}%,content.ilike.%${query}%,excerpt.ilike.%${query}%,author.ilike.%${query}%`);
+      queryBuilder = queryBuilder.or(
+        `title.ilike.%${query}%,content.ilike.%${query}%,excerpt.ilike.%${query}%,author.ilike.%${query}%`
+      );
     }
 
     if (category) {
@@ -231,7 +233,7 @@ export class ContentService {
       total: count || 0,
       page,
       limit,
-      hasMore: (data?.length || 0) === limit
+      hasMore: (data?.length || 0) === limit,
     };
   }
 
@@ -254,14 +256,16 @@ export class ContentService {
     return data;
   }
 
-  static async createArticle(article: Omit<Article, 'id' | 'created_at' | 'updated_at' | 'views'>): Promise<Article> {
+  static async createArticle(
+    article: Omit<Article, 'id' | 'created_at' | 'updated_at' | 'views'>
+  ): Promise<Article> {
     const { data, error } = await supabase
       .from('articles')
       .insert({
         ...article,
         views: 0,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -273,12 +277,15 @@ export class ContentService {
     return data;
   }
 
-  static async updateArticle(id: string, updates: Partial<Omit<Article, 'id' | 'created_at'>>): Promise<Article> {
+  static async updateArticle(
+    id: string,
+    updates: Partial<Omit<Article, 'id' | 'created_at'>>
+  ): Promise<Article> {
     const { data, error } = await supabase
       .from('articles')
       .update({
         ...updates,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', id)
       .select()
@@ -292,10 +299,7 @@ export class ContentService {
   }
 
   static async deleteArticle(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('articles')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('articles').delete().eq('id', id);
 
     if (error) {
       throw new Error(`Failed to delete article: ${error.message}`);
@@ -304,7 +308,7 @@ export class ContentService {
 
   static async incrementArticleViews(id: string): Promise<void> {
     const { error } = await supabase.rpc('increment_article_views', { article_id: id });
-    
+
     if (error) {
       // Fallback to manual update if RPC function doesn't exist
       const { error: updateError } = await supabase
@@ -339,11 +343,7 @@ export class ContentService {
   }
 
   static async getCategoryById(id: string): Promise<Category> {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('categories').select('*').eq('id', id).single();
 
     if (error) {
       throw new Error(`Failed to fetch category: ${error.message}`);
@@ -356,13 +356,15 @@ export class ContentService {
     return data;
   }
 
-  static async createCategory(category: Omit<Category, 'id' | 'created_at' | 'updated_at'>): Promise<Category> {
+  static async createCategory(
+    category: Omit<Category, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<Category> {
     const { data, error } = await supabase
       .from('categories')
       .insert({
         ...category,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -374,12 +376,15 @@ export class ContentService {
     return data;
   }
 
-  static async updateCategory(id: string, updates: Partial<Omit<Category, 'id' | 'created_at'>>): Promise<Category> {
+  static async updateCategory(
+    id: string,
+    updates: Partial<Omit<Category, 'id' | 'created_at'>>
+  ): Promise<Category> {
     const { data, error } = await supabase
       .from('categories')
       .update({
         ...updates,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', id)
       .select()
@@ -393,10 +398,7 @@ export class ContentService {
   }
 
   static async deleteCategory(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('categories')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('categories').delete().eq('id', id);
 
     if (error) {
       throw new Error(`Failed to delete category: ${error.message}`);
@@ -404,7 +406,10 @@ export class ContentService {
   }
 
   // Search and filtering operations
-  static async searchContent(query: string, type?: 'sermon' | 'article'): Promise<Array<Sermon | Article>> {
+  static async searchContent(
+    query: string,
+    type?: 'sermon' | 'article'
+  ): Promise<Array<Sermon | Article>> {
     const results: Array<Sermon | Article> = [];
 
     if (!type || type === 'sermon') {
@@ -428,12 +433,12 @@ export class ContentService {
   static async getFeaturedContent(): Promise<{ sermons: Sermon[]; articles: Article[] }> {
     const [sermons, articles] = await Promise.all([
       this.getSermons({ featured: true, limit: 5 }),
-      this.getArticles({ featured: true, limit: 5 })
+      this.getArticles({ featured: true, limit: 5 }),
     ]);
 
     return {
       sermons: sermons.data,
-      articles: articles.data
+      articles: articles.data,
     };
   }
 
@@ -443,23 +448,22 @@ export class ContentService {
       { count: totalArticles },
       { count: totalCategories },
       { data: recentSermons },
-      { data: recentArticles }
+      { data: recentArticles },
     ] = await Promise.all([
       supabase.from('sermons').select('*', { count: 'exact', head: true }),
       supabase.from('articles').select('*', { count: 'exact', head: true }),
       supabase.from('categories').select('*', { count: 'exact', head: true }),
       supabase.from('sermons').select('*').order('created_at', { ascending: false }).limit(5),
-      supabase.from('articles').select('*').order('published_at', { ascending: false }).limit(5)
+      supabase.from('articles').select('*').order('published_at', { ascending: false }).limit(5),
     ]);
 
-    const recentContent = [
-      ...(recentSermons || []),
-      ...(recentArticles || [])
-    ].sort((a, b) => {
-      const aDate = 'published_at' in a ? a.published_at : (a as Sermon).date;
-      const bDate = 'published_at' in b ? b.published_at : (b as Sermon).date;
-      return new Date(bDate).getTime() - new Date(aDate).getTime();
-    }).slice(0, 10);
+    const recentContent = [...(recentSermons || []), ...(recentArticles || [])]
+      .sort((a, b) => {
+        const aDate = 'published_at' in a ? a.published_at : (a as Sermon).date;
+        const bDate = 'published_at' in b ? b.published_at : (b as Sermon).date;
+        return new Date(bDate).getTime() - new Date(aDate).getTime();
+      })
+      .slice(0, 10);
 
     // Calculate totals (simplified - could be enhanced with proper aggregation)
     const totalDownloads = 0; // Would need proper aggregation query
@@ -471,12 +475,15 @@ export class ContentService {
       totalCategories: totalCategories || 0,
       totalDownloads,
       totalViews,
-      recentContent
+      recentContent,
     };
   }
 
   // Utility methods
-  static async getContentByTags(tags: string[], type?: 'sermon' | 'article'): Promise<Array<Sermon | Article>> {
+  static async getContentByTags(
+    tags: string[],
+    type?: 'sermon' | 'article'
+  ): Promise<Array<Sermon | Article>> {
     const results: Array<Sermon | Article> = [];
 
     if (!type || type === 'sermon') {
@@ -492,7 +499,10 @@ export class ContentService {
     return results;
   }
 
-  static async getContentByCategory(categoryId: string, type?: 'sermon' | 'article'): Promise<Array<Sermon | Article>> {
+  static async getContentByCategory(
+    categoryId: string,
+    type?: 'sermon' | 'article'
+  ): Promise<Array<Sermon | Article>> {
     const results: Array<Sermon | Article> = [];
 
     if (!type || type === 'sermon') {

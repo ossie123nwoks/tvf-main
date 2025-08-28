@@ -2,11 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Card, Button, IconButton } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
-import { 
-  mapAuthError, 
-  getErrorSeverityColor, 
-  AuthErrorInfo 
-} from '@/lib/auth/errorHandler';
+import { mapAuthError, getErrorSeverityColor, AuthErrorInfo } from '@/lib/auth/errorHandler';
 
 interface ErrorDisplayProps {
   error: any;
@@ -26,7 +22,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   compact = false,
 }) => {
   const { theme } = useTheme();
-  
+
   if (!error) return null;
 
   const errorInfo: AuthErrorInfo = mapAuthError(error);
@@ -139,15 +135,13 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
             />
             <Text style={styles.title}>{getSeverityTitle()}</Text>
           </View>
-          
+
           <Text style={styles.message}>{errorInfo.userMessage}</Text>
-          
+
           {errorInfo.actionRequired && (
-            <Text style={styles.actionRequired}>
-              {errorInfo.actionRequired}
-            </Text>
+            <Text style={styles.actionRequired}>{errorInfo.actionRequired}</Text>
           )}
-          
+
           <View style={styles.compactActions}>
             {showActionButton && errorInfo.retryable && onRetry && (
               <Button
@@ -159,7 +153,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
                 Retry
               </Button>
             )}
-            
+
             {showDismissButton && onDismiss && (
               <Button
                 mode="text"
@@ -189,32 +183,22 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
             />
             <Text style={styles.title}>{getSeverityTitle()}</Text>
           </View>
-          
+
           <Text style={styles.message}>{errorInfo.userMessage}</Text>
-          
+
           {errorInfo.actionRequired && (
-            <Text style={styles.actionRequired}>
-              {errorInfo.actionRequired}
-            </Text>
+            <Text style={styles.actionRequired}>{errorInfo.actionRequired}</Text>
           )}
-          
+
           <View style={styles.actions}>
             {showActionButton && errorInfo.retryable && onRetry && (
-              <Button
-                mode="contained"
-                onPress={onRetry}
-                style={styles.retryButton}
-              >
+              <Button mode="contained" onPress={onRetry} style={styles.retryButton}>
                 Try Again
               </Button>
             )}
-            
+
             {showDismissButton && onDismiss && (
-              <Button
-                mode="outlined"
-                onPress={onDismiss}
-                style={styles.dismissButton}
-              >
+              <Button mode="outlined" onPress={onDismiss} style={styles.dismissButton}>
                 Dismiss
               </Button>
             )}
@@ -228,7 +212,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
 // Inline error display for form fields
 export const InlineError: React.FC<{ error?: string }> = ({ error }) => {
   const { theme } = useTheme();
-  
+
   if (!error) return null;
 
   const styles = StyleSheet.create({
@@ -251,8 +235,8 @@ export const InlineError: React.FC<{ error?: string }> = ({ error }) => {
 };
 
 // Success message display
-export const SuccessMessage: React.FC<{ 
-  message: string; 
+export const SuccessMessage: React.FC<{
+  message: string;
   onDismiss?: () => void;
   compact?: boolean;
 }> = ({ message, onDismiss, compact = false }) => {
@@ -295,7 +279,7 @@ export const SuccessMessage: React.FC<{
       <Card style={compact ? styles.compactCard : styles.card}>
         <Card.Content style={styles.content}>
           <Text style={styles.message}>{message}</Text>
-          
+
           {onDismiss && (
             <Button
               mode="outlined"

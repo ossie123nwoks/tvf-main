@@ -42,7 +42,7 @@ class AutoReauthService {
   async needsReauth(): Promise<boolean> {
     try {
       const currentSession = sessionManager.getCurrentSession();
-      
+
       if (!currentSession) return true;
 
       const sessionStatus = sessionManager.getSessionStatus();
@@ -73,7 +73,7 @@ class AutoReauthService {
   private async performReauth(options: ReauthOptions): Promise<ReauthResult> {
     try {
       const currentSession = sessionManager.getCurrentSession();
-      
+
       // If no current session, user needs to sign in again
       if (!currentSession) {
         return {
@@ -104,7 +104,7 @@ class AutoReauthService {
 
       // If refresh failed or force is true, try to restore from Supabase
       const { data, error } = await supabase.auth.getSession();
-      
+
       if (error) {
         console.error('Failed to get session from Supabase:', error);
         return {
@@ -120,7 +120,7 @@ class AutoReauthService {
       if (data.session && data.user) {
         // Session is valid on server, update local session
         await sessionManager.saveSession(data.session, data.user as User);
-        
+
         return {
           success: true,
           session: sessionManager.getCurrentSession()!,
@@ -130,7 +130,7 @@ class AutoReauthService {
 
       // No valid session on server, user needs to sign in again
       await sessionManager.clearSession();
-      
+
       return {
         success: false,
         session: null,
@@ -139,13 +139,12 @@ class AutoReauthService {
           message: 'Session has expired. Please sign in again.',
         },
       };
-
     } catch (error) {
       console.error('Re-authentication failed:', error);
-      
+
       // Clear invalid session
       await sessionManager.clearSession();
-      
+
       return {
         success: false,
         session: null,
@@ -162,10 +161,10 @@ class AutoReauthService {
     try {
       // Check if we have a cached session that might still be valid
       const currentSession = sessionManager.getCurrentSession();
-      
+
       if (currentSession) {
         const sessionStatus = sessionManager.getSessionStatus();
-        
+
         // If session is still valid locally, return it
         if (sessionStatus?.isValid) {
           return {
@@ -202,21 +201,21 @@ class AutoReauthService {
   async shouldAutoLogout(): Promise<boolean> {
     try {
       const currentSession = sessionManager.getCurrentSession();
-      
+
       if (!currentSession) return false;
 
       const sessionStatus = sessionManager.getSessionStatus();
-      
+
       // Auto-logout if session is expired or too old
       if (sessionStatus?.isExpired) return true;
-      
+
       // Check if auto-login is disabled
       const autoLoginEnabled = await sessionManager.isAutoLoginEnabled();
       if (!autoLoginEnabled) return true;
-      
+
       // Check for suspicious activity (multiple failed re-auth attempts)
       // This could be expanded with more sophisticated detection
-      
+
       return false;
     } catch (error) {
       console.error('Error checking auto-logout:', error);

@@ -43,7 +43,7 @@ export class AudioProgressTracker {
     this.stopTracking(); // Stop any existing tracking
 
     // Load existing progress or create new
-    this.loadProgress(audioUrl).then((progress) => {
+    this.loadProgress(audioUrl).then(progress => {
       this.currentProgress = progress || {
         audioUrl,
         position: 0,
@@ -109,7 +109,10 @@ export class AudioProgressTracker {
   /**
    * Check if audio should resume from previous position
    */
-  async shouldResume(audioUrl: string, options: ResumeOptions = { threshold: 10, maxAge: 24 }): Promise<boolean> {
+  async shouldResume(
+    audioUrl: string,
+    options: ResumeOptions = { threshold: 10, maxAge: 24 }
+  ): Promise<boolean> {
     try {
       const progress = await this.getProgress(audioUrl);
       if (!progress) return false;

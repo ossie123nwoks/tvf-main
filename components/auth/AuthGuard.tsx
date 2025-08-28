@@ -68,12 +68,20 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
       router.replace('/(tabs)/dashboard');
       return;
     }
-  }, [isAuthenticated, isInitialized, user, requireAuth, requireVerification, fallbackRoute, router]);
+  }, [
+    isAuthenticated,
+    isInitialized,
+    user,
+    requireAuth,
+    requireVerification,
+    fallbackRoute,
+    router,
+  ]);
 
   // Show loading while determining authentication state
   if (!isInitialized || loading) {
     if (!showLoading) return null;
-    
+
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -85,13 +93,11 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   // If authentication is required but user is not authenticated
   if (requireAuth && !isAuthenticated) {
     if (!showLoading) return null;
-    
+
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Authentication Required</Text>
-        <Text style={styles.loadingText}>
-          Please sign in to access this content
-        </Text>
+        <Text style={styles.loadingText}>Please sign in to access this content</Text>
       </View>
     );
   }
@@ -99,13 +105,11 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   // If email verification is required but user is not verified
   if (requireVerification && user && !user.isEmailVerified) {
     if (!showLoading) return null;
-    
+
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Email Verification Required</Text>
-        <Text style={styles.loadingText}>
-          Please verify your email address to continue
-        </Text>
+        <Text style={styles.loadingText}>Please verify your email address to continue</Text>
       </View>
     );
   }
@@ -132,7 +136,7 @@ export const withAuthGuard = <P extends object>(
 // Hook for conditional rendering based on auth state
 export const useAuthGuard = () => {
   const { user, isAuthenticated, isInitialized, loading } = useAuth();
-  
+
   return {
     isAuthenticated,
     isInitialized,

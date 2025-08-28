@@ -104,7 +104,8 @@ export class OfflineDownloadService {
 
       // Check available storage space
       const storageInfo = await this.getStorageInfo();
-      if (storageInfo.availableSpace < 50 * 1024 * 1024) { // 50MB minimum
+      if (storageInfo.availableSpace < 50 * 1024 * 1024) {
+        // 50MB minimum
         throw new Error('Insufficient storage space');
       }
 
@@ -158,13 +159,12 @@ export class OfflineDownloadService {
       // Get file size first
       const response = await fetch(item.url, { method: 'HEAD' });
       if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      
+
       const contentLength = response.headers.get('content-length');
       item.size = contentLength ? parseInt(contentLength, 10) : 0;
 
       // Start the actual download
       await this.downloadFile(item);
-
     } catch (error) {
       console.error(`Download failed for ${id}:`, error);
       item.status = 'failed';
@@ -185,8 +185,9 @@ export class OfflineDownloadService {
         item.url,
         item.localPath,
         {},
-        (downloadProgress) => {
-          const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+        downloadProgress => {
+          const progress =
+            downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
           item.progress = progress;
           item.downloadedSize = downloadProgress.totalBytesWritten;
           item.updatedAt = Date.now();
@@ -194,7 +195,7 @@ export class OfflineDownloadService {
       );
 
       const result = await downloadResumable.downloadAsync();
-      
+
       if (result.status === 200) {
         item.status = 'completed';
         item.progress = 1;
@@ -204,7 +205,6 @@ export class OfflineDownloadService {
       } else {
         throw new Error(`Download failed with status: ${result.status}`);
       }
-
     } catch (error) {
       throw error;
     } finally {
@@ -218,7 +218,10 @@ export class OfflineDownloadService {
    * Process download queue
    */
   private processQueue(): void {
-    while (this.downloadQueue.length > 0 && this.activeDownloads.size < this.maxConcurrentDownloads) {
+    while (
+      this.downloadQueue.length > 0 &&
+      this.activeDownloads.size < this.maxConcurrentDownloads
+    ) {
       const id = this.downloadQueue.shift();
       if (id) {
         this.startDownload(id);
@@ -262,7 +265,7 @@ export class OfflineDownloadService {
 
     // Remove from active downloads
     this.activeDownloads.delete(id);
-    
+
     // Remove from queue
     const queueIndex = this.downloadQueue.indexOf(id);
     if (queueIndex > -1) {
@@ -318,8 +321,8 @@ export class OfflineDownloadService {
    * Get download by content ID
    */
   getDownloadByContentId(contentId: string): DownloadItem | undefined {
-    return Array.from(this.downloads.values()).find(item => 
-      item.metadata?.contentId === contentId || item.id === contentId
+    return Array.from(this.downloads.values()).find(
+      item => item.metadata?.contentId === contentId || item.id === contentId
     );
   }
 
@@ -337,7 +340,7 @@ export class OfflineDownloadService {
     try {
       const downloads = Array.from(this.downloads.values());
       const download = downloads.find(item => item.url === url && item.status === 'completed');
-      
+
       if (!download) return false;
 
       // Verify file still exists
@@ -355,7 +358,7 @@ export class OfflineDownloadService {
     try {
       const downloads = Array.from(this.downloads.values());
       const download = downloads.find(item => item.url === url && item.status === 'completed');
-      
+
       if (!download) return null;
 
       // Verify file still exists
@@ -373,7 +376,7 @@ export class OfflineDownloadService {
     try {
       const downloads = Array.from(this.downloads.values());
       const completedDownloads = downloads.filter(item => item.status === 'completed');
-      
+
       let totalDownloadSize = 0;
       for (const download of completedDownloads) {
         try {
@@ -426,16 +429,16 @@ export class OfflineDownloadService {
     try {
       const downloads = Array.from(this.downloads.values());
       const now = Date.now();
-      const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
+      const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
 
       for (const download of downloads) {
         // Remove downloads older than 30 days
         if (download.createdAt < thirtyDaysAgo) {
           await this.cancelDownload(download.id);
         }
-        
+
         // Remove failed downloads older than 7 days
-        if (download.status === 'failed' && download.updatedAt < (now - (7 * 24 * 60 * 60 * 1000))) {
+        if (download.status === 'failed' && download.updatedAt < now - 7 * 24 * 60 * 60 * 1000) {
           await this.cancelDownload(download.id);
         }
       }
@@ -454,18 +457,22 @@ export class OfflineDownloadService {
   /**
    * Generate local file path
    */
-  private async generateLocalPath(type: DownloadItem['type'], title: string, url: string): Promise<string> {
+  private async generateLocalPath(
+    type: DownloadItem['type'],
+    title: string,
+    url: string
+  ): Promise<string> {
     const sanitizedTitle = title.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50);
     const extension = this.getFileExtension(url, type);
     const filename = `${sanitizedTitle}_${Date.now()}${extension}`;
-    
+
     // Create type-specific subdirectories
     const typeDir = `${this.baseDir}${type}/`;
     const dirInfo = await FileSystem.getInfoAsync(typeDir);
     if (!dirInfo.exists) {
       await FileSystem.makeDirectoryAsync(typeDir, { intermediates: true });
     }
-    
+
     return `${typeDir}${filename}`;
   }
 
@@ -477,14 +484,14 @@ export class OfflineDownloadService {
     if (type === 'article') return '.html';
     if (type === 'image') return '.jpg';
     if (type === 'document') return '.pdf';
-    
+
     // Try to extract from URL
     const urlParts = url.split('.');
     if (urlParts.length > 1) {
       const ext = urlParts[urlParts.length - 1].split('?')[0];
       if (ext && ext.length <= 4) return `.${ext}`;
     }
-    
+
     return '';
   }
 
@@ -527,12 +534,12 @@ export class OfflineDownloadService {
       for (const id of this.activeDownloads) {
         await this.cancelDownload(id);
       }
-      
+
       // Clear all downloads
       this.downloads.clear();
       this.downloadQueue = [];
       this.activeDownloads.clear();
-      
+
       // Remove storage
       await AsyncStorage.removeItem(this.storageKey);
     } catch (error) {

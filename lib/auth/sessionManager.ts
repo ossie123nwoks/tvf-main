@@ -55,19 +55,19 @@ class SessionManager {
   async initialize(): Promise<SessionData | null> {
     try {
       const sessionData = await this.loadPersistedSession();
-      
+
       if (sessionData && this.isSessionValid(sessionData)) {
         this.currentSession = sessionData;
         await this.updateLastActivity();
-        
+
         // Check if session needs refresh
         if (this.shouldRefreshSession(sessionData)) {
           await this.refreshSession();
         }
-        
+
         return this.currentSession;
       }
-      
+
       return null;
     } catch (error) {
       console.error('Session initialization failed:', error);
@@ -86,10 +86,10 @@ class SessionManager {
     if (!this.currentSession) return null;
 
     const now = Date.now();
-    const sessionExpiry = this.currentSession.session?.expires_at 
-      ? new Date(this.currentSession.session.expires_at).getTime() 
+    const sessionExpiry = this.currentSession.session?.expires_at
+      ? new Date(this.currentSession.session.expires_at).getTime()
       : 0;
-    
+
     const timeUntilExpiry = Math.max(0, sessionExpiry - now);
     const isExpired = timeUntilExpiry === 0;
     const needsRefresh = this.shouldRefreshSession(this.currentSession);
@@ -118,7 +118,7 @@ class SessionManager {
       this.currentSession = sessionData;
       await this.persistSession(sessionData);
       await this.updateLastActivity();
-      
+
       // Set up automatic refresh
       this.scheduleSessionRefresh(sessionData);
     } catch (error) {
@@ -135,7 +135,7 @@ class SessionManager {
     }
 
     this.refreshPromise = this.performSessionRefresh();
-    
+
     try {
       const result = await this.refreshPromise;
       return result;
@@ -150,7 +150,7 @@ class SessionManager {
       this.currentSession = null;
       this.clearRefreshTimer();
       this.clearActivityTimer();
-      
+
       await Promise.all([
         AsyncStorage.removeItem(STORAGE_KEYS.SESSION),
         AsyncStorage.removeItem(STORAGE_KEYS.USER),
@@ -207,16 +207,16 @@ class SessionManager {
 
     const now = Date.now();
     const sessionExpiry = new Date(sessionData.session.expires_at).getTime();
-    
+
     // Check if session is expired
     if (now >= sessionExpiry) return false;
-    
+
     // Check if session is too old
     if (now - sessionData.lastActivity > SESSION_CONFIG.MAX_SESSION_AGE) return false;
-    
+
     // Check if user has been inactive for too long
     if (now - sessionData.lastActivity > SESSION_CONFIG.ACTIVITY_TIMEOUT) return false;
-    
+
     return true;
   }
 
@@ -226,8 +226,8 @@ class SessionManager {
 
     const now = Date.now();
     const sessionExpiry = new Date(sessionData.session.expires_at).getTime();
-    
-    return (sessionExpiry - now) <= SESSION_CONFIG.REFRESH_THRESHOLD;
+
+    return sessionExpiry - now <= SESSION_CONFIG.REFRESH_THRESHOLD;
   }
 
   // Perform actual session refresh
@@ -257,17 +257,17 @@ class SessionManager {
         this.currentSession = sessionData;
         await this.persistSession(sessionData);
         await this.updateLastActivity();
-        
+
         // Schedule next refresh
         this.scheduleSessionRefresh(sessionData);
-        
+
         return sessionData;
       }
 
       return null;
     } catch (error) {
       console.error('Session refresh failed:', error);
-      
+
       // If refresh fails, clear the session
       await this.clearSession();
       return null;
@@ -357,7 +357,10 @@ class SessionManager {
         AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(sessionData.user)),
         AsyncStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, sessionData.refreshToken || ''),
         AsyncStorage.setItem(STORAGE_KEYS.LAST_ACTIVITY, sessionData.lastActivity.toString()),
-        AsyncStorage.setItem(STORAGE_KEYS.AUTO_LOGIN_ENABLED, sessionData.autoLoginEnabled.toString()),
+        AsyncStorage.setItem(
+          STORAGE_KEYS.AUTO_LOGIN_ENABLED,
+          sessionData.autoLoginEnabled.toString()
+        ),
       ]);
     } catch (error) {
       console.error('Failed to persist session:', error);
@@ -371,7 +374,7 @@ class SessionManager {
       if (!this.currentSession?.session) return false;
 
       const { data, error } = await supabase.auth.getSession();
-      
+
       if (error) {
         console.error('Server session validation failed:', error);
         return false;

@@ -199,13 +199,13 @@ export const UserFeedback: React.FC<UserFeedbackProps> = ({
       <Card style={cardStyle}>
         <Card.Content style={styles.content}>
           {renderIcon()}
-          
+
           <View style={styles.textContainer}>
             <Text style={styles.message}>{message}</Text>
             {subMessage && <Text style={styles.subMessage}>{subMessage}</Text>}
           </View>
         </Card.Content>
-        
+
         {renderProgress()}
       </Card>
     </Animated.View>

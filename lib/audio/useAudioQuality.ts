@@ -1,5 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { audioQualityManager, AudioQuality, NetworkCondition, QualityPreferences, QualityRecommendation } from './qualityManager';
+import {
+  audioQualityManager,
+  AudioQuality,
+  NetworkCondition,
+  QualityPreferences,
+  QualityRecommendation,
+} from './qualityManager';
 
 export interface UseAudioQualityReturn {
   currentQuality: AudioQuality | null;
@@ -11,12 +17,19 @@ export interface UseAudioQualityReturn {
   refreshNetworkInfo: () => Promise<void>;
   updateQualityPreferences: (preferences: Partial<QualityPreferences>) => Promise<void>;
   getRecommendedQuality: (contentUrl: string, duration: number) => Promise<QualityRecommendation>;
-  shouldChangeQuality: (currentQuality: AudioQuality, contentUrl: string, duration: number) => Promise<{
+  shouldChangeQuality: (
+    currentQuality: AudioQuality,
+    contentUrl: string,
+    duration: number
+  ) => Promise<{
     shouldChange: boolean;
     newQuality?: AudioQuality;
     reason?: string;
   }>;
-  getQualityComparison: (quality1: AudioQuality, quality2: AudioQuality) => {
+  getQualityComparison: (
+    quality1: AudioQuality,
+    quality2: AudioQuality
+  ) => {
     bitrateDifference: number;
     fileSizeDifference: number;
     qualityDifference: string;
@@ -30,14 +43,16 @@ export const useAudioQuality = (): UseAudioQualityReturn => {
   const [availableQualities, setAvailableQualities] = useState<AudioQuality[]>([]);
   const [networkCondition, setNetworkCondition] = useState<NetworkCondition | null>(null);
   const [qualityPreferences, setQualityPreferences] = useState<QualityPreferences | null>(null);
-  const [currentRecommendation, setCurrentRecommendation] = useState<QualityRecommendation | null>(null);
+  const [currentRecommendation, setCurrentRecommendation] = useState<QualityRecommendation | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   // Load initial data
   const loadInitialData = useCallback(async () => {
     try {
       setIsLoading(true);
-      
+
       const [preferences, qualities] = await Promise.all([
         audioQualityManager.getQualityPreferences(),
         audioQualityManager.getAllQualityLevels(),
@@ -45,7 +60,7 @@ export const useAudioQuality = (): UseAudioQualityReturn => {
 
       setQualityPreferences(preferences);
       setAvailableQualities(qualities);
-      
+
       // Set default current quality
       if (qualities.length > 0) {
         setCurrentQuality(qualities[2]); // Default to medium quality
@@ -71,7 +86,7 @@ export const useAudioQuality = (): UseAudioQualityReturn => {
   const updateQualityPreferences = useCallback(async (preferences: Partial<QualityPreferences>) => {
     try {
       await audioQualityManager.updateQualityPreferences(preferences);
-      
+
       // Reload preferences
       const updated = await audioQualityManager.getQualityPreferences();
       setQualityPreferences(updated);
@@ -93,18 +108,17 @@ export const useAudioQuality = (): UseAudioQualityReturn => {
   }, []);
 
   // Check if quality should change
-  const shouldChangeQuality = useCallback(async (
-    currentQuality: AudioQuality,
-    contentUrl: string,
-    duration: number
-  ) => {
-    try {
-      return await audioQualityManager.shouldChangeQuality(currentQuality, contentUrl, duration);
-    } catch (error) {
-      console.error('Failed to check if quality should change:', error);
-      throw error;
-    }
-  }, []);
+  const shouldChangeQuality = useCallback(
+    async (currentQuality: AudioQuality, contentUrl: string, duration: number) => {
+      try {
+        return await audioQualityManager.shouldChangeQuality(currentQuality, contentUrl, duration);
+      } catch (error) {
+        console.error('Failed to check if quality should change:', error);
+        throw error;
+      }
+    },
+    []
+  );
 
   // Get quality comparison
   const getQualityComparison = useCallback((quality1: AudioQuality, quality2: AudioQuality) => {
@@ -115,7 +129,7 @@ export const useAudioQuality = (): UseAudioQualityReturn => {
   const resetPreferences = useCallback(async () => {
     try {
       await audioQualityManager.resetPreferences();
-      
+
       // Reload preferences
       const preferences = await audioQualityManager.getQualityPreferences();
       setQualityPreferences(preferences);

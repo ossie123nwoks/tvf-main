@@ -14,9 +14,7 @@ export default function Index() {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
-          Loading...
-        </Text>
+        <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Loading...</Text>
       </View>
     );
   }

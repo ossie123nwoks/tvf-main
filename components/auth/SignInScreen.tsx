@@ -106,11 +106,11 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({
       <Card style={styles.card}>
         <Card.Content>
           <Text style={styles.title}>Welcome Back</Text>
-          
+
           <TextInput
             label="Email"
             value={credentials.email}
-            onChangeText={(value) => handleInputChange('email', value)}
+            onChangeText={value => handleInputChange('email', value)}
             style={styles.input}
             mode="outlined"
             keyboardType="email-address"
@@ -118,31 +118,21 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({
             autoComplete="email"
             error={!!formErrors.email}
           />
-          {formErrors.email && (
-            <Text style={styles.errorText}>{formErrors.email}</Text>
-          )}
+          {formErrors.email && <Text style={styles.errorText}>{formErrors.email}</Text>}
 
           <TextInput
             label="Password"
             value={credentials.password}
-            onChangeText={(value) => handleInputChange('password', value)}
+            onChangeText={value => handleInputChange('password', value)}
             style={styles.input}
             mode="outlined"
             secureTextEntry
             autoComplete="password"
             error={!!formErrors.password}
           />
-          {formErrors.password && (
-            <Text style={styles.errorText}>{formErrors.password}</Text>
-          )}
+          {formErrors.password && <Text style={styles.errorText}>{formErrors.password}</Text>}
 
-          {error && (
-            <ErrorDisplay
-              error={error}
-              onDismiss={() => clearError()}
-              compact={true}
-            />
-          )}
+          {error && <ErrorDisplay error={error} onDismiss={() => clearError()} compact={true} />}
 
           <Button
             mode="contained"
@@ -166,11 +156,7 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Don't have an account? </Text>
-        <Button
-          mode="text"
-          onPress={onSwitchToSignUp}
-          style={styles.linkButton}
-        >
+        <Button mode="text" onPress={onSwitchToSignUp} style={styles.linkButton}>
           Sign Up
         </Button>
       </View>

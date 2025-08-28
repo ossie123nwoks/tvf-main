@@ -77,16 +77,12 @@ jest.mock('react-native', () => {
 
 describe('SyncDashboard', () => {
   const renderWithTheme = (component: React.ReactElement) => {
-    return render(
-      <ThemeProvider>
-        {component}
-      </ThemeProvider>
-    );
+    return render(<ThemeProvider>{component}</ThemeProvider>);
   };
 
   it('renders correctly with default state', () => {
     const { getByText } = renderWithTheme(<SyncDashboard />);
-    
+
     expect(getByText('Sync Dashboard')).toBeTruthy();
     expect(getByText('Sync Status')).toBeTruthy();
     expect(getByText('Sync Controls')).toBeTruthy();
@@ -95,7 +91,7 @@ describe('SyncDashboard', () => {
 
   it('displays sync status information', () => {
     const { getByText } = renderWithTheme(<SyncDashboard />);
-    
+
     expect(getByText('Status: Idle')).toBeTruthy();
     expect(getByText('Total Items')).toBeTruthy();
     expect(getByText('Offline Content')).toBeTruthy();
@@ -105,7 +101,7 @@ describe('SyncDashboard', () => {
 
   it('shows sync controls', () => {
     const { getByText } = renderWithTheme(<SyncDashboard />);
-    
+
     expect(getByText('Start Sync')).toBeTruthy();
     expect(getByText('Retry Failed')).toBeTruthy();
     expect(getByText('Clear Completed')).toBeTruthy();
@@ -114,7 +110,7 @@ describe('SyncDashboard', () => {
 
   it('displays sync options', () => {
     const { getByText } = renderWithTheme(<SyncDashboard />);
-    
+
     expect(getByText('Auto-sync')).toBeTruthy();
     expect(getByText('Sync on WiFi')).toBeTruthy();
     expect(getByText('Sync on Cellular')).toBeTruthy();
@@ -124,14 +120,14 @@ describe('SyncDashboard', () => {
 
   it('shows empty queue message when no items', () => {
     const { getByText } = renderWithTheme(<SyncDashboard />);
-    
+
     expect(getByText('No items in sync queue')).toBeTruthy();
   });
 
   it('handles close button when onClose prop is provided', () => {
     const onClose = jest.fn();
     const { getByTestId } = renderWithTheme(<SyncDashboard onClose={onClose} />);
-    
+
     // Note: The close button is rendered by IconButton, so we need to check if it exists
     // This test verifies the component renders without crashing when onClose is provided
     expect(onClose).toBeDefined();

@@ -20,7 +20,7 @@ export default function ContentCard({
   showActions = true,
   showStats = true,
   variant = 'default',
-  onActionPress
+  onActionPress,
 }: ContentCardProps) {
   const { theme } = useTheme();
   const paperTheme = usePaperTheme();
@@ -177,7 +177,7 @@ export default function ContentCard({
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays} days ago`;
     if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
@@ -227,13 +227,13 @@ export default function ContentCard({
     <View style={styles.container}>
       <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
         <Card style={getCardStyle()}>
-          <Card.Cover 
-            source={{ 
-              uri: content.thumbnail_url || 'https://via.placeholder.com/300x200?text=No+Image' 
+          <Card.Cover
+            source={{
+              uri: content.thumbnail_url || 'https://via.placeholder.com/300x200?text=No+Image',
             }}
             style={styles.thumbnail}
           />
-          
+
           <Card.Content style={styles.content}>
             <View style={styles.header}>
               <Text style={styles.title} numberOfLines={(variant === 'compact' ? 2 : 3) as number}>
@@ -246,9 +246,7 @@ export default function ContentCard({
               )}
             </View>
 
-            <Text style={styles.subtitle}>
-              {isSermon ? content.preacher : content.author}
-            </Text>
+            <Text style={styles.subtitle}>{isSermon ? content.preacher : content.author}</Text>
 
             {variant !== 'compact' && (
               <Text style={styles.description} numberOfLines={2 as number}>
@@ -257,32 +255,24 @@ export default function ContentCard({
             )}
 
             <View style={styles.meta}>
-              <MaterialIcons 
-                name={getContentIcon() as any} 
-                size={16} 
-                color={getContentColor()} 
+              <MaterialIcons
+                name={getContentIcon() as any}
+                size={16}
+                color={getContentColor()}
                 style={styles.typeIcon}
               />
-              <Text style={styles.metaText}>
-                {formatDate(getContentDate())}
-              </Text>
+              <Text style={styles.metaText}>{formatDate(getContentDate())}</Text>
               {isSermon && (
-                <Text style={styles.metaText}>
-                  • {formatDuration(content.duration)}
-                </Text>
+                <Text style={styles.metaText}>• {formatDuration(content.duration)}</Text>
               )}
-              {isArticle && (
-                <Text style={styles.metaText}>
-                  • {getContentReadTime()} min read
-                </Text>
-              )}
+              {isArticle && <Text style={styles.metaText}>• {getContentReadTime()} min read</Text>}
             </View>
 
             {content.tags.length > 0 && variant !== 'compact' && (
               <View style={styles.tags}>
                 {content.tags.slice(0, 3).map((tag, index) => (
-                  <Chip 
-                    key={index} 
+                  <Chip
+                    key={index}
                     style={styles.tag}
                     textStyle={{ color: theme.colors.textSecondary }}
                     compact
@@ -291,7 +281,7 @@ export default function ContentCard({
                   </Chip>
                 ))}
                 {content.tags.length > 3 && (
-                  <Chip 
+                  <Chip
                     style={styles.tag}
                     textStyle={{ color: theme.colors.textSecondary }}
                     compact

@@ -79,7 +79,7 @@ export class StorageManager {
     try {
       const downloads = offlineDownloadService.getAllDownloads();
       const completedDownloads = downloads.filter(item => item.status === 'completed');
-      
+
       let totalDownloadSize = 0;
       for (const download of completedDownloads) {
         try {
@@ -138,9 +138,9 @@ export class StorageManager {
     try {
       const downloads = offlineDownloadService.getAllDownloads();
       const completedDownloads = downloads.filter(item => item.status === 'completed');
-      
+
       const typeMap = new Map<string, ContentTypeUsage>();
-      
+
       for (const download of completedDownloads) {
         const type = download.type;
         if (!typeMap.has(type)) {
@@ -153,10 +153,10 @@ export class StorageManager {
             accessCount: 1,
           });
         }
-        
+
         const typeUsage = typeMap.get(type)!;
         typeUsage.count++;
-        
+
         try {
           const fileInfo = await FileSystem.getInfoAsync(download.localPath);
           if (fileInfo.exists && fileInfo.size) {
@@ -165,16 +165,16 @@ export class StorageManager {
         } catch (error) {
           console.error('Failed to get file size:', error);
         }
-        
+
         typeUsage.lastAccessed = Math.max(typeUsage.lastAccessed, download.updatedAt);
         typeUsage.accessCount++;
       }
-      
+
       // Calculate averages
       for (const typeUsage of typeMap.values()) {
         typeUsage.averageSize = typeUsage.count > 0 ? typeUsage.totalSize / typeUsage.count : 0;
       }
-      
+
       return Array.from(typeMap.values()).sort((a, b) => b.totalSize - a.totalSize);
     } catch (error) {
       console.error('Failed to get content type usage:', error);
@@ -190,11 +190,11 @@ export class StorageManager {
       const downloads = offlineDownloadService.getAllDownloads();
       const completedDownloads = downloads.filter(item => item.status === 'completed');
       const failedDownloads = downloads.filter(item => item.status === 'failed');
-      
+
       let totalSize = 0;
       let largestDownload = 0;
       let smallestDownload = Number.MAX_SAFE_INTEGER;
-      
+
       for (const download of completedDownloads) {
         try {
           const fileInfo = await FileSystem.getInfoAsync(download.localPath);
@@ -207,18 +207,21 @@ export class StorageManager {
           console.error('Failed to get file size:', error);
         }
       }
-      
-      const averageDownloadSize = completedDownloads.length > 0 ? totalSize / completedDownloads.length : 0;
-      const downloadSuccessRate = downloads.length > 0 ? (completedDownloads.length / downloads.length) * 100 : 0;
-      
+
+      const averageDownloadSize =
+        completedDownloads.length > 0 ? totalSize / completedDownloads.length : 0;
+      const downloadSuccessRate =
+        downloads.length > 0 ? (completedDownloads.length / downloads.length) * 100 : 0;
+
       // Calculate storage efficiency (ratio of completed downloads to total attempts)
-      const storageEfficiency = downloads.length > 0 ? (completedDownloads.length / downloads.length) * 100 : 0;
-      
+      const storageEfficiency =
+        downloads.length > 0 ? (completedDownloads.length / downloads.length) * 100 : 0;
+
       // Get cleanup savings from analytics
       const analytics = await this.getStoredAnalytics();
       const cleanupSavings = analytics?.cleanupSavings || 0;
       const lastCleanup = analytics?.lastCleanup || 0;
-      
+
       return {
         totalDownloads: downloads.length,
         successfulDownloads: completedDownloads.length,
@@ -256,20 +259,20 @@ export class StorageManager {
       const downloads = offlineDownloadService.getAllDownloads();
       const completedDownloads = downloads.filter(item => item.status === 'completed');
       const now = Date.now();
-      const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
-      const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
-      
+      const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+      const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+
       // Analyze old content
       const oldContent = completedDownloads.filter(item => item.updatedAt < thirtyDaysAgo);
       const oldContentSize = await this.calculateContentSize(oldContent);
-      
+
       // Analyze rarely used content (accessed less than 3 times in last 30 days)
       const rarelyUsedContent = completedDownloads.filter(item => {
         const daysSinceUpdate = (now - item.updatedAt) / (24 * 60 * 60 * 1000);
         return daysSinceUpdate > 30;
       });
       const rarelyUsedSize = await this.calculateContentSize(rarelyUsedContent);
-      
+
       // Check for potential duplicates (same title, different timestamps)
       const titleGroups = new Map<string, DownloadItem[]>();
       for (const download of completedDownloads) {
@@ -279,37 +282,39 @@ export class StorageManager {
         }
         titleGroups.get(title)!.push(download);
       }
-      
+
       const duplicateContent = Array.from(titleGroups.values())
         .filter(group => group.length > 1)
         .flat();
       const duplicateSize = await this.calculateContentSize(duplicateContent);
-      
+
       // Calculate recommended cleanup size
       const recommendedCleanupSize = oldContentSize + rarelyUsedSize + duplicateSize;
-      
+
       // Determine if cleanup is recommended
       const shouldCleanup = recommendedCleanupSize > 100 * 1024 * 1024; // 100MB threshold
-      
+
       // Generate optimization suggestions
       const optimizationSuggestions: string[] = [];
-      
-      if (oldContentSize > 50 * 1024 * 1024) { // 50MB
+
+      if (oldContentSize > 50 * 1024 * 1024) {
+        // 50MB
         optimizationSuggestions.push('Remove content older than 30 days to free up space');
       }
-      
+
       if (rarelyUsedSize > 50 * 1024 * 1024) {
         optimizationSuggestions.push('Consider removing rarely accessed content');
       }
-      
-      if (duplicateSize > 10 * 1024 * 1024) { // 10MB
+
+      if (duplicateSize > 10 * 1024 * 1024) {
+        // 10MB
         optimizationSuggestions.push('Remove duplicate content to optimize storage');
       }
-      
+
       if (optimizationSuggestions.length === 0) {
         optimizationSuggestions.push('Storage is well optimized. No immediate actions needed.');
       }
-      
+
       return {
         shouldCleanup,
         recommendedCleanupSize,
@@ -344,17 +349,15 @@ export class StorageManager {
       const completedDownloads = downloads.filter(item => item.status === 'completed');
       const now = Date.now();
       const ageThresholdMs = options.ageThreshold * 24 * 60 * 60 * 1000;
-      
+
       let removedCount = 0;
       let freedSpace = 0;
       const details: string[] = [];
-      
+
       // Remove old content
       if (options.removeOldContent) {
-        const oldContent = completedDownloads.filter(item => 
-          (now - item.updatedAt) > ageThresholdMs
-        );
-        
+        const oldContent = completedDownloads.filter(item => now - item.updatedAt > ageThresholdMs);
+
         for (const download of oldContent) {
           try {
             const fileInfo = await FileSystem.getInfoAsync(download.localPath);
@@ -367,12 +370,12 @@ export class StorageManager {
             console.error('Failed to remove old content:', error);
           }
         }
-        
+
         if (oldContent.length > 0) {
           details.push(`Removed ${oldContent.length} old items (${this.formatBytes(freedSpace)})`);
         }
       }
-      
+
       // Remove failed downloads
       if (options.removeFailedDownloads) {
         const failedDownloads = downloads.filter(item => item.status === 'failed');
@@ -384,19 +387,19 @@ export class StorageManager {
             console.error('Failed to remove failed download:', error);
           }
         }
-        
+
         if (failedDownloads.length > 0) {
           details.push(`Removed ${failedDownloads.length} failed downloads`);
         }
       }
-      
+
       // Remove rarely used content
       if (options.removeRarelyUsed) {
         const rarelyUsedContent = completedDownloads.filter(item => {
           const daysSinceUpdate = (now - item.updatedAt) / (24 * 60 * 60 * 1000);
           return daysSinceUpdate > options.ageThreshold;
         });
-        
+
         for (const download of rarelyUsedContent) {
           try {
             const fileInfo = await FileSystem.getInfoAsync(download.localPath);
@@ -409,15 +412,17 @@ export class StorageManager {
             console.error('Failed to remove rarely used content:', error);
           }
         }
-        
+
         if (rarelyUsedContent.length > 0) {
-          details.push(`Removed ${rarelyUsedContent.length} rarely used items (${this.formatBytes(freedSpace)})`);
+          details.push(
+            `Removed ${rarelyUsedContent.length} rarely used items (${this.formatBytes(freedSpace)})`
+          );
         }
       }
-      
+
       // Update analytics
       await this.updateCleanupAnalytics(freedSpace);
-      
+
       return {
         removedCount,
         freedSpace,
@@ -432,18 +437,20 @@ export class StorageManager {
   /**
    * Get storage usage history for trending analysis
    */
-  async getStorageUsageHistory(days: number = 30): Promise<Array<{
-    date: string;
-    usedSpace: number;
-    downloadCount: number;
-  }>> {
+  async getStorageUsageHistory(days: number = 30): Promise<
+    Array<{
+      date: string;
+      usedSpace: number;
+      downloadCount: number;
+    }>
+  > {
     try {
       const data = await AsyncStorage.getItem(this.usageHistoryKey);
       if (!data) return [];
-      
+
       const history = JSON.parse(data);
-      const cutoffDate = Date.now() - (days * 24 * 60 * 60 * 1000);
-      
+      const cutoffDate = Date.now() - days * 24 * 60 * 60 * 1000;
+
       return history
         .filter((entry: any) => entry.timestamp > cutoffDate)
         .map((entry: any) => ({
@@ -465,19 +472,19 @@ export class StorageManager {
     try {
       const usage = await this.getStorageUsage();
       const history = await this.getStorageUsageHistory();
-      
+
       const newEntry = {
         timestamp: Date.now(),
         usedSpace: usage.usedSpace,
         downloadCount: usage.downloadCount,
       };
-      
+
       history.push(newEntry);
-      
+
       // Keep only last 90 days of history
-      const ninetyDaysAgo = Date.now() - (90 * 24 * 60 * 60 * 1000);
+      const ninetyDaysAgo = Date.now() - 90 * 24 * 60 * 60 * 1000;
       const filteredHistory = history.filter((entry: any) => entry.timestamp > ninetyDaysAgo);
-      
+
       await AsyncStorage.setItem(this.usageHistoryKey, JSON.stringify(filteredHistory));
     } catch (error) {
       console.error('Failed to track storage usage:', error);
@@ -492,9 +499,9 @@ export class StorageManager {
       const usage = await this.getStorageUsage();
       const analytics = await this.getStorageAnalytics();
       const recommendations = await this.getStorageRecommendations();
-      
+
       let score = 100;
-      
+
       // Deduct points for high usage
       if (usage.usagePercentage > 80) {
         score -= 30;
@@ -503,24 +510,24 @@ export class StorageManager {
       } else if (usage.usagePercentage > 40) {
         score -= 10;
       }
-      
+
       // Deduct points for low success rate
       if (analytics.downloadSuccessRate < 70) {
         score -= 20;
       } else if (analytics.downloadSuccessRate < 85) {
         score -= 10;
       }
-      
+
       // Deduct points for cleanup recommendations
       if (recommendations.shouldCleanup) {
         score -= 15;
       }
-      
+
       // Deduct points for many failed downloads
       if (analytics.failedDownloads > 10) {
         score -= 10;
       }
-      
+
       return Math.max(0, Math.min(100, score));
     } catch (error) {
       console.error('Failed to calculate storage health score:', error);
@@ -533,7 +540,7 @@ export class StorageManager {
    */
   private async calculateContentSize(downloads: DownloadItem[]): Promise<number> {
     let totalSize = 0;
-    
+
     for (const download of downloads) {
       try {
         const fileInfo = await FileSystem.getInfoAsync(download.localPath);
@@ -544,7 +551,7 @@ export class StorageManager {
         console.error('Failed to get file size:', error);
       }
     }
-    
+
     return totalSize;
   }
 
@@ -559,7 +566,7 @@ export class StorageManager {
         cleanupSavings: (analytics?.cleanupSavings || 0) + freedSpace,
         lastCleanup: Date.now(),
       };
-      
+
       await AsyncStorage.setItem(this.analyticsKey, JSON.stringify(updatedAnalytics));
     } catch (error) {
       console.error('Failed to update cleanup analytics:', error);

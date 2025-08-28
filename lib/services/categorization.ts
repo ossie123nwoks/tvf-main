@@ -1,11 +1,5 @@
 import { supabase } from '../supabase/client';
-import {
-  Category,
-  Sermon,
-  Article,
-  ContentResponse,
-  ContentFilters
-} from '../../types/content';
+import { Category, Sermon, Article, ContentResponse, ContentFilters } from '../../types/content';
 
 export interface CategoryHierarchy extends Category {
   children: CategoryHierarchy[];
@@ -93,19 +87,19 @@ export class CategorizationService {
       // Create category map with children array
       categories.data?.forEach(cat => {
         if (!includeInactive && !cat.isActive) return;
-        
+
         categoryMap.set(cat.id, {
           ...cat,
           children: [],
           contentCount: 0,
-          subcategoryCount: 0
+          subcategoryCount: 0,
         });
       });
 
       // Build hierarchy
       categories.data?.forEach(cat => {
         if (!includeInactive && !cat.isActive) return;
-        
+
         const category = categoryMap.get(cat.id);
         if (!category) return;
 
@@ -148,7 +142,7 @@ export class CategorizationService {
           .from('articles')
           .select('id', { count: 'exact', head: true })
           .eq('category', category.id)
-          .eq('isPublished', true)
+          .eq('isPublished', true),
       ]);
 
       category.contentCount = (sermonCount.count || 0) + (articleCount.count || 0);
@@ -164,7 +158,9 @@ export class CategorizationService {
   }
 
   // Content Series Management
-  static async createContentSeries(series: Omit<ContentSeries, 'id' | 'totalItems'>): Promise<ContentSeries> {
+  static async createContentSeries(
+    series: Omit<ContentSeries, 'id' | 'totalItems'>
+  ): Promise<ContentSeries> {
     try {
       const { data, error } = await supabase
         .from('content_series')
@@ -172,7 +168,7 @@ export class CategorizationService {
           ...series,
           totalItems: series.items.length,
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         })
         .select()
         .single();
@@ -184,7 +180,7 @@ export class CategorizationService {
       return {
         ...data,
         items: series.items,
-        totalItems: series.items.length
+        totalItems: series.items.length,
       };
     } catch (error) {
       console.error('Failed to create content series:', error);
@@ -218,7 +214,7 @@ export class CategorizationService {
       return {
         ...data,
         items: items || [],
-        totalItems: items?.length || 0
+        totalItems: items?.length || 0,
       };
     } catch (error) {
       console.error('Failed to get content series:', error);
@@ -226,21 +222,22 @@ export class CategorizationService {
     }
   }
 
-  static async addToContentSeries(seriesId: string, item: {
-    id: string;
-    type: 'sermon' | 'article';
-    order?: number;
-  }): Promise<void> {
+  static async addToContentSeries(
+    seriesId: string,
+    item: {
+      id: string;
+      type: 'sermon' | 'article';
+      order?: number;
+    }
+  ): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('content_series_items')
-        .insert({
-          seriesId,
-          contentId: item.id,
-          contentType: item.type,
-          order: item.order || 0,
-          addedAt: new Date().toISOString()
-        });
+      const { error } = await supabase.from('content_series_items').insert({
+        seriesId,
+        contentId: item.id,
+        contentType: item.type,
+        order: item.order || 0,
+        addedAt: new Date().toISOString(),
+      });
 
       if (error) {
         throw new Error(`Failed to add item to series: ${error.message}`);
@@ -249,9 +246,9 @@ export class CategorizationService {
       // Update series total items count
       await supabase
         .from('content_series')
-        .update({ 
+        .update({
           totalItems: supabase.rpc('increment', { x: 1 }),
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         })
         .eq('id', seriesId);
     } catch (error) {
@@ -261,7 +258,9 @@ export class CategorizationService {
   }
 
   // Content Collections Management
-  static async createContentCollection(collection: Omit<ContentCollection, 'id' | 'totalItems' | 'createdAt' | 'updatedAt'>): Promise<ContentCollection> {
+  static async createContentCollection(
+    collection: Omit<ContentCollection, 'id' | 'totalItems' | 'createdAt' | 'updatedAt'>
+  ): Promise<ContentCollection> {
     try {
       const { data, error } = await supabase
         .from('content_collections')
@@ -269,7 +268,7 @@ export class CategorizationService {
           ...collection,
           totalItems: collection.items.length,
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         })
         .select()
         .single();
@@ -281,7 +280,7 @@ export class CategorizationService {
       return {
         ...data,
         items: collection.items,
-        totalItems: collection.items.length
+        totalItems: collection.items.length,
       };
     } catch (error) {
       console.error('Failed to create content collection:', error);
@@ -303,7 +302,7 @@ export class CategorizationService {
 
       // Fetch collection items for each collection
       const collectionsWithItems = await Promise.all(
-        (data || []).map(async (collection) => {
+        (data || []).map(async collection => {
           const { data: items } = await supabase
             .from('content_collection_items')
             .select('*')
@@ -313,7 +312,7 @@ export class CategorizationService {
           return {
             ...collection,
             items: items || [],
-            totalItems: items?.length || 0
+            totalItems: items?.length || 0,
           };
         })
       );
@@ -362,7 +361,7 @@ export class CategorizationService {
         type: contentType,
         title: item.title,
         relationship: 'related' as const,
-        strength: 0.7 // Base strength for category/tag matches
+        strength: 0.7, // Base strength for category/tag matches
       }));
     } catch (error) {
       console.error('Failed to get related content:', error);
@@ -384,7 +383,7 @@ export class CategorizationService {
           .from('articles')
           .select('views, tags')
           .eq('category', categoryId)
-          .eq('isPublished', true)
+          .eq('isPublished', true),
       ]);
 
       if (category.error) {
@@ -395,24 +394,28 @@ export class CategorizationService {
       const articleData = articles.data || [];
 
       // Calculate analytics
-      const totalViews = sermonData.reduce((sum, s) => sum + (s.views || 0), 0) +
-                        articleData.reduce((sum, a) => sum + (a.views || 0), 0);
-      
+      const totalViews =
+        sermonData.reduce((sum, s) => sum + (s.views || 0), 0) +
+        articleData.reduce((sum, a) => sum + (a.views || 0), 0);
+
       const totalDownloads = sermonData.reduce((sum, s) => sum + (s.downloads || 0), 0);
-      
+
       // Get popular tags
       const allTags = [
         ...sermonData.flatMap(s => s.tags || []),
-        ...articleData.flatMap(a => a.tags || [])
+        ...articleData.flatMap(a => a.tags || []),
       ];
-      
-      const tagCounts = allTags.reduce((acc, tag) => {
-        acc[tag] = (acc[tag] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      
+
+      const tagCounts = allTags.reduce(
+        (acc, tag) => {
+          acc[tag] = (acc[tag] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
+
       const popularTags = Object.entries(tagCounts)
-        .sort(([,a], [,b]) => b - a)
+        .sort(([, a], [, b]) => b - a)
         .slice(0, 10)
         .map(([tag]) => tag);
 
@@ -426,9 +429,9 @@ export class CategorizationService {
         popularTags,
         contentDistribution: {
           sermons: sermonData.length,
-          articles: articleData.length
+          articles: articleData.length,
         },
-        growthTrend: [] // Would need historical data
+        growthTrend: [], // Would need historical data
       };
     } catch (error) {
       console.error('Failed to get category analytics:', error);
@@ -466,14 +469,12 @@ export class CategorizationService {
         }
 
         // Check for tag matches
-        const matchingTags = tags.filter(tag => 
-          categoryText.includes(tag.toLowerCase())
-        );
+        const matchingTags = tags.filter(tag => categoryText.includes(tag.toLowerCase()));
         score += (matchingTags.length / tags.length) * 0.3;
 
         // Check for keyword matches
         const keywords = category.description.split(' ').filter(word => word.length > 3);
-        const keywordMatches = keywords.filter(keyword => 
+        const keywordMatches = keywords.filter(keyword =>
           searchText.includes(keyword.toLowerCase())
         );
         score += (keywordMatches.length / keywords.length) * 0.3;
@@ -498,12 +499,12 @@ export class CategorizationService {
   ): Promise<void> {
     try {
       const table = contentType === 'sermon' ? 'sermons' : 'articles';
-      
+
       const { error } = await supabase
         .from(table)
-        .update({ 
+        .update({
           category: categoryId,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         })
         .in('id', contentIds);
 
@@ -523,7 +524,7 @@ export class CategorizationService {
   ): Promise<void> {
     try {
       const table = contentType === 'sermon' ? 'sermons' : 'articles';
-      
+
       // Get current tags for each content item
       const { data: content, error: fetchError } = await supabase
         .from(table)
@@ -538,13 +539,11 @@ export class CategorizationService {
       const updates = content?.map(item => ({
         id: item.id,
         tags: [...new Set([...(item.tags || []), ...tags])],
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       }));
 
       if (updates && updates.length > 0) {
-        const { error: updateError } = await supabase
-          .from(table)
-          .upsert(updates);
+        const { error: updateError } = await supabase.from(table).upsert(updates);
 
         if (updateError) {
           throw new Error(`Failed to bulk add tags: ${updateError.message}`);
@@ -576,7 +575,10 @@ export class CategorizationService {
     }
   }
 
-  static async updateCategory(categoryId: string, categoryData: Partial<Category>): Promise<Category> {
+  static async updateCategory(
+    categoryId: string,
+    categoryData: Partial<Category>
+  ): Promise<Category> {
     try {
       const { data, error } = await supabase
         .from('categories')
@@ -598,10 +600,7 @@ export class CategorizationService {
 
   static async deleteCategory(categoryId: string): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', categoryId);
+      const { error } = await supabase.from('categories').delete().eq('id', categoryId);
 
       if (error) {
         throw new Error(`Failed to delete category: ${error.message}`);

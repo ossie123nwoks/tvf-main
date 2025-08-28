@@ -18,7 +18,7 @@ import {
   TextInput,
   SegmentedButtons,
   Switch,
-  Searchbar
+  Searchbar,
 } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -36,7 +36,7 @@ export default function CategoryManager({
   onCategorySelect,
   showCreateButton = true,
   showAnalytics = true,
-  maxDepth = 3
+  maxDepth = 3,
 }: CategoryManagerProps) {
   const { theme } = useTheme();
   const [categories, setCategories] = useState<CategoryHierarchy[]>([]);
@@ -45,13 +45,13 @@ export default function CategoryManager({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-  
+
   // Dialog states
   const [createDialogVisible, setCreateDialogVisible] = useState(false);
   const [editDialogVisible, setEditDialogVisible] = useState(false);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [analyticsDialogVisible, setAnalyticsDialogVisible] = useState(false);
-  
+
   // Form states
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({
@@ -61,7 +61,7 @@ export default function CategoryManager({
     icon: 'folder',
     parentId: '',
     sortOrder: 0,
-    is_active: true
+    is_active: true,
   });
 
   const styles = StyleSheet.create({
@@ -292,7 +292,7 @@ export default function CategoryManager({
       icon: 'folder',
       parentId: '',
       sortOrder: 0,
-      is_active: true
+      is_active: true,
     });
     setCreateDialogVisible(true);
   };
@@ -306,7 +306,7 @@ export default function CategoryManager({
       icon: category.icon,
       parentId: category.parentId || '',
       sortOrder: category.sortOrder,
-      is_active: category.is_active
+      is_active: category.is_active,
     });
     setEditDialogVisible(true);
   };
@@ -332,7 +332,7 @@ export default function CategoryManager({
         await CategorizationService.createCategory(formData);
         Alert.alert('Success', 'Category created successfully');
       }
-      
+
       setCreateDialogVisible(false);
       setEditDialogVisible(false);
       loadCategories(); // Reload categories
@@ -344,7 +344,7 @@ export default function CategoryManager({
 
   const deleteCategory = async () => {
     if (!editingCategory) return;
-    
+
     try {
       await CategorizationService.deleteCategory(editingCategory.id);
       Alert.alert('Success', 'Category deleted successfully');
@@ -358,7 +358,7 @@ export default function CategoryManager({
 
   const renderCategory = (category: CategoryHierarchy, depth = 0): React.ReactNode => {
     if (depth > maxDepth) return null;
-    
+
     const isExpanded = expandedCategories.has(category.id);
     const hasChildren = category.children.length > 0;
     const isSelected = selectedCategory === category.id;
@@ -368,35 +368,25 @@ export default function CategoryManager({
         <Card
           style={[
             styles.categoryCard,
-            isSelected && { borderColor: theme.colors.primary, borderWidth: 2 }
+            isSelected && { borderColor: theme.colors.primary, borderWidth: 2 },
           ]}
           onPress={() => handleCategoryPress(category.id)}
         >
           <View style={styles.categoryHeader}>
-            <MaterialIcons
-              name={category.icon as any}
-              size={24}
-              color={category.color}
-            />
-            
+            <MaterialIcons name={category.icon as any} size={24} color={category.color} />
+
             <View style={styles.categoryInfo}>
               <Text style={styles.categoryName}>{category.name}</Text>
               <Text style={styles.description} numberOfLines={2}>
                 {category.description}
               </Text>
-              
+
               <View style={styles.categoryMeta}>
-                <Chip icon="content-copy">
-                  {category.contentCount} items
-                </Chip>
+                <Chip icon="content-copy">{category.contentCount} items</Chip>
                 {category.subcategoryCount > 0 && (
-                  <Chip icon="folder">
-                    {category.subcategoryCount} subcategories
-                  </Chip>
+                  <Chip icon="folder">{category.subcategoryCount} subcategories</Chip>
                 )}
-                {!category.is_active && (
-                  <Badge size={16}>Inactive</Badge>
-                )}
+                {!category.is_active && <Badge size={16}>Inactive</Badge>}
               </View>
             </View>
 
@@ -407,16 +397,11 @@ export default function CategoryManager({
                   onPress={() => toggleCategoryExpansion(category.id)}
                 />
               )}
-              
+
               <Menu
                 visible={false}
                 onDismiss={() => {}}
-                anchor={
-                  <IconButton
-                    icon="more-vert"
-                    onPress={() => {}}
-                  />
-                }
+                anchor={<IconButton icon="more-vert" onPress={() => {}} />}
               >
                 <Menu.Item
                   leadingIcon="edit"
@@ -444,9 +429,7 @@ export default function CategoryManager({
                 <Text style={styles.statLabel}>Total</Text>
               </View>
               <View style={styles.stat}>
-                <Text style={styles.statNumber}>
-                  {category.children.length}
-                </Text>
+                <Text style={styles.statNumber}>{category.children.length}</Text>
                 <Text style={styles.statLabel}>Subcategories</Text>
               </View>
             </View>
@@ -484,17 +467,18 @@ export default function CategoryManager({
 
   const filteredCategories = categories.filter(category => {
     if (!searchQuery) return true;
-    
-    const matchesSearch = 
+
+    const matchesSearch =
       category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       category.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     // Also check children
-    const childrenMatch = category.children.some(child =>
-      child.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      child.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const childrenMatch = category.children.some(
+      child =>
+        child.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        child.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    
+
     return matchesSearch || childrenMatch;
   });
 
@@ -510,11 +494,7 @@ export default function CategoryManager({
   if (error) {
     return (
       <View style={styles.errorContainer}>
-        <MaterialIcons 
-          name="error" 
-          size={64} 
-          color={theme.colors.error} 
-        />
+        <MaterialIcons name="error" size={64} color={theme.colors.error} />
         <Text style={styles.errorText}>{error}</Text>
         <Button mode="contained" onPress={loadCategories}>
           Retry
@@ -526,11 +506,7 @@ export default function CategoryManager({
   if (categories.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <MaterialIcons 
-          name="folder-open" 
-          size={64} 
-          color={theme.colors.textSecondary} 
-        />
+        <MaterialIcons name="folder-open" size={64} color={theme.colors.textSecondary} />
         <Text style={styles.emptyText}>No categories found</Text>
         {showCreateButton && (
           <Button mode="contained" onPress={handleCreateCategory}>
@@ -545,9 +521,7 @@ export default function CategoryManager({
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Categories</Text>
-        <Text style={styles.subtitle}>
-          Organize and manage your content categories
-        </Text>
+        <Text style={styles.subtitle}>Organize and manage your content categories</Text>
       </View>
 
       <View style={styles.searchContainer}>
@@ -565,22 +539,19 @@ export default function CategoryManager({
 
       {/* Create Category Dialog */}
       <Portal>
-        <Dialog
-          visible={createDialogVisible}
-          onDismiss={() => setCreateDialogVisible(false)}
-        >
+        <Dialog visible={createDialogVisible} onDismiss={() => setCreateDialogVisible(false)}>
           <Dialog.Title>Create New Category</Dialog.Title>
           <Dialog.Content style={styles.dialogContent}>
             <TextInput
               label="Category Name"
               value={formData.name}
-              onChangeText={(text) => setFormData({ ...formData, name: text })}
+              onChangeText={text => setFormData({ ...formData, name: text })}
               style={styles.formField}
             />
             <TextInput
               label="Description"
               value={formData.description}
-              onChangeText={(text) => setFormData({ ...formData, description: text })}
+              onChangeText={text => setFormData({ ...formData, description: text })}
               multiline
               numberOfLines={3}
               style={styles.formField}
@@ -588,7 +559,7 @@ export default function CategoryManager({
             <TextInput
               label="Sort Order"
               value={formData.sortOrder.toString()}
-              onChangeText={(text) => setFormData({ ...formData, sortOrder: parseInt(text) || 0 })}
+              onChangeText={text => setFormData({ ...formData, sortOrder: parseInt(text) || 0 })}
               keyboardType="numeric"
               style={styles.formField}
             />
@@ -596,7 +567,7 @@ export default function CategoryManager({
               <Text>Active</Text>
               <Switch
                 value={formData.is_active}
-                onValueChange={(value) => setFormData({ ...formData, is_active: value })}
+                onValueChange={value => setFormData({ ...formData, is_active: value })}
               />
             </View>
           </Dialog.Content>
@@ -609,22 +580,19 @@ export default function CategoryManager({
 
       {/* Edit Category Dialog */}
       <Portal>
-        <Dialog
-          visible={editDialogVisible}
-          onDismiss={() => setEditDialogVisible(false)}
-        >
+        <Dialog visible={editDialogVisible} onDismiss={() => setEditDialogVisible(false)}>
           <Dialog.Title>Edit Category</Dialog.Title>
           <Dialog.Content style={styles.dialogContent}>
             <TextInput
               label="Category Name"
               value={formData.name}
-              onChangeText={(text) => setFormData({ ...formData, name: text })}
+              onChangeText={text => setFormData({ ...formData, name: text })}
               style={styles.formField}
             />
             <TextInput
               label="Description"
               value={formData.description}
-              onChangeText={(text) => setFormData({ ...formData, description: text })}
+              onChangeText={text => setFormData({ ...formData, description: text })}
               multiline
               numberOfLines={3}
               style={styles.formField}
@@ -632,7 +600,7 @@ export default function CategoryManager({
             <TextInput
               label="Sort Order"
               value={formData.sortOrder.toString()}
-              onChangeText={(text) => setFormData({ ...formData, sortOrder: parseInt(text) || 0 })}
+              onChangeText={text => setFormData({ ...formData, sortOrder: parseInt(text) || 0 })}
               keyboardType="numeric"
               style={styles.formField}
             />
@@ -640,7 +608,7 @@ export default function CategoryManager({
               <Text>Active</Text>
               <Switch
                 value={formData.is_active}
-                onValueChange={(value) => setFormData({ ...formData, is_active: value })}
+                onValueChange={value => setFormData({ ...formData, is_active: value })}
               />
             </View>
           </Dialog.Content>
@@ -653,15 +621,12 @@ export default function CategoryManager({
 
       {/* Delete Confirmation Dialog */}
       <Portal>
-        <Dialog
-          visible={deleteDialogVisible}
-          onDismiss={() => setDeleteDialogVisible(false)}
-        >
+        <Dialog visible={deleteDialogVisible} onDismiss={() => setDeleteDialogVisible(false)}>
           <Dialog.Title>Delete Category</Dialog.Title>
           <Dialog.Content>
             <Text>
-              Are you sure you want to delete "{editingCategory?.name}"? 
-              This action cannot be undone.
+              Are you sure you want to delete "{editingCategory?.name}"? This action cannot be
+              undone.
             </Text>
           </Dialog.Content>
           <Dialog.Actions>
@@ -675,10 +640,7 @@ export default function CategoryManager({
 
       {/* Analytics Dialog */}
       <Portal>
-        <Dialog
-          visible={analyticsDialogVisible}
-          onDismiss={() => setAnalyticsDialogVisible(false)}
-        >
+        <Dialog visible={analyticsDialogVisible} onDismiss={() => setAnalyticsDialogVisible(false)}>
           <Dialog.Title>Category Analytics</Dialog.Title>
           <Dialog.Content>
             <Text>Analytics for {editingCategory?.name}</Text>
@@ -690,13 +652,7 @@ export default function CategoryManager({
         </Dialog>
       </Portal>
 
-      {showCreateButton && (
-        <FAB
-          icon="plus"
-          style={styles.fab}
-          onPress={handleCreateCategory}
-        />
-      )}
+      {showCreateButton && <FAB icon="plus" style={styles.fab} onPress={handleCreateCategory} />}
     </View>
   );
 }

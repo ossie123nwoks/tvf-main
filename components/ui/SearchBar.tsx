@@ -30,7 +30,7 @@ export default function SearchBar({
   onSuggestionPress,
   showSuggestions = false,
   filters = [],
-  showFilters = false
+  showFilters = false,
 }: SearchBarProps) {
   const { theme } = useTheme();
   const paperTheme = usePaperTheme();
@@ -108,12 +108,15 @@ export default function SearchBar({
     }
   }, [onSearch, value]);
 
-  const handleSuggestionPress = useCallback((suggestion: string) => {
-    onChangeText(suggestion);
-    if (onSuggestionPress) {
-      onSuggestionPress(suggestion);
-    }
-  }, [onChangeText, onSuggestionPress]);
+  const handleSuggestionPress = useCallback(
+    (suggestion: string) => {
+      onChangeText(suggestion);
+      if (onSuggestionPress) {
+        onSuggestionPress(suggestion);
+      }
+    },
+    [onChangeText, onSuggestionPress]
+  );
 
   return (
     <View style={styles.container}>
@@ -149,10 +152,7 @@ export default function SearchBar({
                 color={theme.colors.textSecondary}
                 style={{ marginRight: theme.spacing.sm }}
               />
-              <Text 
-                style={styles.suggestionText}
-                onPress={() => handleSuggestionPress(suggestion)}
-              >
+              <Text style={styles.suggestionText} onPress={() => handleSuggestionPress(suggestion)}>
                 {suggestion}
               </Text>
             </View>
@@ -162,19 +162,13 @@ export default function SearchBar({
 
       {showFilters && filters.length > 0 && (
         <View style={styles.filters}>
-          {filters.map((filter) => (
+          {filters.map(filter => (
             <Chip
               key={filter.id}
               selected={filter.selected}
               onPress={filter.onPress}
-              style={[
-                styles.filterChip,
-                filter.selected && styles.selectedFilterChip
-              ]}
-              textStyle={[
-                styles.filterChipText,
-                filter.selected && styles.selectedFilterChipText
-              ]}
+              style={[styles.filterChip, filter.selected && styles.selectedFilterChip]}
+              textStyle={[styles.filterChipText, filter.selected && styles.selectedFilterChipText]}
               compact
             >
               {filter.label}

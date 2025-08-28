@@ -21,7 +21,7 @@ export const ContentSharing: React.FC<ContentSharingProps> = ({
   description,
   author,
   date,
-  onShare
+  onShare,
 }) => {
   const theme = useTheme();
 
@@ -31,7 +31,7 @@ export const ContentSharing: React.FC<ContentSharingProps> = ({
       const deepLink = generateDeepLink(type, id, {
         title: title,
         author: author || '',
-        date: date || ''
+        date: date || '',
       });
 
       // Create share message
@@ -40,7 +40,7 @@ export const ContentSharing: React.FC<ContentSharingProps> = ({
       const result = await Share.share({
         message: shareMessage,
         title: `TRUEVINE FELLOWSHIP - ${title}`,
-        url: deepLink // This will be used on platforms that support URL sharing
+        url: deepLink, // This will be used on platforms that support URL sharing
       });
 
       if (onShare) {
@@ -51,28 +51,22 @@ export const ContentSharing: React.FC<ContentSharingProps> = ({
       console.log('Content shared successfully:', { type, id, action: result.action });
     } catch (error) {
       console.error('Error sharing content:', error);
-      Alert.alert(
-        'Share Error',
-        'Unable to share this content. Please try again.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Share Error', 'Unable to share this content. Please try again.', [
+        { text: 'OK' },
+      ]);
     }
   };
 
   const handleCopyLink = async () => {
     try {
       const deepLink = generateDeepLink(type, id);
-      
+
       // Copy to clipboard (you might want to add a clipboard library for better UX)
       // For now, we'll just show an alert with the link
-      Alert.alert(
-        'Deep Link Copied',
-        `Here's the deep link for this ${type}:\n\n${deepLink}`,
-        [
-          { text: 'Copy to Clipboard', onPress: () => console.log('Copy to clipboard:', deepLink) },
-          { text: 'OK' }
-        ]
-      );
+      Alert.alert('Deep Link Copied', `Here's the deep link for this ${type}:\n\n${deepLink}`, [
+        { text: 'Copy to Clipboard', onPress: () => console.log('Copy to clipboard:', deepLink) },
+        { text: 'OK' },
+      ]);
     } catch (error) {
       console.error('Error copying link:', error);
       Alert.alert('Error', 'Unable to copy the link.');
@@ -98,11 +92,7 @@ export const ContentSharing: React.FC<ContentSharingProps> = ({
     <Card style={{ margin: 16, backgroundColor: theme.colors.surface }}>
       <Card.Content>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-          <MaterialCommunityIcons 
-            name={getShareIcon()} 
-            size={24} 
-            color={theme.colors.primary} 
-          />
+          <MaterialCommunityIcons name={getShareIcon()} size={24} color={theme.colors.primary} />
           <Text variant="titleMedium" style={{ marginLeft: 8, color: theme.colors.onSurface }}>
             Share {getContentTypeLabel()}
           </Text>
@@ -113,13 +103,19 @@ export const ContentSharing: React.FC<ContentSharingProps> = ({
         </Text>
 
         {author && (
-          <Text variant="bodyMedium" style={{ marginBottom: 4, color: theme.colors.onSurfaceVariant }}>
+          <Text
+            variant="bodyMedium"
+            style={{ marginBottom: 4, color: theme.colors.onSurfaceVariant }}
+          >
             by {author}
           </Text>
         )}
 
         {date && (
-          <Text variant="bodySmall" style={{ marginBottom: 12, color: theme.colors.onSurfaceVariant }}>
+          <Text
+            variant="bodySmall"
+            style={{ marginBottom: 12, color: theme.colors.onSurfaceVariant }}
+          >
             {date}
           </Text>
         )}
@@ -141,7 +137,7 @@ export const ContentSharing: React.FC<ContentSharingProps> = ({
           >
             Share
           </Button>
-          
+
           <Button
             mode="outlined"
             onPress={handleCopyLink}
@@ -154,8 +150,12 @@ export const ContentSharing: React.FC<ContentSharingProps> = ({
           </Button>
         </View>
 
-        <Text variant="bodySmall" style={{ marginTop: 12, color: theme.colors.onSurfaceVariant, textAlign: 'center' }}>
-          When someone opens this link, they'll be taken directly to this {type} in the TRUEVINE FELLOWSHIP app.
+        <Text
+          variant="bodySmall"
+          style={{ marginTop: 12, color: theme.colors.onSurfaceVariant, textAlign: 'center' }}
+        >
+          When someone opens this link, they'll be taken directly to this {type} in the TRUEVINE
+          FELLOWSHIP app.
         </Text>
       </Card.Content>
     </Card>

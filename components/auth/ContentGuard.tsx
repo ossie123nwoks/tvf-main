@@ -75,11 +75,7 @@ export const ContentGuard: React.FC<ContentGuardProps> = ({
             {fallbackMessage || 'Please sign in to access this content'}
           </Text>
           {showSignInButton && (
-            <Button
-              mode="contained"
-              onPress={() => router.push('/auth')}
-              style={styles.button}
-            >
+            <Button mode="contained" onPress={() => router.push('/auth')} style={styles.button}>
               Sign In
             </Button>
           )}
@@ -118,7 +114,7 @@ export const ContentGuard: React.FC<ContentGuardProps> = ({
 // Hook for conditional content rendering
 export const useContentGuard = () => {
   const { canAccess, canAccessVerified, loading } = useAuthGuard();
-  
+
   return {
     canAccess,
     canAccessVerified,

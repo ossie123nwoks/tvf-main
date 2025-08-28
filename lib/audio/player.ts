@@ -34,7 +34,7 @@ export class AudioPlayerService {
     try {
       // Configure background audio session
       await backgroundAudioService.configureAudioSession();
-      
+
       this.isInitialized = true;
     } catch (error) {
       console.error('Failed to initialize audio player:', error);
@@ -71,7 +71,7 @@ export class AudioPlayerService {
       const status = await sound.getStatusAsync();
       if (status.isLoaded) {
         const duration = status.durationMillis || 0;
-        
+
         // Start progress tracking
         audioProgressTracker.startTracking(audioUrl, duration);
 
@@ -88,7 +88,9 @@ export class AudioPlayerService {
           isLoaded: true,
           position: shouldResume ? await audioProgressTracker.getResumePosition(audioUrl) : 0,
           duration,
-          progress: shouldResume ? (await audioProgressTracker.getResumePosition(audioUrl)) / duration : 0,
+          progress: shouldResume
+            ? (await audioProgressTracker.getResumePosition(audioUrl)) / duration
+            : 0,
           error: null,
         });
       }
@@ -184,7 +186,7 @@ export class AudioPlayerService {
     try {
       const status = await this.sound.getStatusAsync();
       if (status.isLoaded && status.positionMillis !== null) {
-        const newPosition = Math.max(0, status.positionMillis + (seconds * 1000));
+        const newPosition = Math.max(0, status.positionMillis + seconds * 1000);
         await this.sound.setPositionAsync(newPosition);
       }
     } catch (error) {
@@ -342,15 +344,15 @@ export class AudioPlayerService {
         await this.sound.unloadAsync();
         this.sound = null;
       }
-      
+
       // Stop progress tracking
       if (this.currentAudioUrl) {
         audioProgressTracker.stopTracking();
       }
-      
+
       this.currentAudioUrl = null;
       this.isInitialized = false;
-      
+
       // Clean up background audio service
       await backgroundAudioService.cleanup();
     } catch (error) {

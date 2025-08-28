@@ -28,7 +28,7 @@ export default class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({
       error,
-      errorInfo
+      errorInfo,
     });
 
     // Log error to console in development
@@ -129,15 +129,16 @@ function ErrorFallback({ error, onRetry, onReport }: ErrorFallbackProps) {
       <Card style={styles.card}>
         <Text style={styles.title}>Something went wrong</Text>
         <Text style={styles.message}>
-          We're sorry, but something unexpected happened. Please try again or report this issue if it persists.
+          We're sorry, but something unexpected happened. Please try again or report this issue if
+          it persists.
         </Text>
-        
+
         {__DEV__ && error && (
           <Text style={styles.errorDetails} numberOfLines={5}>
             {error.message}
           </Text>
         )}
-        
+
         <View style={styles.actions}>
           <Button mode="contained" onPress={onRetry}>
             Try Again
@@ -150,4 +151,3 @@ function ErrorFallback({ error, onRetry, onReport }: ErrorFallbackProps) {
     </View>
   );
 }
-

@@ -30,10 +30,7 @@ interface DownloadManagerProps {
   onDismiss: () => void;
 }
 
-export const DownloadManager: React.FC<DownloadManagerProps> = ({
-  visible,
-  onDismiss,
-}) => {
+export const DownloadManager: React.FC<DownloadManagerProps> = ({ visible, onDismiss }) => {
   const { theme } = useTheme();
   const paperTheme = usePaperTheme();
   const {
@@ -52,7 +49,9 @@ export const DownloadManager: React.FC<DownloadManagerProps> = ({
     isLoading,
   } = useOfflineDownloads();
 
-  const [selectedTab, setSelectedTab] = useState<'all' | 'active' | 'completed' | 'pending' | 'failed'>('all');
+  const [selectedTab, setSelectedTab] = useState<
+    'all' | 'active' | 'completed' | 'pending' | 'failed'
+  >('all');
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
   const [cleanupDialogVisible, setCleanupDialogVisible] = useState(false);
   const [settingsDialogVisible, setSettingsDialogVisible] = useState(false);
@@ -71,7 +70,11 @@ export const DownloadManager: React.FC<DownloadManagerProps> = ({
   // Format date
   const formatDate = (timestamp: number): string => {
     const date = new Date(timestamp);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return (
+      date.toLocaleDateString() +
+      ' ' +
+      date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    );
   };
 
   // Get status color
@@ -111,33 +114,36 @@ export const DownloadManager: React.FC<DownloadManagerProps> = ({
   };
 
   // Handle download actions
-  const handleDownloadAction = useCallback(async (action: string, downloadId: string) => {
-    try {
-      switch (action) {
-        case 'pause':
-          await pauseDownload(downloadId);
-          break;
-        case 'resume':
-          await resumeDownload(downloadId);
-          break;
-        case 'cancel':
-          await cancelDownload(downloadId);
-          break;
-        case 'retry':
-          // For failed downloads, we'll need to re-add them
-          const download = downloads.find(d => d.id === downloadId);
-          if (download) {
+  const handleDownloadAction = useCallback(
+    async (action: string, downloadId: string) => {
+      try {
+        switch (action) {
+          case 'pause':
+            await pauseDownload(downloadId);
+            break;
+          case 'resume':
+            await resumeDownload(downloadId);
+            break;
+          case 'cancel':
             await cancelDownload(downloadId);
-            await addDownload(download.type, download.title, download.url, download.metadata);
-          }
-          break;
+            break;
+          case 'retry':
+            // For failed downloads, we'll need to re-add them
+            const download = downloads.find(d => d.id === downloadId);
+            if (download) {
+              await cancelDownload(downloadId);
+              await addDownload(download.type, download.title, download.url, download.metadata);
+            }
+            break;
+        }
+        setMenuVisible(null);
+      } catch (error) {
+        console.error('Download action failed:', error);
+        Alert.alert('Error', 'Failed to perform download action');
       }
-      setMenuVisible(null);
-    } catch (error) {
-      console.error('Download action failed:', error);
-      Alert.alert('Error', 'Failed to perform download action');
-    }
-  }, [pauseDownload, resumeDownload, cancelDownload, addDownload, downloads]);
+    },
+    [pauseDownload, resumeDownload, cancelDownload, addDownload, downloads]
+  );
 
   // Handle cleanup
   const handleCleanup = useCallback(async () => {
@@ -237,7 +243,8 @@ export const DownloadManager: React.FC<DownloadManagerProps> = ({
               style={styles.progressBar}
             />
             <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-              {Math.round(item.progress * 100)}% • {formatFileSize(item.downloadedSize)} / {formatFileSize(item.size)}
+              {Math.round(item.progress * 100)}% • {formatFileSize(item.downloadedSize)} /{' '}
+              {formatFileSize(item.size)}
             </Text>
           </View>
         )}
@@ -266,49 +273,51 @@ export const DownloadManager: React.FC<DownloadManagerProps> = ({
   const renderStorageInfo = () => (
     <Card style={[styles.storageCard, { backgroundColor: theme.colors.surface }]}>
       <Card.Content>
-                     <Text variant="titleMedium" style={{ color: theme.colors.text, marginBottom: 16 }}>
-               Storage Information
-             </Text>
-             
-             <View style={styles.storageRow}>
-               <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
-                 Total Space:
-               </Text>
-               <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
-                   {formatFileSize(storageInfo.totalSpace)}
-                 </Text>
-               </View>
-               
-               <View style={styles.storageRow}>
-                 <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
-                   Used Space:
-                 </Text>
-                 <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
-                   {formatFileSize(storageInfo.usedSpace)}
-                 </Text>
-               </View>
-               
-               <View style={styles.storageRow}>
-                 <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
-                   Available Space:
-                 </Text>
-                 <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
-                   {formatFileSize(storageInfo.availableSpace)}
-                 </Text>
-               </View>
-               
-               <View style={styles.storageRow}>
-                 <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
-                   Downloads:
-                 </Text>
-                 <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
-                   {storageInfo.downloadCount}
-                 </Text>
-               </View>
+        <Text variant="titleMedium" style={{ color: theme.colors.text, marginBottom: 16 }}>
+          Storage Information
+        </Text>
+
+        <View style={styles.storageRow}>
+          <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
+            Total Space:
+          </Text>
+          <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
+            {formatFileSize(storageInfo.totalSpace)}
+          </Text>
+        </View>
+
+        <View style={styles.storageRow}>
+          <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
+            Used Space:
+          </Text>
+          <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
+            {formatFileSize(storageInfo.usedSpace)}
+          </Text>
+        </View>
+
+        <View style={styles.storageRow}>
+          <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
+            Available Space:
+          </Text>
+          <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
+            {formatFileSize(storageInfo.availableSpace)}
+          </Text>
+        </View>
+
+        <View style={styles.storageRow}>
+          <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
+            Downloads:
+          </Text>
+          <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
+            {storageInfo.downloadCount}
+          </Text>
+        </View>
 
         <View style={styles.storageProgress}>
           <ProgressBar
-            progress={storageInfo.totalSpace > 0 ? storageInfo.usedSpace / storageInfo.totalSpace : 0}
+            progress={
+              storageInfo.totalSpace > 0 ? storageInfo.usedSpace / storageInfo.totalSpace : 0
+            }
             color={theme.colors.primary}
             style={styles.storageProgressBar}
           />
@@ -326,7 +335,7 @@ export const DownloadManager: React.FC<DownloadManagerProps> = ({
         { key: 'completed', label: 'Completed', count: completedDownloads.length },
         { key: 'pending', label: 'Pending', count: pendingDownloads.length },
         { key: 'failed', label: 'Failed', count: failedDownloads.length },
-      ].map((tab) => (
+      ].map(tab => (
         <Button
           key={tab.key}
           mode={selectedTab === tab.key ? 'contained' : 'outlined'}
@@ -348,15 +357,14 @@ export const DownloadManager: React.FC<DownloadManagerProps> = ({
   // Render empty state
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <MaterialIcons
-        name="cloud-download"
-        size={64}
-        color={theme.colors.onSurfaceVariant}
-      />
+      <MaterialIcons name="cloud-download" size={64} color={theme.colors.onSurfaceVariant} />
       <Text variant="titleMedium" style={{ color: theme.colors.onSurfaceVariant, marginTop: 16 }}>
         No downloads yet
       </Text>
-      <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center' }}>
+      <Text
+        variant="bodyMedium"
+        style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center' }}
+      >
         Start downloading content to access it offline
       </Text>
     </View>
@@ -365,13 +373,11 @@ export const DownloadManager: React.FC<DownloadManagerProps> = ({
   return (
     <Portal>
       <Dialog visible={visible} onDismiss={onDismiss} style={styles.dialog}>
-        <Dialog.Title style={{ color: theme.colors.text }}>
-          Download Manager
-        </Dialog.Title>
-        
+        <Dialog.Title style={{ color: theme.colors.text }}>Download Manager</Dialog.Title>
+
         <Dialog.Content style={styles.dialogContent}>
           {renderStorageInfo()}
-          
+
           <View style={styles.actionsContainer}>
             <Button
               mode="outlined"
@@ -428,7 +434,7 @@ export const DownloadManager: React.FC<DownloadManagerProps> = ({
           <Dialog.Title>Cleanup Downloads</Dialog.Title>
           <Dialog.Content>
             <Text>
-              This will remove downloads older than 30 days and failed downloads older than 7 days. 
+              This will remove downloads older than 30 days and failed downloads older than 7 days.
               This action cannot be undone.
             </Text>
           </Dialog.Content>
@@ -446,10 +452,7 @@ export const DownloadManager: React.FC<DownloadManagerProps> = ({
           <Dialog.Content>
             <View style={styles.settingRow}>
               <Text>Auto-cleanup old downloads</Text>
-              <Switch
-                value={autoCleanupEnabled}
-                onValueChange={setAutoCleanupEnabled}
-              />
+              <Switch value={autoCleanupEnabled} onValueChange={setAutoCleanupEnabled} />
             </View>
             <View style={styles.settingRow}>
               <Text>Cleanup threshold (days)</Text>

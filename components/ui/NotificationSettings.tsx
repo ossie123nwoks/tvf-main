@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, Card, Switch, List, Divider, Button, useTheme as usePaperTheme } from 'react-native-paper';
+import {
+  Text,
+  Card,
+  Switch,
+  List,
+  Divider,
+  Button,
+  useTheme as usePaperTheme,
+} from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -28,11 +36,11 @@ export default function NotificationSettings({
   onSaveSettings,
   onResetDefaults,
   showSaveButton = true,
-  showResetButton = true
+  showResetButton = true,
 }: NotificationSettingsProps) {
   const { theme } = useTheme();
   const paperTheme = usePaperTheme();
-  
+
   const [hasChanges, setHasChanges] = useState(false);
   const [localPreferences, setLocalPreferences] = useState(preferences);
 
@@ -162,7 +170,7 @@ export default function NotificationSettings({
     const updatedPreferences = localPreferences.map(pref =>
       pref.id === id ? { ...pref, enabled } : pref
     );
-    
+
     setLocalPreferences(updatedPreferences);
     setHasChanges(true);
     onPreferenceChange(id, enabled);
@@ -213,13 +221,16 @@ export default function NotificationSettings({
     }
   };
 
-  const groupedPreferences = localPreferences.reduce((acc, pref) => {
-    if (!acc[pref.category]) {
-      acc[pref.category] = [];
-    }
-    acc[pref.category].push(pref);
-    return acc;
-  }, {} as Record<string, NotificationPreference[]>);
+  const groupedPreferences = localPreferences.reduce(
+    (acc, pref) => {
+      if (!acc[pref.category]) {
+        acc[pref.category] = [];
+      }
+      acc[pref.category].push(pref);
+      return acc;
+    },
+    {} as Record<string, NotificationPreference[]>
+  );
 
   const categoryLabels = {
     content: 'Content Notifications',
@@ -245,8 +256,8 @@ export default function NotificationSettings({
               Important Note
             </Text>
             <Text style={styles.infoText}>
-              Some notifications are essential for app functionality and cannot be disabled. 
-              You can always change these settings later.
+              Some notifications are essential for app functionality and cannot be disabled. You can
+              always change these settings later.
             </Text>
           </Card.Content>
         </Card>
@@ -259,7 +270,7 @@ export default function NotificationSettings({
               </Text>
             </View>
 
-            {prefs.map((preference) => (
+            {prefs.map(preference => (
               <Card key={preference.id} style={styles.preferenceCard}>
                 <Card.Content style={styles.preferenceContent}>
                   <View style={styles.preferenceHeader}>
@@ -274,7 +285,7 @@ export default function NotificationSettings({
                     </View>
                     <Switch
                       value={preference.enabled}
-                      onValueChange={(enabled) => handlePreferenceChange(preference.id, enabled)}
+                      onValueChange={enabled => handlePreferenceChange(preference.id, enabled)}
                       color={theme.colors.primary}
                       theme={{
                         ...paperTheme,
@@ -286,9 +297,7 @@ export default function NotificationSettings({
                       }}
                     />
                   </View>
-                  <Text style={styles.preferenceDescription}>
-                    {preference.description}
-                  </Text>
+                  <Text style={styles.preferenceDescription}>{preference.description}</Text>
                 </Card.Content>
               </Card>
             ))}
@@ -324,4 +333,3 @@ export default function NotificationSettings({
     </View>
   );
 }
-

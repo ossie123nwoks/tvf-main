@@ -91,9 +91,9 @@
   - [x] 1.3 Set up Expo Router for navigation structure
   - [x] 1.4 Configure Supabase client and environment variables
   - [x] 1.5 Set up TypeScript configuration and type definitions
-  - [ ] 1.6 Configure testing environment with Jest and React Native Testing Library
-  - [ ] 1.7 Set up ESLint and Prettier for code quality
-  - [ ] 1.8 Configure app icons, splash screen assets, and app metadata
+  - [x] 1.6 Configure testing environment with Jest and React Native Testing Library
+  - [x] 1.7 Set up ESLint and Prettier for code quality
+  - [x] 1.8 Configure app icons, splash screen assets, and app metadata
   - [x] 1.9 Set up theme configuration and color scheme definitions
 
 - [ ] 2.0 Authentication & User Management System

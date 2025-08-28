@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, RefreshControl, Alert } from 'react-native';
-import { 
-  Text, 
-  Card, 
-  Searchbar, 
-  Chip, 
-  Button, 
+import {
+  Text,
+  Card,
+  Searchbar,
+  Chip,
+  Button,
   useTheme as usePaperTheme,
   ActivityIndicator,
   FAB,
   Menu,
   Divider,
   IconButton,
-  Badge
+  Badge,
 } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -20,7 +20,13 @@ import { router } from 'expo-router';
 import { ContentService } from '@/lib/supabase/content';
 import { SearchService } from '@/lib/services/search';
 import { Sermon, Category, ContentSearchParams } from '@/types/content';
-import { LoadingSpinner, LoadingPagination, ContentSkeleton, EmptyState, ErrorState } from '@/components/ui/LoadingStates';
+import {
+  LoadingSpinner,
+  LoadingPagination,
+  ContentSkeleton,
+  EmptyState,
+  ErrorState,
+} from '@/components/ui/LoadingStates';
 import { errorHandler } from '@/lib/utils/errorHandling';
 import { retryUtils } from '@/lib/utils/retry';
 
@@ -32,7 +38,7 @@ export default function SermonsScreen() {
   const [sortBy, setSortBy] = useState<'date' | 'title' | 'popularity'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showFeaturedOnly, setShowFeaturedOnly] = useState(false);
-  
+
   // Data states
   const [sermons, setSermons] = useState<Sermon[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -41,12 +47,12 @@ export default function SermonsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalSermons, setTotalSermons] = useState(0);
-  
+
   // UI states
   const [sortMenuVisible, setSortMenuVisible] = useState(false);
   const [filterMenuVisible, setFilterMenuVisible] = useState(false);
@@ -185,12 +191,12 @@ export default function SermonsScreen() {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Use retry logic for initial data loading
       const result = await retryUtils.retryContent(async () => {
         const [categoriesData, tagsData] = await Promise.all([
           ContentService.getCategories(),
-          getUniqueTags()
+          getUniqueTags(),
         ]);
         return { categoriesData, tagsData };
       });
@@ -199,18 +205,18 @@ export default function SermonsScreen() {
         const { categoriesData, tagsData } = result.data;
         setCategories(categoriesData);
         setAllTags(tagsData);
-        
+
         await loadSermons(true);
       } else {
         throw result.error || new Error('Failed to load initial data');
       }
     } catch (error) {
       console.error('Failed to load initial data:', error);
-      
+
       // Create standardized error
       const appError = errorHandler.handleContentError(error, {
         component: 'SermonsScreen',
-        action: 'loadInitialData'
+        action: 'loadInitialData',
       });
 
       setError(appError.userMessage);
@@ -253,7 +259,7 @@ export default function SermonsScreen() {
         sortBy,
         sortOrder,
         published: true,
-        featured: showFeaturedOnly ? true : undefined
+        featured: showFeaturedOnly ? true : undefined,
       };
 
       if (searchQuery) {
@@ -275,13 +281,13 @@ export default function SermonsScreen() {
 
       if (result.success && result.data) {
         const response = result.data;
-        
+
         if (reset) {
           setSermons(response.data);
         } else {
           setSermons(prev => [...prev, ...response.data]);
         }
-        
+
         setTotalSermons(response.total);
         setHasMore(response.hasMore);
         setCurrentPage(page + 1);
@@ -290,12 +296,12 @@ export default function SermonsScreen() {
       }
     } catch (error) {
       console.error('Failed to load sermons:', error);
-      
+
       // Create standardized error
       const appError = errorHandler.handleContentError(error, {
         component: 'SermonsScreen',
         action: 'loadSermons',
-        additionalData: { reset, page: currentPage }
+        additionalData: { reset, page: currentPage },
       });
 
       // Show user-friendly error message
@@ -372,7 +378,7 @@ export default function SermonsScreen() {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays} days ago`;
     if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
@@ -381,13 +387,7 @@ export default function SermonsScreen() {
   };
 
   if (loading) {
-    return (
-      <LoadingSpinner 
-        type="content" 
-        message="Loading sermons..." 
-        iconName="music-note"
-      />
-    );
+    return <LoadingSpinner type="content" message="Loading sermons..." iconName="music-note" />;
   }
 
   if (error) {
@@ -407,16 +407,13 @@ export default function SermonsScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         onScroll={({ nativeEvent }) => {
           const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
           const paddingToBottom = 20;
-          if (layoutMeasurement.height + contentOffset.y >= 
-              contentSize.height - paddingToBottom) {
+          if (layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom) {
             handleLoadMore();
           }
         }}
@@ -448,22 +445,12 @@ export default function SermonsScreen() {
           >
             Filters
           </Button>
-          
-          <Button
-            mode="outlined"
-            onPress={() => setSortMenuVisible(true)}
-            icon="sort"
-            compact
-          >
+
+          <Button mode="outlined" onPress={() => setSortMenuVisible(true)} icon="sort" compact>
             Sort
           </Button>
-          
-          <Button
-            mode="outlined"
-            onPress={clearFilters}
-            icon="delete-sweep"
-            compact
-          >
+
+          <Button mode="outlined" onPress={clearFilters} icon="delete-sweep" compact>
             Clear
           </Button>
         </View>
@@ -472,7 +459,7 @@ export default function SermonsScreen() {
         <Chip
           selected={showFeaturedOnly}
           onPress={() => setShowFeaturedOnly(!showFeaturedOnly)}
-          icon={showFeaturedOnly ? "star" : "star-outline"}
+          icon={showFeaturedOnly ? 'star' : 'star-outline'}
           style={{ marginBottom: theme.spacing.md }}
         >
           Featured Only
@@ -488,7 +475,7 @@ export default function SermonsScreen() {
             All Categories
           </Chip>
           {categories.length > 0 ? (
-            categories.map((category) => (
+            categories.map(category => (
               <Chip
                 key={category.id}
                 selected={selectedCategory === category.id}
@@ -508,15 +495,13 @@ export default function SermonsScreen() {
         <View style={styles.tags}>
           <Text style={styles.cardSubtitle}>Popular Tags:</Text>
           {allTags.length > 0 ? (
-            allTags.slice(0, 10).map((tag) => (
+            allTags.slice(0, 10).map(tag => (
               <Chip
                 key={tag}
                 selected={selectedTags.includes(tag)}
                 onPress={() => {
-                  setSelectedTags(prev => 
-                    prev.includes(tag) 
-                      ? prev.filter(t => t !== tag)
-                      : [...prev, tag]
+                  setSelectedTags(prev =>
+                    prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
                   );
                 }}
                 style={{ marginRight: theme.spacing.sm, marginBottom: theme.spacing.sm }}
@@ -533,81 +518,76 @@ export default function SermonsScreen() {
         {/* Sermons List */}
         {sermons.length > 0 ? (
           <>
-            {sermons.map((sermon) => (
-            <Card 
-              key={sermon.id} 
-              style={styles.card}
-              onPress={() => handleSermonPress(sermon)}
-            >
-              <Card.Cover 
-                source={{ 
-                  uri: sermon.thumbnail_url || 'https://via.placeholder.com/300x200?text=No+Image' 
-                }} 
-              />
-              <Card.Content style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{sermon.title}</Text>
-                <Text style={styles.cardSubtitle}>{sermon.preacher}</Text>
-                
-                <View style={styles.cardMeta}>
-                  <Text variant="bodySmall">
-                    {formatDate(sermon.date)} • {formatDuration(sermon.duration)}
+            {sermons.map(sermon => (
+              <Card key={sermon.id} style={styles.card} onPress={() => handleSermonPress(sermon)}>
+                <Card.Cover
+                  source={{
+                    uri:
+                      sermon.thumbnail_url || 'https://via.placeholder.com/300x200?text=No+Image',
+                  }}
+                />
+                <Card.Content style={styles.cardContent}>
+                  <Text style={styles.cardTitle}>{sermon.title}</Text>
+                  <Text style={styles.cardSubtitle}>{sermon.preacher}</Text>
+
+                  <View style={styles.cardMeta}>
+                    <Text variant="bodySmall">
+                      {formatDate(sermon.date)} • {formatDuration(sermon.duration)}
+                    </Text>
+                    {sermon.is_featured && <Badge size={16}>Featured</Badge>}
+                  </View>
+
+                  <Text variant="bodySmall" numberOfLines={2}>
+                    {sermon.description}
                   </Text>
-                  {sermon.is_featured && (
-                    <Badge size={16}>
-                      Featured
-                    </Badge>
-                  )}
-                </View>
-                
-                <Text variant="bodySmall" numberOfLines={2}>
-                  {sermon.description}
-                </Text>
-                
-                <View style={styles.stats}>
-                  <View style={styles.stat}>
-                    <Text style={styles.statNumber}>{sermon.views}</Text>
-                    <Text style={styles.statLabel}>Views</Text>
+
+                  <View style={styles.stats}>
+                    <View style={styles.stat}>
+                      <Text style={styles.statNumber}>{sermon.views}</Text>
+                      <Text style={styles.statLabel}>Views</Text>
+                    </View>
+                    <View style={styles.stat}>
+                      <Text style={styles.statNumber}>{sermon.downloads}</Text>
+                      <Text style={styles.statLabel}>Downloads</Text>
+                    </View>
+                    <View style={styles.stat}>
+                      <Text style={styles.statNumber}>
+                        {sermon.tags && Array.isArray(sermon.tags) ? sermon.tags.length : 0}
+                      </Text>
+                      <Text style={styles.statLabel}>Tags</Text>
+                    </View>
                   </View>
-                  <View style={styles.stat}>
-                    <Text style={styles.statNumber}>{sermon.downloads}</Text>
-                    <Text style={styles.statLabel}>Downloads</Text>
-                  </View>
-                  <View style={styles.stat}>
-                    <Text style={styles.statNumber}>{sermon.tags && Array.isArray(sermon.tags) ? sermon.tags.length : 0}</Text>
-                    <Text style={styles.statLabel}>Tags</Text>
-                  </View>
-                </View>
-              </Card.Content>
-              
-              <Card.Actions style={styles.cardActions}>
-                <Button 
-                  icon="play" 
-                  mode="contained" 
-                  onPress={() => handlePlayPress(sermon)}
-                  compact
-                >
-                  Play
-                </Button>
-                <Button 
-                  icon="download" 
-                  mode="outlined" 
-                  onPress={() => handleDownloadPress(sermon)}
-                  compact
-                >
-                  Download
-                </Button>
-                <Button 
-                  icon="share" 
-                  mode="outlined" 
-                  onPress={() => handleSharePress(sermon)}
-                  compact
-                >
-                  Share
-                </Button>
-              </Card.Actions>
-            </Card>
+                </Card.Content>
+
+                <Card.Actions style={styles.cardActions}>
+                  <Button
+                    icon="play"
+                    mode="contained"
+                    onPress={() => handlePlayPress(sermon)}
+                    compact
+                  >
+                    Play
+                  </Button>
+                  <Button
+                    icon="download"
+                    mode="outlined"
+                    onPress={() => handleDownloadPress(sermon)}
+                    compact
+                  >
+                    Download
+                  </Button>
+                  <Button
+                    icon="share"
+                    mode="outlined"
+                    onPress={() => handleSharePress(sermon)}
+                    compact
+                  >
+                    Share
+                  </Button>
+                </Card.Actions>
+              </Card>
             ))}
-            
+
             {/* Show skeleton loading when loading more */}
             {loadingMore && <ContentSkeleton type="sermon" count={2} />}
           </>
@@ -624,8 +604,6 @@ export default function SermonsScreen() {
             onAction={clearFilters}
           />
         )}
-
-
       </ScrollView>
 
       {/* Filter Menu */}
@@ -634,11 +612,7 @@ export default function SermonsScreen() {
         onDismiss={() => setFilterMenuVisible(false)}
         anchor={<View />}
       >
-        <Menu.Item
-          leadingIcon="tag"
-          title="Tags"
-          onPress={() => setFilterMenuVisible(false)}
-        />
+        <Menu.Item leadingIcon="tag" title="Tags" onPress={() => setFilterMenuVisible(false)} />
         <Menu.Item
           leadingIcon="calendar"
           title="Date Range"
@@ -656,11 +630,7 @@ export default function SermonsScreen() {
       </Menu>
 
       {/* Sort Menu */}
-      <Menu
-        visible={sortMenuVisible}
-        onDismiss={() => setSortMenuVisible(false)}
-        anchor={<View />}
-      >
+      <Menu visible={sortMenuVisible} onDismiss={() => setSortMenuVisible(false)} anchor={<View />}>
         <Menu.Item
           leadingIcon="calendar"
           title="Date (Newest First)"

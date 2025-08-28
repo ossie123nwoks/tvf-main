@@ -50,33 +50,31 @@ export class AuthService {
       }
 
       // Create user profile in our custom users table
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert({
-          id: data.user.id,
-          email: credentials.email,
-          first_name: credentials.firstName,
-          last_name: credentials.lastName,
-          role: 'member',
-          is_email_verified: false,
-          preferences: {
-            theme: 'auto',
-            notifications: {
-              newContent: true,
-              reminders: true,
-              updates: true,
-              marketing: false,
-            },
-            audioQuality: 'medium',
-            autoDownload: false,
-            language: 'en',
+      const { error: profileError } = await supabase.from('users').insert({
+        id: data.user.id,
+        email: credentials.email,
+        first_name: credentials.firstName,
+        last_name: credentials.lastName,
+        role: 'member',
+        is_email_verified: false,
+        preferences: {
+          theme: 'auto',
+          notifications: {
+            newContent: true,
+            reminders: true,
+            updates: true,
+            marketing: false,
           },
-          onboarding_data: {
-            hasCompletedOnboarding: false,
-            onboardingStep: 0,
-            preferences: {},
-          },
-        });
+          audioQuality: 'medium',
+          autoDownload: false,
+          language: 'en',
+        },
+        onboarding_data: {
+          hasCompletedOnboarding: false,
+          onboardingStep: 0,
+          preferences: {},
+        },
+      });
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
@@ -149,7 +147,7 @@ export class AuthService {
   static async signOut(): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) {
         return { success: false, error: error.message };
       }
@@ -164,7 +162,9 @@ export class AuthService {
   /**
    * Request password reset
    */
-  static async requestPasswordReset(request: PasswordResetRequest): Promise<{ success: boolean; error?: string }> {
+  static async requestPasswordReset(
+    request: PasswordResetRequest
+  ): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(request.email, {
         redirectTo: 'tvf-app://reset-password',
@@ -184,7 +184,9 @@ export class AuthService {
   /**
    * Confirm password reset
    */
-  static async confirmPasswordReset(confirm: PasswordResetConfirm): Promise<AuthSuccess | AuthError> {
+  static async confirmPasswordReset(
+    confirm: PasswordResetConfirm
+  ): Promise<AuthSuccess | AuthError> {
     try {
       const { data, error } = await supabase.auth.updateUser({
         password: confirm.newPassword,
@@ -221,7 +223,9 @@ export class AuthService {
   /**
    * Request email verification
    */
-  static async requestEmailVerification(request: EmailVerificationRequest): Promise<{ success: boolean; error?: string }> {
+  static async requestEmailVerification(
+    request: EmailVerificationRequest
+  ): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase.auth.resend({
         type: 'signup',
@@ -244,8 +248,11 @@ export class AuthService {
    */
   static async getCurrentSession(): Promise<Session | null> {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
       if (error || !session) {
         return null;
       }
@@ -262,8 +269,11 @@ export class AuthService {
    */
   static async getCurrentUser(): Promise<User | null> {
     try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
       if (error || !user) {
         return null;
       }
@@ -280,7 +290,10 @@ export class AuthService {
    */
   static async updateProfile(updates: UserProfileUpdate): Promise<AuthSuccess | AuthError> {
     try {
-      const { data: { user }, error } = await supabase.auth.updateUser({
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.updateUser({
         data: {
           first_name: updates.firstName,
           last_name: updates.lastName,
@@ -304,10 +317,7 @@ export class AuthService {
 
       // Update custom users table if preferences are provided
       if (updates.preferences) {
-        await supabase
-          .from('users')
-          .update({ preferences: updates.preferences })
-          .eq('id', user.id);
+        await supabase.from('users').update({ preferences: updates.preferences }).eq('id', user.id);
       }
 
       return {
@@ -362,7 +372,9 @@ export class AuthService {
   /**
    * Delete user account
    */
-  static async deleteAccount(request: DeleteAccountRequest): Promise<{ success: boolean; error?: string }> {
+  static async deleteAccount(
+    request: DeleteAccountRequest
+  ): Promise<{ success: boolean; error?: string }> {
     try {
       // First delete from custom users table
       const { error: profileError } = await supabase
@@ -393,7 +405,9 @@ export class AuthService {
   /**
    * Update onboarding data
    */
-  static async updateOnboardingData(onboardingData: OnboardingData): Promise<{ success: boolean; error?: string }> {
+  static async updateOnboardingData(
+    onboardingData: OnboardingData
+  ): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase
         .from('users')
@@ -492,11 +506,11 @@ export class AuthService {
         user: this.transformSupabaseUser(null),
       };
     }
-    
+
     return {
       accessToken: supabaseSession.access_token || '',
       refreshToken: supabaseSession.refresh_token || '',
-      expiresAt: supabaseSession.expires_at || (Date.now() + 3600000), // 1 hour from now if missing
+      expiresAt: supabaseSession.expires_at || Date.now() + 3600000, // 1 hour from now if missing
       user: this.transformSupabaseUser(supabaseSession.user),
     };
   }

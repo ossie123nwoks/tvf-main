@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Alert, Dimensions, Linking } from 'react-native';
-import { 
-  Text, 
-  Card, 
-  Button, 
+import {
+  Text,
+  Card,
+  Button,
   useTheme as usePaperTheme,
   ActivityIndicator,
   IconButton,
@@ -13,7 +13,7 @@ import {
   Avatar,
   FAB,
   Menu,
-  List
+  List,
 } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -28,13 +28,13 @@ export default function ArticleDetailScreen() {
   const { theme } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  
+
   // Article data
   const [article, setArticle] = useState<Article | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // UI states
   const [showFullContent, setShowFullContent] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -42,7 +42,7 @@ export default function ArticleDetailScreen() {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [lineHeight, setLineHeight] = useState<'tight' | 'normal' | 'loose'>('normal');
-  
+
   // Menu states
   const [fontMenuVisible, setFontMenuVisible] = useState(false);
   const [moreMenuVisible, setMoreMenuVisible] = useState(false);
@@ -259,17 +259,23 @@ export default function ArticleDetailScreen() {
   // Helper functions for dynamic styling
   function getFontSize(size: 'small' | 'medium' | 'large'): number {
     switch (size) {
-      case 'small': return 14;
-      case 'large': return 20;
-      default: return 16;
+      case 'small':
+        return 14;
+      case 'large':
+        return 20;
+      default:
+        return 16;
     }
   }
 
   function getLineHeight(spacing: 'tight' | 'normal' | 'loose'): number {
     switch (spacing) {
-      case 'tight': return 20;
-      case 'loose': return 28;
-      default: return 24;
+      case 'tight':
+        return 20;
+      case 'loose':
+        return 28;
+      default:
+        return 24;
     }
   }
 
@@ -284,27 +290,26 @@ export default function ArticleDetailScreen() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const articleData = await ContentService.getArticleById(id);
       setArticle(articleData);
-      
+
       // Load category information
-              if (articleData.category_id) {
-          try {
-            const categoryData = await ContentService.getCategoryById(articleData.category_id);
+      if (articleData.category_id) {
+        try {
+          const categoryData = await ContentService.getCategoryById(articleData.category_id);
           setCategory(categoryData);
         } catch (error) {
           console.warn('Failed to load category:', error);
         }
       }
-      
+
       // Increment view count
       try {
         await ContentService.incrementArticleViews(id);
       } catch (error) {
         console.warn('Failed to increment views:', error);
       }
-      
     } catch (error) {
       console.error('Failed to load article:', error);
       setError('Failed to load article. Please try again.');
@@ -341,7 +346,7 @@ export default function ArticleDetailScreen() {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -364,7 +369,7 @@ export default function ArticleDetailScreen() {
     // Simple content parsing for demonstration
     // In a real app, you might use a markdown parser or rich text renderer
     const paragraphs = content.split('\n\n');
-    
+
     return paragraphs.map((paragraph, index) => {
       if (paragraph.startsWith('# ')) {
         return (
@@ -417,14 +422,8 @@ export default function ArticleDetailScreen() {
   if (error || !article) {
     return (
       <View style={styles.errorContainer}>
-        <MaterialIcons 
-          name="error" 
-          size={64} 
-          color={theme.colors.error} 
-        />
-        <Text style={styles.errorText}>
-          {error || 'Article not found'}
-        </Text>
+        <MaterialIcons name="error" size={64} color={theme.colors.error} />
+        <Text style={styles.errorText}>{error || 'Article not found'}</Text>
         <Button mode="contained" onPress={handleBack}>
           Go Back
         </Button>
@@ -442,29 +441,34 @@ export default function ArticleDetailScreen() {
               icon="arrow-left"
               size={24}
               onPress={handleBack}
-              style={{ position: 'absolute', top: theme.spacing.md, left: theme.spacing.md, zIndex: 1 }}
+              style={{
+                position: 'absolute',
+                top: theme.spacing.md,
+                left: theme.spacing.md,
+                zIndex: 1,
+              }}
             />
-            
+
             {article.thumbnail_url && (
-              <Card.Cover 
-                source={{ uri: article.thumbnail_url }} 
-                style={styles.thumbnail}
-              />
+              <Card.Cover source={{ uri: article.thumbnail_url }} style={styles.thumbnail} />
             )}
-            
+
             <Text style={styles.title}>{article.title}</Text>
-            
+
             {/* Author Section */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.sm }}>
-              <Avatar.Text 
-                size={40} 
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.sm }}
+            >
+              <Avatar.Text
+                size={40}
                 label={getInitials(article.author)}
                 style={{ backgroundColor: theme.colors.primary, marginRight: theme.spacing.sm }}
               />
               <View style={{ flex: 1 }}>
                 <Text style={styles.author}>{article.author}</Text>
                 <Text style={styles.metaText}>
-                  {formatDate(article.published_at)} • {calculateReadingTime(article.content)} min read
+                  {formatDate(article.published_at)} • {calculateReadingTime(article.content)} min
+                  read
                 </Text>
               </View>
               {article.is_featured && (
@@ -486,23 +490,29 @@ export default function ArticleDetailScreen() {
                     icon="format-size"
                     size={20}
                     onPress={() => setFontSize('small')}
-                    iconColor={fontSize === 'small' ? theme.colors.primary : theme.colors.textSecondary}
+                    iconColor={
+                      fontSize === 'small' ? theme.colors.primary : theme.colors.textSecondary
+                    }
                   />
                   <IconButton
                     icon="format-size"
                     size={24}
                     onPress={() => setFontSize('medium')}
-                    iconColor={fontSize === 'medium' ? theme.colors.primary : theme.colors.textSecondary}
+                    iconColor={
+                      fontSize === 'medium' ? theme.colors.primary : theme.colors.textSecondary
+                    }
                   />
                   <IconButton
                     icon="format-size"
                     size={28}
                     onPress={() => setFontSize('large')}
-                    iconColor={fontSize === 'large' ? theme.colors.primary : theme.colors.textSecondary}
+                    iconColor={
+                      fontSize === 'large' ? theme.colors.primary : theme.colors.textSecondary
+                    }
                   />
                 </View>
               </View>
-              
+
               <View style={styles.controlsRow}>
                 <Text style={styles.controlLabel}>Line Spacing</Text>
                 <View style={styles.controlButtons}>
@@ -510,19 +520,25 @@ export default function ArticleDetailScreen() {
                     icon="format-line-spacing"
                     size={20}
                     onPress={() => setLineHeight('tight')}
-                    iconColor={lineHeight === 'tight' ? theme.colors.primary : theme.colors.textSecondary}
+                    iconColor={
+                      lineHeight === 'tight' ? theme.colors.primary : theme.colors.textSecondary
+                    }
                   />
                   <IconButton
                     icon="format-line-spacing"
                     size={24}
                     onPress={() => setLineHeight('normal')}
-                    iconColor={lineHeight === 'normal' ? theme.colors.primary : theme.colors.textSecondary}
+                    iconColor={
+                      lineHeight === 'normal' ? theme.colors.primary : theme.colors.textSecondary
+                    }
                   />
                   <IconButton
                     icon="format-line-spacing"
                     size={28}
                     onPress={() => setLineHeight('loose')}
-                    iconColor={lineHeight === 'loose' ? theme.colors.primary : theme.colors.textSecondary}
+                    iconColor={
+                      lineHeight === 'loose' ? theme.colors.primary : theme.colors.textSecondary
+                    }
                   />
                 </View>
               </View>
@@ -530,9 +546,7 @@ export default function ArticleDetailScreen() {
 
             {/* Article Excerpt */}
             <View style={styles.section}>
-              <Text style={styles.excerpt}>
-                "{article.excerpt}"
-              </Text>
+              <Text style={styles.excerpt}>"{article.excerpt}"</Text>
             </View>
 
             {/* Article Content */}
@@ -550,13 +564,13 @@ export default function ArticleDetailScreen() {
                   <Text style={styles.statLabel}>Views</Text>
                 </View>
                 <View style={styles.stat}>
-                  <Text style={styles.statNumber}>{article.tags && Array.isArray(article.tags) ? article.tags.length : 0}</Text>
+                  <Text style={styles.statNumber}>
+                    {article.tags && Array.isArray(article.tags) ? article.tags.length : 0}
+                  </Text>
                   <Text style={styles.statLabel}>Tags</Text>
                 </View>
                 <View style={styles.stat}>
-                  <Text style={styles.statNumber}>
-                    {calculateReadingTime(article.content)}
-                  </Text>
+                  <Text style={styles.statNumber}>{calculateReadingTime(article.content)}</Text>
                   <Text style={styles.statLabel}>Min Read</Text>
                 </View>
               </View>
@@ -580,10 +594,7 @@ export default function ArticleDetailScreen() {
             {category && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Category</Text>
-                <Chip
-                  icon={category.icon}
-                  style={{ alignSelf: 'flex-start' }}
-                >
+                <Chip icon={category.icon} style={{ alignSelf: 'flex-start' }}>
                   {category.name}
                 </Chip>
               </View>
@@ -595,7 +606,9 @@ export default function ArticleDetailScreen() {
               <View style={styles.relatedContent}>
                 <View style={styles.relatedItem}>
                   <MaterialIcons name="article" size={20} color={theme.colors.textSecondary} />
-                  <Text style={styles.relatedItemText}>Related article title would appear here</Text>
+                  <Text style={styles.relatedItemText}>
+                    Related article title would appear here
+                  </Text>
                   <IconButton icon="chevron-right" size={20} />
                 </View>
                 <View style={styles.relatedItem}>
@@ -619,19 +632,14 @@ export default function ArticleDetailScreen() {
           >
             Download
           </Button>
-          
-          <Button
-            mode="outlined"
-            icon="share"
-            onPress={handleShare}
-            style={styles.actionButton}
-          >
+
+          <Button mode="outlined" icon="share" onPress={handleShare} style={styles.actionButton}>
             Share
           </Button>
-          
+
           <Button
             mode="outlined"
-            icon={isBookmarked ? "bookmark" : "bookmark-outline"}
+            icon={isBookmarked ? 'bookmark' : 'bookmark-outline'}
             onPress={handleBookmark}
             style={styles.actionButton}
           >
@@ -682,7 +690,10 @@ export default function ArticleDetailScreen() {
             title="Read Aloud"
             onPress={() => {
               setMoreMenuVisible(false);
-              Alert.alert('Coming Soon', 'Text-to-speech functionality will be implemented in the next phase.');
+              Alert.alert(
+                'Coming Soon',
+                'Text-to-speech functionality will be implemented in the next phase.'
+              );
             }}
           />
           <Menu.Item
@@ -690,7 +701,10 @@ export default function ArticleDetailScreen() {
             title="Translate"
             onPress={() => {
               setMoreMenuVisible(false);
-              Alert.alert('Coming Soon', 'Translation functionality will be implemented in the next phase.');
+              Alert.alert(
+                'Coming Soon',
+                'Translation functionality will be implemented in the next phase.'
+              );
             }}
           />
           <Divider />
@@ -699,17 +713,16 @@ export default function ArticleDetailScreen() {
             title="Report Issue"
             onPress={() => {
               setMoreMenuVisible(false);
-              Alert.alert('Coming Soon', 'Report functionality will be implemented in the next phase.');
+              Alert.alert(
+                'Coming Soon',
+                'Report functionality will be implemented in the next phase.'
+              );
             }}
           />
         </Menu>
 
         {/* FAB for more options */}
-        <FAB
-          icon="more-vert"
-          style={styles.fab}
-          onPress={() => setMoreMenuVisible(true)}
-        />
+        <FAB icon="more-vert" style={styles.fab} onPress={() => setMoreMenuVisible(true)} />
       </View>
     </ErrorBoundary>
   );

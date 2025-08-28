@@ -79,10 +79,10 @@ export const SessionStatus: React.FC<SessionStatusProps> = ({
 
   const formatTimeRemaining = (milliseconds: number): string => {
     if (milliseconds <= 0) return 'Expired';
-    
+
     const hours = Math.floor(milliseconds / (1000 * 60 * 60));
     const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m remaining`;
     }
@@ -93,13 +93,13 @@ export const SessionStatus: React.FC<SessionStatusProps> = ({
     const now = Date.now();
     const diff = now - timestamp;
     const minutes = Math.floor(diff / (1000 * 60));
-    
+
     if (minutes < 1) return 'Just now';
     if (minutes < 60) return `${minutes}m ago`;
-    
+
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
-    
+
     const days = Math.floor(hours / 24);
     return `${days}d ago`;
   };
@@ -217,11 +217,11 @@ export const SessionStatus: React.FC<SessionStatusProps> = ({
 
   const getProgressPercentage = (): number => {
     if (!session || !sessionInfo) return 100;
-    
+
     const totalDuration = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
     const remaining = sessionInfo.timeUntilExpiry;
     const elapsed = totalDuration - remaining;
-    
+
     return Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
   };
 
@@ -239,7 +239,7 @@ export const SessionStatus: React.FC<SessionStatusProps> = ({
             <Text style={styles.title}>Session Status</Text>
             <Text style={styles.statusText}>{getStatusText()}</Text>
           </View>
-          
+
           {showDetails && sessionInfo && (
             <View style={styles.details}>
               <View style={styles.detailRow}>
@@ -248,7 +248,7 @@ export const SessionStatus: React.FC<SessionStatusProps> = ({
                   {formatTimeRemaining(sessionInfo.timeUntilExpiry)}
                 </Text>
               </View>
-              
+
               <View style={styles.progressContainer}>
                 <ProgressBar
                   progress={getProgressPercentage() / 100}
@@ -261,7 +261,7 @@ export const SessionStatus: React.FC<SessionStatusProps> = ({
               </View>
             </View>
           )}
-          
+
           <View style={styles.compactActions}>
             <Button
               mode="outlined"
@@ -273,7 +273,7 @@ export const SessionStatus: React.FC<SessionStatusProps> = ({
             >
               Refresh
             </Button>
-            
+
             <Button
               mode="outlined"
               onPress={handleManualLogout}
@@ -302,7 +302,7 @@ export const SessionStatus: React.FC<SessionStatusProps> = ({
             <Text style={styles.title}>Session Status</Text>
             <Text style={styles.statusText}>{getStatusText()}</Text>
           </View>
-          
+
           {showDetails && sessionInfo && (
             <View style={styles.details}>
               <View style={styles.detailRow}>
@@ -311,14 +311,14 @@ export const SessionStatus: React.FC<SessionStatusProps> = ({
                   {formatTimeRemaining(sessionInfo.timeUntilExpiry)}
                 </Text>
               </View>
-              
+
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Last Activity:</Text>
                 <Text style={styles.detailValue}>
                   {formatLastActivity(sessionInfo.lastActivity)}
                 </Text>
               </View>
-              
+
               <View style={styles.progressContainer}>
                 <ProgressBar
                   progress={getProgressPercentage() / 100}
@@ -331,7 +331,7 @@ export const SessionStatus: React.FC<SessionStatusProps> = ({
               </View>
             </View>
           )}
-          
+
           <View style={styles.actions}>
             <Button
               mode="contained"
@@ -342,12 +342,8 @@ export const SessionStatus: React.FC<SessionStatusProps> = ({
             >
               Refresh Session
             </Button>
-            
-            <Button
-              mode="outlined"
-              onPress={handleManualLogout}
-              style={styles.actionButton}
-            >
+
+            <Button mode="outlined" onPress={handleManualLogout} style={styles.actionButton}>
               Sign Out
             </Button>
           </View>
@@ -370,7 +366,7 @@ export const SessionIndicator: React.FC = () => {
         const timeUntilExpiry = Math.max(0, session.expiresAt - now);
         setIsExpiringSoon(timeUntilExpiry <= 5 * 60 * 1000); // 5 minutes
       };
-      
+
       checkExpiry();
       const interval = setInterval(checkExpiry, 30000); // Check every 30 seconds
       return () => clearInterval(interval);

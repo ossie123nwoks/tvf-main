@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, ScrollView, StyleSheet, Alert, Dimensions } from 'react-native';
-import { 
-  Text, 
-  Card, 
-  Button, 
+import {
+  Text,
+  Card,
+  Button,
   useTheme as usePaperTheme,
   ActivityIndicator,
   IconButton,
@@ -12,7 +12,7 @@ import {
   Badge,
   Avatar,
   ProgressBar,
-  FAB
+  FAB,
 } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -28,13 +28,13 @@ export default function SermonDetailScreen() {
   const { theme } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  
+
   // Sermon data
   const [sermon, setSermon] = useState<Sermon | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Audio player states
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -42,7 +42,7 @@ export default function SermonDetailScreen() {
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isBuffering, setIsBuffering] = useState(false);
-  
+
   // UI states
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -242,23 +242,22 @@ export default function SermonDetailScreen() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const sermonData = await ContentService.getSermonById(id);
       setSermon(sermonData);
-      
+
       // Load category information
-              if (sermonData.category_id) {
-          try {
-            const categoryData = await ContentService.getCategoryById(sermonData.category_id);
+      if (sermonData.category_id) {
+        try {
+          const categoryData = await ContentService.getCategoryById(sermonData.category_id);
           setCategory(categoryData);
         } catch (error) {
           console.warn('Failed to load category:', error);
         }
       }
-      
+
       // Initialize audio
       await initializeAudio();
-      
     } catch (error) {
       console.error('Failed to load sermon:', error);
       setError('Failed to load sermon. Please try again.');
@@ -272,7 +271,10 @@ export default function SermonDetailScreen() {
       // Request audio permissions
       const permissionStatus = await Audio.requestPermissionsAsync();
       if (permissionStatus.status !== 'granted') {
-        Alert.alert('Permission Required', 'Audio playback permission is required to play sermons.');
+        Alert.alert(
+          'Permission Required',
+          'Audio playback permission is required to play sermons.'
+        );
         return;
       }
 
@@ -293,13 +295,12 @@ export default function SermonDetailScreen() {
       );
 
       setSound(audioSound);
-      
+
       // Get duration
       const audioStatus = await audioSound.getStatusAsync();
       if (audioStatus.isLoaded) {
         setDuration(audioStatus.durationMillis || 0);
       }
-      
     } catch (error) {
       console.error('Failed to initialize audio:', error);
       Alert.alert('Audio Error', 'Failed to initialize audio player.');
@@ -310,11 +311,11 @@ export default function SermonDetailScreen() {
     if (status.isLoaded) {
       setIsPlaying(status.isPlaying);
       setIsBuffering(status.isBuffering);
-      
+
       if (status.positionMillis !== null) {
         setPosition(status.positionMillis);
       }
-      
+
       if (status.durationMillis !== null) {
         setDuration(status.durationMillis);
       }
@@ -323,7 +324,7 @@ export default function SermonDetailScreen() {
 
   const handlePlayPause = async () => {
     if (!sound) return;
-    
+
     try {
       if (isPlaying) {
         await sound.pauseAsync();
@@ -338,7 +339,7 @@ export default function SermonDetailScreen() {
 
   const handleSeek = async (value: number) => {
     if (!sound) return;
-    
+
     try {
       const newPosition = value * duration;
       await sound.setPositionAsync(newPosition);
@@ -349,9 +350,9 @@ export default function SermonDetailScreen() {
 
   const handleSkip = async (seconds: number) => {
     if (!sound) return;
-    
+
     try {
-      const newPosition = Math.max(0, position + (seconds * 1000));
+      const newPosition = Math.max(0, position + seconds * 1000);
       await sound.setPositionAsync(newPosition);
     } catch (error) {
       console.error('Skip error:', error);
@@ -375,13 +376,13 @@ export default function SermonDetailScreen() {
         'Audio is currently playing. Do you want to stop it and go back?',
         [
           { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Stop & Go Back', 
+          {
+            text: 'Stop & Go Back',
             onPress: async () => {
               await sound.stopAsync();
               router.back();
-            }
-          }
+            },
+          },
         ]
       );
     } else {
@@ -401,7 +402,7 @@ export default function SermonDetailScreen() {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -423,14 +424,8 @@ export default function SermonDetailScreen() {
   if (error || !sermon) {
     return (
       <View style={styles.errorContainer}>
-        <MaterialIcons 
-          name="error" 
-          size={64} 
-          color={theme.colors.error} 
-        />
-        <Text style={styles.errorText}>
-          {error || 'Sermon not found'}
-        </Text>
+        <MaterialIcons name="error" size={64} color={theme.colors.error} />
+        <Text style={styles.errorText}>{error || 'Sermon not found'}</Text>
         <Button mode="contained" onPress={handleBack}>
           Go Back
         </Button>
@@ -450,26 +445,28 @@ export default function SermonDetailScreen() {
               icon="arrow-left"
               size={24}
               onPress={handleBack}
-              style={{ position: 'absolute', top: theme.spacing.md, left: theme.spacing.md, zIndex: 1 }}
+              style={{
+                position: 'absolute',
+                top: theme.spacing.md,
+                left: theme.spacing.md,
+                zIndex: 1,
+              }}
             />
-            
+
             {sermon.thumbnail_url && (
-              <Card.Cover 
-                source={{ uri: sermon.thumbnail_url }} 
-                style={styles.thumbnail}
-              />
+              <Card.Cover source={{ uri: sermon.thumbnail_url }} style={styles.thumbnail} />
             )}
-            
+
             <Text style={styles.title}>{sermon.title}</Text>
             <Text style={styles.preacher}>{sermon.preacher}</Text>
-            
+
             <View style={styles.meta}>
               <MaterialIcons name="calendar-today" size={16} color={theme.colors.textSecondary} />
               <Text style={styles.metaText}>{formatDate(sermon.date)}</Text>
-              
+
               <MaterialIcons name="access-time" size={16} color={theme.colors.textSecondary} />
               <Text style={styles.metaText}>{formatDuration(sermon.duration)}</Text>
-              
+
               {sermon.is_featured && (
                 <Badge size={16} style={styles.featuredBadge}>
                   Featured
@@ -484,11 +481,9 @@ export default function SermonDetailScreen() {
             <View style={styles.audioPlayer}>
               <View style={styles.playerHeader}>
                 <Text style={styles.playerTitle}>Audio Player</Text>
-                {isBuffering && (
-                  <ActivityIndicator size="small" color={theme.colors.primary} />
-                )}
+                {isBuffering && <ActivityIndicator size="small" color={theme.colors.primary} />}
               </View>
-              
+
               {/* Progress Bar */}
               <View style={styles.progressContainer}>
                 <View style={styles.timeDisplay}>
@@ -499,14 +494,14 @@ export default function SermonDetailScreen() {
                   progress={progress}
                   color={theme.colors.primary}
                   style={styles.progressBar}
-                  onTouchEnd={(event) => {
+                  onTouchEnd={event => {
                     const { locationX } = event.nativeEvent;
                     const newProgress = locationX / (screenWidth - 2 * theme.spacing.lg);
                     handleSeek(newProgress);
                   }}
                 />
               </View>
-              
+
               {/* Controls */}
               <View style={styles.controls}>
                 <IconButton
@@ -515,15 +510,15 @@ export default function SermonDetailScreen() {
                   onPress={() => handleSkip(-30)}
                   style={styles.controlButton}
                 />
-                
+
                 <IconButton
-                  icon={isPlaying ? "pause" : "play-arrow"}
+                  icon={isPlaying ? 'pause' : 'play-arrow'}
                   size={40}
                   onPress={handlePlayPause}
                   style={[styles.controlButton, styles.playButton]}
                   disabled={isLoading}
                 />
-                
+
                 <IconButton
                   icon="skip-next"
                   size={32}
@@ -531,7 +526,7 @@ export default function SermonDetailScreen() {
                   style={styles.controlButton}
                 />
               </View>
-              
+
               {/* Actions */}
               <View style={styles.actions}>
                 <Button
@@ -543,7 +538,7 @@ export default function SermonDetailScreen() {
                 >
                   Download
                 </Button>
-                
+
                 <Button
                   mode="outlined"
                   icon="share"
@@ -568,7 +563,9 @@ export default function SermonDetailScreen() {
                   <Text style={styles.statLabel}>Downloads</Text>
                 </View>
                 <View style={styles.stat}>
-                  <Text style={styles.statNumber}>{sermon.tags && Array.isArray(sermon.tags) ? sermon.tags.length : 0}</Text>
+                  <Text style={styles.statNumber}>
+                    {sermon.tags && Array.isArray(sermon.tags) ? sermon.tags.length : 0}
+                  </Text>
                   <Text style={styles.statLabel}>Tags</Text>
                 </View>
               </View>
@@ -609,10 +606,7 @@ export default function SermonDetailScreen() {
             {category && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Category</Text>
-                <Chip
-                  icon={category.icon}
-                  style={{ alignSelf: 'flex-start' }}
-                >
+                <Chip icon={category.icon} style={{ alignSelf: 'flex-start' }}>
                   {category.name}
                 </Chip>
               </View>

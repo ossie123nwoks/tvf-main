@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import * as Linking from 'expo-linking';
 import { AppState, AppStateStatus } from 'react-native';
-import { 
-  parseDeepLink, 
-  handleIncomingDeepLink, 
+import {
+  parseDeepLink,
+  handleIncomingDeepLink,
   handleLaunchDeepLink,
-  DeepLinkData 
+  DeepLinkData,
 } from '@/lib/utils/deepLinking';
 
 export interface DeepLinkingState {
@@ -18,9 +18,9 @@ export function useDeepLinking() {
   const [state, setState] = useState<DeepLinkingState>({
     isInitialized: false,
     lastDeepLink: null,
-    isProcessing: false
+    isProcessing: false,
   });
-  
+
   const appState = useRef(AppState.currentState);
   const initialUrlProcessed = useRef(false);
 
@@ -49,18 +49,18 @@ export function useDeepLinking() {
 
       // Get the initial URL that launched the app
       const initialUrl = await Linking.getInitialURL();
-      
+
       if (initialUrl && !initialUrlProcessed.current) {
         initialUrlProcessed.current = true;
         const deepLinkData = parseDeepLink(initialUrl);
-        
+
         if (deepLinkData) {
-          setState(prev => ({ 
-            ...prev, 
+          setState(prev => ({
+            ...prev,
             lastDeepLink: deepLinkData,
-            isInitialized: true 
+            isInitialized: true,
           }));
-          
+
           // Handle the initial deep link
           handleLaunchDeepLink(initialUrl);
         }
@@ -68,20 +68,20 @@ export function useDeepLinking() {
 
       // Set up listener for incoming deep links when app is already running
       const subscription = Linking.addEventListener('url', handleUrlChange);
-      
-      setState(prev => ({ 
-        ...prev, 
+
+      setState(prev => ({
+        ...prev,
         isInitialized: true,
-        isProcessing: false 
+        isProcessing: false,
       }));
 
       return () => subscription?.remove();
     } catch (error) {
       console.error('Error initializing deep linking:', error);
-      setState(prev => ({ 
-        ...prev, 
+      setState(prev => ({
+        ...prev,
         isInitialized: true,
-        isProcessing: false 
+        isProcessing: false,
       }));
     }
   };
@@ -89,16 +89,16 @@ export function useDeepLinking() {
   const handleUrlChange = (event: { url: string }) => {
     try {
       setState(prev => ({ ...prev, isProcessing: true }));
-      
+
       const deepLinkData = parseDeepLink(event.url);
-      
+
       if (deepLinkData) {
-        setState(prev => ({ 
-          ...prev, 
+        setState(prev => ({
+          ...prev,
           lastDeepLink: deepLinkData,
-          isProcessing: false 
+          isProcessing: false,
         }));
-        
+
         // Handle the incoming deep link
         handleIncomingDeepLink(event.url);
       } else {
@@ -116,13 +116,13 @@ export function useDeepLinking() {
       if (url && !initialUrlProcessed.current) {
         initialUrlProcessed.current = true;
         const deepLinkData = parseDeepLink(url);
-        
+
         if (deepLinkData) {
-          setState(prev => ({ 
-            ...prev, 
-            lastDeepLink: deepLinkData 
+          setState(prev => ({
+            ...prev,
+            lastDeepLink: deepLinkData,
           }));
-          
+
           handleLaunchDeepLink(url);
         }
       }
@@ -137,6 +137,6 @@ export function useDeepLinking() {
 
   return {
     ...state,
-    clearLastDeepLink
+    clearLastDeepLink,
   };
 }

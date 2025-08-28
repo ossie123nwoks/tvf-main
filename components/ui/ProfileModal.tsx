@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Text, Card, Button, Avatar, List, Divider, Dialog, Portal, TextInput, Switch, useTheme as usePaperTheme } from 'react-native-paper';
+import {
+  Text,
+  Card,
+  Button,
+  Avatar,
+  List,
+  Divider,
+  Dialog,
+  Portal,
+  TextInput,
+  Switch,
+  useTheme as usePaperTheme,
+} from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -25,12 +37,12 @@ export default function ProfileModal({
   onDeleteAccount,
   showEditButton = true,
   showSignOutButton = true,
-  showDeleteButton = false
+  showDeleteButton = false,
 }: ProfileModalProps) {
   const { theme } = useTheme();
   const paperTheme = usePaperTheme();
   const { user, signOut, updateProfile, changePassword, deleteAccount } = useAuth();
-  
+
   // State for edit mode
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<UserProfileUpdate>({
@@ -246,23 +258,19 @@ export default function ProfileModal({
   };
 
   const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Sign Out', 
-          style: 'destructive',
-          onPress: () => {
-            signOut();
-            if (onSignOut) {
-              onSignOut();
-            }
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: () => {
+          signOut();
+          if (onSignOut) {
+            onSignOut();
           }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
@@ -286,10 +294,15 @@ export default function ProfileModal({
           <ScrollView>
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                <MaterialIcons name="person" size={20} color={theme.colors.primary} style={styles.sectionIcon} />
+                <MaterialIcons
+                  name="person"
+                  size={20}
+                  color={theme.colors.primary}
+                  style={styles.sectionIcon}
+                />
                 Personal Information
               </Text>
-              
+
               <Card style={styles.infoCard}>
                 <Card.Content style={styles.infoContent}>
                   <View style={styles.infoRow}>
@@ -316,17 +329,20 @@ export default function ProfileModal({
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                <MaterialIcons name="settings" size={20} color={theme.colors.primary} style={styles.sectionIcon} />
+                <MaterialIcons
+                  name="settings"
+                  size={20}
+                  color={theme.colors.primary}
+                  style={styles.sectionIcon}
+                />
                 Preferences
               </Text>
-              
+
               <Card style={styles.infoCard}>
                 <Card.Content style={styles.infoContent}>
                   <View style={styles.preferenceRow}>
                     <Text style={styles.preferenceLabel}>Theme</Text>
-                    <Text style={styles.preferenceValue}>
-                      {user?.preferences?.theme || 'Auto'}
-                    </Text>
+                    <Text style={styles.preferenceValue}>{user?.preferences?.theme || 'Auto'}</Text>
                   </View>
                   <View style={styles.preferenceRow}>
                     <Text style={styles.preferenceLabel}>Audio Quality</Text>
@@ -400,7 +416,7 @@ export default function ProfileModal({
             <TextInput
               label="First Name"
               value={editData.firstName}
-              onChangeText={(text) => setEditData({ ...editData, firstName: text })}
+              onChangeText={text => setEditData({ ...editData, firstName: text })}
               style={styles.dialogInput}
               theme={{
                 ...paperTheme,
@@ -415,7 +431,7 @@ export default function ProfileModal({
             <TextInput
               label="Last Name"
               value={editData.lastName}
-              onChangeText={(text) => setEditData({ ...editData, lastName: text })}
+              onChangeText={text => setEditData({ ...editData, lastName: text })}
               style={styles.dialogInput}
               theme={{
                 ...paperTheme,
@@ -430,7 +446,7 @@ export default function ProfileModal({
             <TextInput
               label="Avatar URL"
               value={editData.avatarUrl}
-              onChangeText={(text) => setEditData({ ...editData, avatarUrl: text })}
+              onChangeText={text => setEditData({ ...editData, avatarUrl: text })}
               style={styles.dialogInput}
               theme={{
                 ...paperTheme,
@@ -458,7 +474,7 @@ export default function ProfileModal({
             <TextInput
               label="Current Password"
               value={passwordData.currentPassword}
-              onChangeText={(text) => setPasswordData({ ...passwordData, currentPassword: text })}
+              onChangeText={text => setPasswordData({ ...passwordData, currentPassword: text })}
               secureTextEntry
               style={styles.dialogInput}
               theme={{
@@ -474,7 +490,7 @@ export default function ProfileModal({
             <TextInput
               label="New Password"
               value={passwordData.newPassword}
-              onChangeText={(text) => setPasswordData({ ...passwordData, newPassword: text })}
+              onChangeText={text => setPasswordData({ ...passwordData, newPassword: text })}
               secureTextEntry
               style={styles.dialogInput}
               theme={{

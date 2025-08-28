@@ -6,22 +6,26 @@ export interface AudioOfflineIntegration {
    * Check if audio is available offline and switch to offline mode if possible
    */
   switchToOfflineIfAvailable: (audioUrl: string) => Promise<boolean>;
-  
+
   /**
    * Download audio for offline playback
    */
-  downloadAudioForOffline: (title: string, audioUrl: string, metadata?: Record<string, any>) => Promise<string>;
-  
+  downloadAudioForOffline: (
+    title: string,
+    audioUrl: string,
+    metadata?: Record<string, any>
+  ) => Promise<string>;
+
   /**
    * Check if audio is currently playing from offline storage
    */
   isPlayingOffline: () => boolean;
-  
+
   /**
    * Get current offline audio path
    */
   getCurrentOfflinePath: () => string | null;
-  
+
   /**
    * Switch back to online audio if offline version is not available
    */
@@ -39,18 +43,18 @@ export class AudioOfflineIntegrationService implements AudioOfflineIntegration {
     try {
       // Check if we have an offline version
       const offlinePath = await offlineDownloadService.getOfflinePath(audioUrl);
-      
+
       if (offlinePath) {
         // Store the original URL for potential fallback
         this.originalAudioUrl = audioUrl;
         this.currentOfflinePath = offlinePath;
-        
+
         // Load the offline audio
         await audioPlayerService.loadAudio(offlinePath);
         console.log('Switched to offline audio:', offlinePath);
         return true;
       }
-      
+
       return false;
     } catch (error) {
       console.error('Failed to switch to offline audio:', error);
@@ -61,7 +65,11 @@ export class AudioOfflineIntegrationService implements AudioOfflineIntegration {
   /**
    * Download audio for offline playback
    */
-  async downloadAudioForOffline(title: string, audioUrl: string, metadata?: Record<string, any>): Promise<string> {
+  async downloadAudioForOffline(
+    title: string,
+    audioUrl: string,
+    metadata?: Record<string, any>
+  ): Promise<string> {
     try {
       // Check if already downloaded
       const isAvailable = await offlineDownloadService.isAvailableOffline(audioUrl);
@@ -71,9 +79,14 @@ export class AudioOfflineIntegrationService implements AudioOfflineIntegration {
       }
 
       // Add to download queue
-      const downloadId = await offlineDownloadService.addDownload('audio', title, audioUrl, metadata);
+      const downloadId = await offlineDownloadService.addDownload(
+        'audio',
+        title,
+        audioUrl,
+        metadata
+      );
       console.log('Started downloading audio for offline:', title, downloadId);
-      
+
       return downloadId;
     } catch (error) {
       console.error('Failed to download audio for offline:', error);
@@ -113,11 +126,11 @@ export class AudioOfflineIntegrationService implements AudioOfflineIntegration {
 
       // Try to load the original online URL
       await audioPlayerService.loadAudio(originalUrl);
-      
+
       // Clear offline state
       this.currentOfflinePath = null;
       this.originalAudioUrl = null;
-      
+
       console.log('Switched back to online audio:', originalUrl);
       return true;
     } catch (error) {
@@ -137,7 +150,7 @@ export class AudioOfflineIntegrationService implements AudioOfflineIntegration {
   }> {
     try {
       const isDownloaded = await offlineDownloadService.isAvailableOffline(audioUrl);
-      
+
       if (isDownloaded) {
         const localPath = await offlineDownloadService.getOfflinePath(audioUrl);
         return {
@@ -150,7 +163,7 @@ export class AudioOfflineIntegrationService implements AudioOfflineIntegration {
       // Check if it's currently downloading
       const downloads = offlineDownloadService.getAllDownloads();
       const audioDownload = downloads.find(d => d.url === audioUrl && d.type === 'audio');
-      
+
       if (audioDownload && audioDownload.status === 'downloading') {
         return {
           isDownloaded: false,
@@ -179,18 +192,18 @@ export class AudioOfflineIntegrationService implements AudioOfflineIntegration {
     try {
       const downloads = offlineDownloadService.getAllDownloads();
       const audioDownload = downloads.find(d => d.url === audioUrl && d.type === 'audio');
-      
+
       if (audioDownload) {
         await offlineDownloadService.cancelDownload(audioDownload.id);
-        
+
         // If this was the currently playing offline audio, switch to online
         if (this.currentOfflinePath === audioDownload.localPath) {
           await this.switchToOnlineIfNeeded(audioUrl);
         }
-        
+
         return true;
       }
-      
+
       return false;
     } catch (error) {
       console.error('Failed to remove offline audio:', error);
@@ -201,17 +214,19 @@ export class AudioOfflineIntegrationService implements AudioOfflineIntegration {
   /**
    * Get all offline audio files
    */
-  async getOfflineAudioFiles(): Promise<Array<{
-    title: string;
-    url: string;
-    localPath: string;
-    size: number;
-    downloadedAt: number;
-  }>> {
+  async getOfflineAudioFiles(): Promise<
+    Array<{
+      title: string;
+      url: string;
+      localPath: string;
+      size: number;
+      downloadedAt: number;
+    }>
+  > {
     try {
       const downloads = offlineDownloadService.getAllDownloads();
       const audioDownloads = downloads.filter(d => d.type === 'audio' && d.status === 'completed');
-      
+
       return audioDownloads.map(download => ({
         title: download.title,
         url: download.url,

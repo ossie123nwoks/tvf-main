@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { 
-  Text, 
-  Card, 
-  Button, 
-  Avatar, 
-  List, 
-  Divider, 
-  Dialog, 
-  Portal, 
+import {
+  Text,
+  Card,
+  Button,
+  Avatar,
+  List,
+  Divider,
+  Dialog,
+  Portal,
   TextInput,
   Switch,
-  useTheme as usePaperTheme
+  useTheme as usePaperTheme,
 } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -23,7 +23,7 @@ export default function Profile() {
   const { theme } = useTheme();
   const { user, signOut, updateProfile, changePassword, deleteAccount, loading } = useAuth();
   const router = useRouter();
-  
+
   // State for edit mode
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<UserProfileUpdate>({
@@ -233,21 +233,17 @@ export default function Profile() {
   };
 
   const handleSignOut = async () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Sign Out', 
-          style: 'destructive',
-          onPress: async () => {
-            await signOut();
-            router.replace('/auth');
-          }
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          await signOut();
+          router.replace('/auth');
         },
-      ]
-    );
+      },
+    ]);
   };
 
   if (!user) {
@@ -282,32 +278,32 @@ export default function Profile() {
           <Card style={styles.card}>
             <Card.Content>
               <Text style={styles.sectionTitle}>Profile Information</Text>
-              
+
               {isEditing ? (
                 <>
                   <TextInput
                     label="First Name"
                     value={editData.firstName}
-                    onChangeText={(value) => setEditData(prev => ({ ...prev, firstName: value }))}
+                    onChangeText={value => setEditData(prev => ({ ...prev, firstName: value }))}
                     style={styles.input}
                     mode="outlined"
                   />
                   <TextInput
                     label="Last Name"
                     value={editData.lastName}
-                    onChangeText={(value) => setEditData(prev => ({ ...prev, lastName: value }))}
+                    onChangeText={value => setEditData(prev => ({ ...prev, lastName: value }))}
                     style={styles.input}
                     mode="outlined"
                   />
                   <TextInput
                     label="Avatar URL (optional)"
                     value={editData.avatarUrl}
-                    onChangeText={(value) => setEditData(prev => ({ ...prev, avatarUrl: value }))}
+                    onChangeText={value => setEditData(prev => ({ ...prev, avatarUrl: value }))}
                     style={styles.input}
                     mode="outlined"
                     placeholder="https://example.com/avatar.jpg"
                   />
-                  
+
                   <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
                     <Button
                       mode="contained"
@@ -317,11 +313,7 @@ export default function Profile() {
                     >
                       Save
                     </Button>
-                    <Button
-                      mode="outlined"
-                      onPress={handleCancelEdit}
-                      style={{ flex: 1 }}
-                    >
+                    <Button mode="outlined" onPress={handleCancelEdit} style={{ flex: 1 }}>
                       Cancel
                     </Button>
                   </View>
@@ -346,16 +338,10 @@ export default function Profile() {
                   </View>
                   <View style={styles.row}>
                     <Text style={styles.rowText}>Email Verified</Text>
-                    <Text style={styles.rowSubtext}>
-                      {user.isEmailVerified ? 'Yes' : 'No'}
-                    </Text>
+                    <Text style={styles.rowSubtext}>{user.isEmailVerified ? 'Yes' : 'No'}</Text>
                   </View>
-                  
-                  <Button
-                    mode="outlined"
-                    onPress={() => setIsEditing(true)}
-                    style={styles.button}
-                  >
+
+                  <Button mode="outlined" onPress={() => setIsEditing(true)} style={styles.button}>
                     Edit Profile
                   </Button>
                 </>
@@ -367,50 +353,50 @@ export default function Profile() {
           <Card style={styles.card}>
             <Card.Content>
               <Text style={styles.sectionTitle}>Preferences</Text>
-              
+
               <View style={styles.switchContainer}>
                 <Text style={styles.switchText}>New Content Notifications</Text>
                 <Switch
                   value={user.preferences?.notifications?.newContent || false}
-                                     onValueChange={(value) => 
-                     setEditData(prev => ({
-                       ...prev,
-                       preferences: {
-                         ...prev.preferences || {},
-                         notifications: {
-                           ...prev.preferences?.notifications || {},
-                           newContent: value,
-                         },
-                       },
-                     }))
-                   }
+                  onValueChange={value =>
+                    setEditData(prev => ({
+                      ...prev,
+                      preferences: {
+                        ...(prev.preferences || {}),
+                        notifications: {
+                          ...(prev.preferences?.notifications || {}),
+                          newContent: value,
+                        },
+                      },
+                    }))
+                  }
                 />
               </View>
-              
+
               <View style={styles.switchContainer}>
                 <Text style={styles.switchText}>Reminder Notifications</Text>
                 <Switch
                   value={user.preferences?.notifications?.reminders || false}
-                                     onValueChange={(value) => 
-                     setEditData(prev => ({
-                       ...prev,
-                       preferences: {
-                         ...prev.preferences || {},
-                         notifications: {
-                           ...prev.preferences?.notifications || {},
-                           reminders: value,
-                         },
-                       },
-                     }))
-                   }
+                  onValueChange={value =>
+                    setEditData(prev => ({
+                      ...prev,
+                      preferences: {
+                        ...(prev.preferences || {}),
+                        notifications: {
+                          ...(prev.preferences?.notifications || {}),
+                          reminders: value,
+                        },
+                      },
+                    }))
+                  }
                 />
               </View>
-              
+
               <View style={styles.switchContainer}>
                 <Text style={styles.switchText}>Auto Download</Text>
                 <Switch
                   value={user.preferences?.autoDownload || false}
-                  onValueChange={(value) => 
+                  onValueChange={value =>
                     setEditData(prev => ({
                       ...prev,
                       preferences: {
@@ -421,12 +407,12 @@ export default function Profile() {
                   }
                 />
               </View>
-              
+
               <View style={styles.switchContainer}>
                 <Text style={styles.switchText}>Dark Theme</Text>
                 <Switch
                   value={theme.isDark}
-                  onValueChange={(value) => {
+                  onValueChange={value => {
                     theme.setTheme(value);
                     setEditData(prev => ({
                       ...prev,
@@ -443,12 +429,12 @@ export default function Profile() {
 
           {/* Session Status */}
           <SessionStatus showDetails={true} compact={false} />
-          
+
           {/* Account Actions */}
           <Card style={styles.card}>
             <Card.Content>
               <Text style={styles.sectionTitle}>Account Actions</Text>
-              
+
               <Button
                 mode="outlined"
                 onPress={() => setShowPasswordDialog(true)}
@@ -457,16 +443,11 @@ export default function Profile() {
               >
                 Change Password
               </Button>
-              
-              <Button
-                mode="outlined"
-                onPress={handleSignOut}
-                style={styles.button}
-                icon="logout"
-              >
+
+              <Button mode="outlined" onPress={handleSignOut} style={styles.button} icon="logout">
                 Sign Out
               </Button>
-              
+
               <Button
                 mode="contained"
                 onPress={() => setShowDeleteDialog(true)}
@@ -489,7 +470,7 @@ export default function Profile() {
             <TextInput
               label="Current Password"
               value={passwordData.currentPassword}
-              onChangeText={(value) => setPasswordData(prev => ({ ...prev, currentPassword: value }))}
+              onChangeText={value => setPasswordData(prev => ({ ...prev, currentPassword: value }))}
               style={styles.passwordInput}
               mode="outlined"
               secureTextEntry
@@ -497,23 +478,25 @@ export default function Profile() {
             <TextInput
               label="New Password"
               value={passwordData.newPassword}
-              onChangeText={(value) => setPasswordData(prev => ({ ...prev, newPassword: value }))}
+              onChangeText={value => setPasswordData(prev => ({ ...prev, newPassword: value }))}
               style={styles.passwordInput}
               mode="outlined"
               secureTextEntry
             />
-                         <TextInput
-               label="Confirm New Password"
-               value={confirmPassword}
-               onChangeText={setConfirmPassword}
-               style={styles.passwordInput}
-               mode="outlined"
-               secureTextEntry
-             />
+            <TextInput
+              label="Confirm New Password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              style={styles.passwordInput}
+              mode="outlined"
+              secureTextEntry
+            />
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={() => setShowPasswordDialog(false)}>Cancel</Button>
-            <Button onPress={handlePasswordChange} loading={loading}>Change Password</Button>
+            <Button onPress={handlePasswordChange} loading={loading}>
+              Change Password
+            </Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>
@@ -538,11 +521,7 @@ export default function Profile() {
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={() => setShowDeleteDialog(false)}>Cancel</Button>
-            <Button 
-              onPress={handleDeleteAccount} 
-              loading={loading}
-              textColor={theme.colors.error}
-            >
+            <Button onPress={handleDeleteAccount} loading={loading} textColor={theme.colors.error}>
               Delete Account
             </Button>
           </Dialog.Actions>

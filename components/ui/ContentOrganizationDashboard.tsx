@@ -16,11 +16,15 @@ import {
   ProgressBar,
   DataTable,
   Searchbar,
-  SegmentedButtons
+  SegmentedButtons,
 } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
-import { CategorizationService, CategoryHierarchy, ContentCollection } from '@/lib/services/categorization';
+import {
+  CategorizationService,
+  CategoryHierarchy,
+  ContentCollection,
+} from '@/lib/services/categorization';
 import { ContentService } from '@/lib/supabase/content';
 import { Category, ContentStats } from '@/types/content';
 
@@ -33,20 +37,24 @@ interface ContentOrganizationDashboardProps {
 export default function ContentOrganizationDashboard({
   onNavigateToCategory,
   onNavigateToCollection,
-  showCreateOptions = true
+  showCreateOptions = true,
 }: ContentOrganizationDashboardProps) {
   const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedView, setSelectedView] = useState<'overview' | 'categories' | 'collections' | 'analytics'>('overview');
-  
+  const [selectedView, setSelectedView] = useState<
+    'overview' | 'categories' | 'collections' | 'analytics'
+  >('overview');
+
   // Data states
   const [categories, setCategories] = useState<CategoryHierarchy[]>([]);
   const [collections, setCollections] = useState<ContentCollection[]>([]);
   const [contentStats, setContentStats] = useState<ContentStats | null>(null);
-  const [recentActivity, setRecentActivity] = useState<Array<{ type: string; action: string; timestamp: string }>>([]);
-  
+  const [recentActivity, setRecentActivity] = useState<
+    Array<{ type: string; action: string; timestamp: string }>
+  >([]);
+
   // Menu states
   const [createMenuVisible, setCreateMenuVisible] = useState(false);
   const [filterMenuVisible, setFilterMenuVisible] = useState(false);
@@ -297,25 +305,24 @@ export default function ContentOrganizationDashboard({
     try {
       setLoading(true);
       setError(null);
-      
+
       const [categoryHierarchy, stats, userCollections] = await Promise.all([
         CategorizationService.getCategoryHierarchy(),
         ContentService.getContentStats(),
-        CategorizationService.getUserCollections('current-user-id') // TODO: Get actual user ID
+        CategorizationService.getUserCollections('current-user-id'), // TODO: Get actual user ID
       ]);
-      
+
       setCategories(categoryHierarchy);
       setContentStats(stats);
       setCollections(userCollections);
-      
+
       // Mock recent activity data
       setRecentActivity([
         { type: 'sermon', action: 'New sermon uploaded', timestamp: '2 hours ago' },
         { type: 'article', action: 'Article published', timestamp: '4 hours ago' },
         { type: 'category', action: 'Category created', timestamp: '1 day ago' },
-        { type: 'collection', action: 'Playlist updated', timestamp: '2 days ago' }
+        { type: 'collection', action: 'Playlist updated', timestamp: '2 days ago' },
       ]);
-      
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
       setError('Failed to load dashboard data. Please try again.');
@@ -457,9 +464,15 @@ export default function ContentOrganizationDashboard({
           {recentActivity.map((activity, index) => (
             <View key={index} style={styles.activityItem}>
               <MaterialIcons
-                name={activity.type === 'sermon' ? 'headphones' : 
-                      activity.type === 'article' ? 'article' :
-                      activity.type === 'category' ? 'folder' : 'playlist-play'}
+                name={
+                  activity.type === 'sermon'
+                    ? 'headphones'
+                    : activity.type === 'article'
+                      ? 'article'
+                      : activity.type === 'category'
+                        ? 'folder'
+                        : 'playlist-play'
+                }
                 size={20}
                 color={theme.colors.primary}
                 style={styles.activityIcon}
@@ -484,37 +497,24 @@ export default function ContentOrganizationDashboard({
           onPress={() => handleCategoryPress(category.id)}
         >
           <View style={styles.categoryHeader}>
-            <MaterialIcons
-              name={category.icon as any}
-              size={24}
-              color={category.color}
-            />
-            
+            <MaterialIcons name={category.icon as any} size={24} color={category.color} />
+
             <View style={styles.categoryInfo}>
               <Text style={styles.categoryName}>{category.name}</Text>
               <Text style={styles.categoryDescription} numberOfLines={2}>
                 {category.description}
               </Text>
-              
+
               <View style={styles.categoryMeta}>
-                <Chip icon="content-copy">
-                  {category.contentCount} items
-                </Chip>
+                <Chip icon="content-copy">{category.contentCount} items</Chip>
                 {category.subcategoryCount > 0 && (
-                  <Chip icon="folder">
-                    {category.subcategoryCount} subcategories
-                  </Chip>
+                  <Chip icon="folder">{category.subcategoryCount} subcategories</Chip>
                 )}
-                {!category.is_active && (
-                  <Badge size={16}>Inactive</Badge>
-                )}
+                {!category.is_active && <Badge size={16}>Inactive</Badge>}
               </View>
             </View>
 
-            <IconButton
-              icon="chevron-right"
-              onPress={() => handleCategoryPress(category.id)}
-            />
+            <IconButton icon="chevron-right" onPress={() => handleCategoryPress(category.id)} />
           </View>
         </Card>
       ))}
@@ -531,36 +531,35 @@ export default function ContentOrganizationDashboard({
         >
           <View style={styles.collectionHeader}>
             <MaterialIcons
-              name={collection.type === 'playlist' ? 'playlist-play' :
-                    collection.type === 'study' ? 'school' :
-                    collection.type === 'curriculum' ? 'book' : 'favorite'}
+              name={
+                collection.type === 'playlist'
+                  ? 'playlist-play'
+                  : collection.type === 'study'
+                    ? 'school'
+                    : collection.type === 'curriculum'
+                      ? 'book'
+                      : 'favorite'
+              }
               size={24}
               color={theme.colors.primary}
             />
-            
+
             <View style={styles.collectionInfo}>
               <Text style={styles.collectionName}>{collection.name}</Text>
               <Text style={styles.collectionDescription} numberOfLines={2}>
                 {collection.description}
               </Text>
-              
+
               <View style={styles.collectionMeta}>
-                <Chip icon="content-copy">
-                  {collection.totalItems} items
-                </Chip>
+                <Chip icon="content-copy">{collection.totalItems} items</Chip>
                 <Chip icon={collection.isPublic ? 'public' : 'lock'}>
                   {collection.isPublic ? 'Public' : 'Private'}
                 </Chip>
-                <Chip icon="person">
-                  {collection.createdBy}
-                </Chip>
+                <Chip icon="person">{collection.createdBy}</Chip>
               </View>
             </View>
 
-            <IconButton
-              icon="chevron-right"
-              onPress={() => handleCollectionPress(collection.id)}
-            />
+            <IconButton icon="chevron-right" onPress={() => handleCollectionPress(collection.id)} />
           </View>
         </Card>
       ))}
@@ -634,11 +633,7 @@ export default function ContentOrganizationDashboard({
   if (error) {
     return (
       <View style={styles.errorContainer}>
-        <MaterialIcons 
-          name="error" 
-          size={64} 
-          color={theme.colors.error} 
-        />
+        <MaterialIcons name="error" size={64} color={theme.colors.error} />
         <Text style={styles.errorText}>{error}</Text>
         <Button mode="contained" onPress={loadDashboardData}>
           Retry
@@ -651,9 +646,7 @@ export default function ContentOrganizationDashboard({
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Content Organization</Text>
-        <Text style={styles.subtitle}>
-          Manage and organize your content effectively
-        </Text>
+        <Text style={styles.subtitle}>Manage and organize your content effectively</Text>
       </View>
 
       <View style={styles.viewSelector}>
@@ -664,7 +657,7 @@ export default function ContentOrganizationDashboard({
             { value: 'overview', label: 'Overview' },
             { value: 'categories', label: 'Categories' },
             { value: 'collections', label: 'Collections' },
-            { value: 'analytics', label: 'Analytics' }
+            { value: 'analytics', label: 'Analytics' },
           ]}
         />
       </View>
@@ -678,9 +671,7 @@ export default function ContentOrganizationDashboard({
         />
       </View>
 
-      <ScrollView style={styles.content}>
-        {renderContent()}
-      </ScrollView>
+      <ScrollView style={styles.content}>{renderContent()}</ScrollView>
 
       {/* Create Menu */}
       <Menu
@@ -715,11 +706,7 @@ export default function ContentOrganizationDashboard({
       </Menu>
 
       {showCreateOptions && (
-        <FAB
-          icon="plus"
-          style={styles.fab}
-          onPress={() => setCreateMenuVisible(true)}
-        />
+        <FAB icon="plus" style={styles.fab} onPress={() => setCreateMenuVisible(true)} />
       )}
     </View>
   );

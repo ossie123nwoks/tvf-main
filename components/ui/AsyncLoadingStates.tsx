@@ -24,7 +24,7 @@ export const AsyncLoadingWrapper: React.FC<AsyncLoadingProps> = ({
   errorTitle = 'Something went wrong',
   errorMessage = 'We encountered an error. Please try again.',
   retryLabel = 'Try Again',
-  children
+  children,
 }) => {
   const theme = useTheme();
 
@@ -37,7 +37,7 @@ export const AsyncLoadingWrapper: React.FC<AsyncLoadingProps> = ({
           color={theme.colors.primary}
           style={styles.loadingIcon}
         />
-        <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
+        <Text style={[styles.loadingText, { color: theme.colors.secondary }]}>
           {loadingMessage}
         </Text>
       </View>
@@ -55,10 +55,8 @@ export const AsyncLoadingWrapper: React.FC<AsyncLoadingProps> = ({
               color={theme.colors.error}
               style={styles.errorIcon}
             />
-            <Text style={[styles.errorTitle, { color: theme.colors.error }]}>
-              {errorTitle}
-            </Text>
-            <Text style={[styles.errorMessage, { color: theme.colors.textSecondary }]}>
+            <Text style={[styles.errorTitle, { color: theme.colors.error }]}>{errorTitle}</Text>
+            <Text style={[styles.errorMessage, { color: theme.colors.secondary }]}>
               {errorMessage}
             </Text>
             {state.retry && (
@@ -80,8 +78,8 @@ export const AsyncLoadingWrapper: React.FC<AsyncLoadingProps> = ({
   return <>{children}</>;
 };
 
-export const InlineLoadingSpinner: React.FC<{ 
-  isLoading: boolean; 
+export const InlineLoadingSpinner: React.FC<{
+  isLoading: boolean;
   size?: 'small' | 'large';
   message?: string;
 }> = ({ isLoading, size = 'small', message }) => {
@@ -95,12 +93,10 @@ export const InlineLoadingSpinner: React.FC<{
         name="sync"
         size={size === 'large' ? 24 : 16}
         color={theme.colors.primary}
-        style={[styles.inlineIcon, { animation: 'spin 1s linear infinite' }]}
+        style={styles.inlineIcon}
       />
       {message && (
-        <Text style={[styles.inlineText, { color: theme.colors.textSecondary }]}>
-          {message}
-        </Text>
+        <Text style={[styles.inlineText, { color: theme.colors.secondary }]}>{message}</Text>
       )}
     </View>
   );
@@ -114,12 +110,7 @@ export const ButtonLoadingState: React.FC<{
   if (isLoading) {
     return (
       <View style={styles.buttonLoadingContainer}>
-        <MaterialIcons
-          name="sync"
-          size={16}
-          color="#FFFFFF"
-          style={styles.buttonLoadingIcon}
-        />
+        <MaterialIcons name="sync" size={16} color="#FFFFFF" style={styles.buttonLoadingIcon} />
         <Text style={styles.buttonLoadingText}>{loadingText}</Text>
       </View>
     );
@@ -145,7 +136,7 @@ export const FormLoadingState: React.FC<{
             color={theme.colors.primary}
             style={styles.formLoadingIcon}
           />
-          <Text style={[styles.formLoadingText, { color: theme.colors.textSecondary }]}>
+          <Text style={[styles.formLoadingText, { color: theme.colors.secondary }]}>
             {loadingMessage}
           </Text>
         </View>

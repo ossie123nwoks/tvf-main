@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Alert,
-  RefreshControl,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, RefreshControl } from 'react-native';
 import {
   Card,
   Title,
@@ -101,25 +95,21 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
   };
 
   const handleClearCompleted = async () => {
-    Alert.alert(
-      'Clear Completed',
-      'Are you sure you want to clear all completed sync items?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await clearCompletedSyncs();
-              Alert.alert('Success', 'Completed syncs cleared');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to clear completed syncs');
-            }
-          },
+    Alert.alert('Clear Completed', 'Are you sure you want to clear all completed sync items?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Clear',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await clearCompletedSyncs();
+            Alert.alert('Success', 'Completed syncs cleared');
+          } catch (error) {
+            Alert.alert('Error', 'Failed to clear completed syncs');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleOfflineContentSync = async () => {
@@ -203,15 +193,11 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       {/* Header */}
       <View style={styles.header}>
-        <Title style={[styles.title, { color: theme.colors.onBackground }]}>
-          Sync Dashboard
-        </Title>
+        <Title style={[styles.title, { color: theme.colors.onBackground }]}>Sync Dashboard</Title>
         {onClose && (
           <IconButton
             icon="close"
@@ -225,10 +211,8 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
       {/* Sync Status Card */}
       <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
         <Card.Content>
-          <Title style={[styles.cardTitle, { color: theme.colors.onSurface }]}>
-            Sync Status
-          </Title>
-          
+          <Title style={[styles.cardTitle, { color: theme.colors.onSurface }]}>Sync Status</Title>
+
           <View style={styles.statusRow}>
             <Text style={[styles.statusText, { color: theme.colors.onSurface }]}>
               Status: {isSyncInProgress ? 'Running' : 'Idle'}
@@ -236,7 +220,9 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
             <Chip
               mode="outlined"
               textStyle={{ color: getStatusColor(isSyncInProgress ? 'in_progress' : 'completed') }}
-              style={{ borderColor: getStatusColor(isSyncInProgress ? 'in_progress' : 'completed') }}
+              style={{
+                borderColor: getStatusColor(isSyncInProgress ? 'in_progress' : 'completed'),
+              }}
             >
               {isSyncInProgress ? 'Active' : 'Inactive'}
             </Chip>
@@ -252,7 +238,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
                 Total Items
               </Text>
             </View>
-            
+
             <View style={styles.summaryItem}>
               <Text style={[styles.summaryValue, { color: theme.colors.secondary }]}>
                 {getSyncStatusSummary().offlineContentCount}
@@ -261,7 +247,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
                 Offline Content
               </Text>
             </View>
-            
+
             <View style={styles.summaryItem}>
               <Text style={[styles.summaryValue, { color: theme.colors.success }]}>
                 {getSyncStatusSummary().completedItems}
@@ -270,7 +256,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
                 Completed
               </Text>
             </View>
-            
+
             <View style={styles.summaryItem}>
               <Text style={[styles.summaryValue, { color: theme.colors.error }]}>
                 {getSyncStatusSummary().failedItems}
@@ -291,9 +277,13 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
                   {Math.round((syncProgress.completedItems / syncProgress.totalItems) * 100)}%
                 </Text>
               </View>
-              
+
               <ProgressBar
-                progress={syncProgress.totalItems > 0 ? syncProgress.completedItems / syncProgress.totalItems : 0}
+                progress={
+                  syncProgress.totalItems > 0
+                    ? syncProgress.completedItems / syncProgress.totalItems
+                    : 0
+                }
                 color={theme.colors.primary}
                 style={styles.progressBar}
               />
@@ -306,7 +296,8 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
 
               <View style={styles.statsRow}>
                 <Text style={[styles.statsText, { color: theme.colors.onSurface }]}>
-                  Bytes: {formatBytes(syncProgress.bytesTransferred)} / {formatBytes(syncProgress.totalBytes)}
+                  Bytes: {formatBytes(syncProgress.bytesTransferred)} /{' '}
+                  {formatBytes(syncProgress.totalBytes)}
                 </Text>
               </View>
             </>
@@ -317,10 +308,8 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
       {/* Sync Controls */}
       <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
         <Card.Content>
-          <Title style={[styles.cardTitle, { color: theme.colors.onSurface }]}>
-            Sync Controls
-          </Title>
-          
+          <Title style={[styles.cardTitle, { color: theme.colors.onSurface }]}>Sync Controls</Title>
+
           <View style={styles.controlsRow}>
             {!isSyncInProgress ? (
               <Button
@@ -392,13 +381,13 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
           <Title style={[styles.cardTitle, { color: theme.colors.onSurface }]}>
             Sync Queue ({syncQueue.length})
           </Title>
-          
+
           {syncQueue.length === 0 ? (
             <Text style={[styles.emptyText, { color: theme.colors.onSurface }]}>
               No items in sync queue
             </Text>
           ) : (
-            syncQueue.map((item) => (
+            syncQueue.map(item => (
               <View key={item.id} style={styles.queueItem}>
                 <View style={styles.queueItemHeader}>
                   <View style={styles.queueItemInfo}>
@@ -409,7 +398,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
                       {item.type} • {new Date(item.createdAt).toLocaleString()}
                     </Text>
                   </View>
-                  
+
                   <View style={styles.queueItemActions}>
                     <Chip
                       mode="outlined"
@@ -418,7 +407,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
                     >
                       {item.status}
                     </Chip>
-                    
+
                     <Chip
                       mode="outlined"
                       textStyle={{ color: getPriorityColor(item.priority) }}
@@ -480,8 +469,8 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
             <Title style={[styles.cardTitle, { color: theme.colors.onSurface }]}>
               Sync Conflicts ({syncConflicts.length})
             </Title>
-            
-            {syncConflicts.map((conflict) => (
+
+            {syncConflicts.map(conflict => (
               <View key={conflict.syncItem.id} style={styles.conflictItem}>
                 <View style={styles.conflictHeader}>
                   <Text style={[styles.conflictTitle, { color: theme.colors.onSurface }]}>
@@ -489,11 +478,11 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
                   </Text>
                   <Badge>{conflict.resolution === 'unresolved' ? 'Unresolved' : 'Resolved'}</Badge>
                 </View>
-                
+
                 <Text style={[styles.conflictText, { color: theme.colors.onSurfaceVariant }]}>
                   Content: {conflict.syncItem.contentType} - {conflict.syncItem.contentId}
                 </Text>
-                
+
                 {conflict.resolution === 'unresolved' && (
                   <View style={styles.conflictActions}>
                     <Button
@@ -535,7 +524,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
             <Title style={[styles.cardTitle, { color: theme.colors.onSurface }]}>
               Sync Statistics
             </Title>
-            
+
             <View style={styles.statsGrid}>
               <View style={styles.statItem}>
                 <Text style={[styles.statValue, { color: theme.colors.primary }]}>
@@ -545,7 +534,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
                   Total Syncs
                 </Text>
               </View>
-              
+
               <View style={styles.statItem}>
                 <Text style={[styles.statValue, { color: theme.colors.success }]}>
                   {syncStats.successfulSyncs}
@@ -554,7 +543,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
                   Successful
                 </Text>
               </View>
-              
+
               <View style={styles.statItem}>
                 <Text style={[styles.statValue, { color: theme.colors.error }]}>
                   {syncStats.failedSyncs}
@@ -563,7 +552,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
                   Failed
                 </Text>
               </View>
-              
+
               <View style={styles.statItem}>
                 <Text style={[styles.statValue, { color: theme.colors.primary }]}>
                   {syncStats.totalItemsSynced}
@@ -576,7 +565,10 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
 
             <View style={styles.statsRow}>
               <Text style={[styles.statsText, { color: theme.colors.onSurfaceVariant }]}>
-                Last sync: {syncStats.lastSyncTime ? new Date(syncStats.lastSyncTime).toLocaleString() : 'Never'}
+                Last sync:{' '}
+                {syncStats.lastSyncTime
+                  ? new Date(syncStats.lastSyncTime).toLocaleString()
+                  : 'Never'}
               </Text>
             </View>
 
@@ -602,14 +594,12 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
             <Title style={[styles.cardTitle, { color: theme.colors.onSurface }]}>
               Sync Options
             </Title>
-            
+
             <View style={styles.optionRow}>
-              <Text style={[styles.optionText, { color: theme.colors.onSurface }]}>
-                Auto-sync
-              </Text>
+              <Text style={[styles.optionText, { color: theme.colors.onSurface }]}>Auto-sync</Text>
               <Switch
                 value={syncOptions.autoSync}
-                onValueChange={(value) => updateSyncOption('autoSync', value)}
+                onValueChange={value => updateSyncOption('autoSync', value)}
                 color={theme.colors.primary}
               />
             </View>
@@ -620,7 +610,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
               </Text>
               <Switch
                 value={syncOptions.syncOnWifi}
-                onValueChange={(value) => updateSyncOption('syncOnWifi', value)}
+                onValueChange={value => updateSyncOption('syncOnWifi', value)}
                 color={theme.colors.primary}
               />
             </View>
@@ -631,7 +621,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
               </Text>
               <Switch
                 value={syncOptions.syncOnCellular}
-                onValueChange={(value) => updateSyncOption('syncOnCellular', value)}
+                onValueChange={value => updateSyncOption('syncOnCellular', value)}
                 color={theme.colors.primary}
               />
             </View>
@@ -642,7 +632,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
               </Text>
               <Switch
                 value={syncOptions.retryFailedItems}
-                onValueChange={(value) => updateSyncOption('retryFailedItems', value)}
+                onValueChange={value => updateSyncOption('retryFailedItems', value)}
                 color={theme.colors.primary}
               />
             </View>
@@ -653,7 +643,7 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
               </Text>
               <Switch
                 value={syncOptions.priorityOrder}
-                onValueChange={(value) => updateSyncOption('priorityOrder', value)}
+                onValueChange={value => updateSyncOption('priorityOrder', value)}
                 color={theme.colors.primary}
               />
             </View>
@@ -676,7 +666,8 @@ export const SyncDashboard: React.FC<SyncDashboardProps> = ({ onClose }) => {
               Choose how to resolve this conflict:
             </Text>
             <Text style={[styles.dialogText, { color: theme.colors.onSurfaceVariant }]}>
-              Content: {selectedConflict?.syncItem?.contentType} - {selectedConflict?.syncItem?.contentId}
+              Content: {selectedConflict?.syncItem?.contentType} -{' '}
+              {selectedConflict?.syncItem?.contentId}
             </Text>
             <Text style={[styles.dialogText, { color: theme.colors.onSurfaceVariant }]}>
               Type: {selectedConflict?.conflictType}

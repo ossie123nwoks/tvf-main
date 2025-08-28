@@ -20,7 +20,7 @@ export const QuickShareButton: React.FC<QuickShareButtonProps> = ({
   author,
   date,
   size = 24,
-  onShare
+  onShare,
 }) => {
   const theme = useTheme();
 
@@ -30,7 +30,7 @@ export const QuickShareButton: React.FC<QuickShareButtonProps> = ({
       const deepLink = generateDeepLink(type, id, {
         title: title,
         author: author || '',
-        date: date || ''
+        date: date || '',
       });
 
       // Create share message
@@ -39,7 +39,7 @@ export const QuickShareButton: React.FC<QuickShareButtonProps> = ({
       const result = await Share.share({
         message: shareMessage,
         title: `TRUEVINE FELLOWSHIP - ${title}`,
-        url: deepLink
+        url: deepLink,
       });
 
       if (onShare) {
@@ -50,11 +50,9 @@ export const QuickShareButton: React.FC<QuickShareButtonProps> = ({
       console.log('Content shared via quick share:', { type, id, action: result.action });
     } catch (error) {
       console.error('Error sharing content:', error);
-      Alert.alert(
-        'Share Error',
-        'Unable to share this content. Please try again.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Share Error', 'Unable to share this content. Please try again.', [
+        { text: 'OK' },
+      ]);
     }
   };
 

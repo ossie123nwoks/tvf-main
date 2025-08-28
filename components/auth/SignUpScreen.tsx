@@ -140,7 +140,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onSwitchToSignIn }) 
 
     clearError();
     const result = await signUp(credentials);
-    
+
     if (!('code' in result)) {
       // Success case - redirect to email verification
       router.push('/email-verification');
@@ -167,12 +167,12 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onSwitchToSignIn }) 
       <Card style={styles.card}>
         <Card.Content>
           <Text style={styles.title}>Create Account</Text>
-          
+
           <View style={styles.row}>
             <TextInput
               label="First Name"
               value={credentials.firstName}
-              onChangeText={(value) => handleInputChange('firstName', value)}
+              onChangeText={value => handleInputChange('firstName', value)}
               style={styles.rowInput}
               mode="outlined"
               autoCapitalize="words"
@@ -182,7 +182,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onSwitchToSignIn }) 
             <TextInput
               label="Last Name"
               value={credentials.lastName}
-              onChangeText={(value) => handleInputChange('lastName', value)}
+              onChangeText={value => handleInputChange('lastName', value)}
               style={styles.rowInput}
               mode="outlined"
               autoCapitalize="words"
@@ -190,17 +190,13 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onSwitchToSignIn }) 
               error={!!formErrors.lastName}
             />
           </View>
-          {formErrors.firstName && (
-            <Text style={styles.errorText}>{formErrors.firstName}</Text>
-          )}
-          {formErrors.lastName && (
-            <Text style={styles.errorText}>{formErrors.lastName}</Text>
-          )}
+          {formErrors.firstName && <Text style={styles.errorText}>{formErrors.firstName}</Text>}
+          {formErrors.lastName && <Text style={styles.errorText}>{formErrors.lastName}</Text>}
 
           <TextInput
             label="Email"
             value={credentials.email}
-            onChangeText={(value) => handleInputChange('email', value)}
+            onChangeText={value => handleInputChange('email', value)}
             style={styles.input}
             mode="outlined"
             keyboardType="email-address"
@@ -208,23 +204,19 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onSwitchToSignIn }) 
             autoComplete="email"
             error={!!formErrors.email}
           />
-          {formErrors.email && (
-            <Text style={styles.errorText}>{formErrors.email}</Text>
-          )}
+          {formErrors.email && <Text style={styles.errorText}>{formErrors.email}</Text>}
 
           <TextInput
             label="Password"
             value={credentials.password}
-            onChangeText={(value) => handleInputChange('password', value)}
+            onChangeText={value => handleInputChange('password', value)}
             style={styles.input}
             mode="outlined"
             secureTextEntry
             autoComplete="new-password"
             error={!!formErrors.password}
           />
-          {formErrors.password && (
-            <Text style={styles.errorText}>{formErrors.password}</Text>
-          )}
+          {formErrors.password && <Text style={styles.errorText}>{formErrors.password}</Text>}
 
           <TextInput
             label="Confirm Password"
@@ -246,21 +238,11 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onSwitchToSignIn }) 
               onPress={() => handleInputChange('acceptTerms', !credentials.acceptTerms)}
               color={theme.colors.primary}
             />
-            <Text style={styles.termsText}>
-              I agree to the Terms of Service and Privacy Policy
-            </Text>
+            <Text style={styles.termsText}>I agree to the Terms of Service and Privacy Policy</Text>
           </View>
-          {formErrors.acceptTerms && (
-            <Text style={styles.errorText}>{formErrors.acceptTerms}</Text>
-          )}
+          {formErrors.acceptTerms && <Text style={styles.errorText}>{formErrors.acceptTerms}</Text>}
 
-          {error && (
-            <ErrorDisplay
-              error={error}
-              onDismiss={() => clearError()}
-              compact={true}
-            />
-          )}
+          {error && <ErrorDisplay error={error} onDismiss={() => clearError()} compact={true} />}
 
           <Button
             mode="contained"
@@ -276,11 +258,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ onSwitchToSignIn }) 
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Already have an account? </Text>
-        <Button
-          mode="text"
-          onPress={onSwitchToSignIn}
-          style={styles.button}
-        >
+        <Button mode="text" onPress={onSwitchToSignIn} style={styles.button}>
           Sign In
         </Button>
       </View>

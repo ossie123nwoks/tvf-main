@@ -16,55 +16,55 @@ export interface DeepLinkData {
 export function parseDeepLink(url: string): DeepLinkData | null {
   try {
     const parsed = Linking.parse(url);
-    
+
     // Handle different URL patterns
     if (parsed.hostname === 'tvf-app' || parsed.scheme === 'tvf-app') {
       const path = parsed.path || '';
       const queryParams = parsed.queryParams || {};
-      
+
       // Parse path segments
       const segments = path.split('/').filter(Boolean);
-      
+
       if (segments.length === 0) {
         return { type: 'dashboard' };
       }
-      
+
       // Handle sermon deep links: tvf-app://sermon/123
       if (segments[0] === 'sermon' && segments[1]) {
         return {
           type: 'sermon',
           id: segments[1],
-          ...queryParams
+          ...queryParams,
         };
       }
-      
+
       // Handle article deep links: tvf-app://article/456
       if (segments[0] === 'article' && segments[1]) {
         return {
           type: 'article',
           id: segments[1],
-          ...queryParams
+          ...queryParams,
         };
       }
-      
+
       // Handle category deep links: tvf-app://category/sermons
       if (segments[0] === 'category' && segments[1]) {
         return {
           type: 'category',
           category: segments[1],
-          tab: queryParams.tab as string || 'sermons'
+          tab: (queryParams.tab as string) || 'sermons',
         };
       }
-      
+
       // Handle tab navigation: tvf-app://dashboard, tvf-app://sermons, etc.
       if (['dashboard', 'sermons', 'articles', 'profile'].includes(segments[0])) {
         return {
           type: 'dashboard',
-          tab: segments[0]
+          tab: segments[0],
         };
       }
     }
-    
+
     return null;
   } catch (error) {
     console.error('Error parsing deep link:', error);
@@ -84,20 +84,20 @@ export function navigateToDeepLink(data: DeepLinkData): void {
           router.push(`/sermon/${data.id}`);
         }
         break;
-        
+
       case 'article':
         if (data.id) {
           router.push(`/article/${data.id}`);
         }
         break;
-        
+
       case 'category':
         if (data.category && data.tab) {
           // Navigate to specific tab and apply category filter
           router.push(`/(tabs)/${data.tab}?category=${data.category}`);
         }
         break;
-        
+
       case 'dashboard':
         if (data.tab) {
           router.push(`/(tabs)/${data.tab}`);
@@ -105,7 +105,7 @@ export function navigateToDeepLink(data: DeepLinkData): void {
           router.push('/(tabs)/dashboard');
         }
         break;
-        
+
       default:
         // Fallback to dashboard
         router.push('/(tabs)/dashboard');
@@ -130,17 +130,17 @@ export function generateDeepLink(
   additionalParams: Record<string, string> = {}
 ): string {
   const baseUrl = 'tvf-app://';
-  
+
   switch (type) {
     case 'sermon':
       return `${baseUrl}sermon/${id}${buildQueryString(additionalParams)}`;
-      
+
     case 'article':
       return `${baseUrl}article/${id}${buildQueryString(additionalParams)}`;
-      
+
     case 'category':
       return `${baseUrl}category/${id}${buildQueryString(additionalParams)}`;
-      
+
     default:
       return baseUrl;
   }
@@ -155,7 +155,7 @@ export function buildQueryString(params: Record<string, string>): string {
   const queryParams = Object.entries(params)
     .filter(([_, value]) => value !== undefined && value !== '')
     .map(([key, value]) => `${key}=${encodeURIComponent(value)}`);
-  
+
   return queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
 }
 

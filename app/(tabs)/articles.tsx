@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, RefreshControl, Alert } from 'react-native';
-import { 
-  Text, 
-  Card, 
-  Searchbar, 
-  Chip, 
-  Button, 
+import {
+  Text,
+  Card,
+  Searchbar,
+  Chip,
+  Button,
   useTheme as usePaperTheme,
   ActivityIndicator,
   FAB,
@@ -13,7 +13,7 @@ import {
   Divider,
   IconButton,
   Badge,
-  Avatar
+  Avatar,
 } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -30,7 +30,7 @@ export default function ArticlesScreen() {
   const [sortBy, setSortBy] = useState<'published_at' | 'title' | 'popularity'>('published_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showFeaturedOnly, setShowFeaturedOnly] = useState(false);
-  
+
   // Data states
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -38,12 +38,12 @@ export default function ArticlesScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalArticles, setTotalArticles] = useState(0);
-  
+
   // UI states
   const [sortMenuVisible, setSortMenuVisible] = useState(false);
   const [filterMenuVisible, setFilterMenuVisible] = useState(false);
@@ -210,12 +210,12 @@ export default function ArticlesScreen() {
       setLoading(true);
       const [categoriesData, tagsData] = await Promise.all([
         ContentService.getCategories(),
-        getUniqueTags()
+        getUniqueTags(),
       ]);
-      
+
       setCategories(categoriesData);
       setAllTags(tagsData);
-      
+
       await loadArticles(true);
     } catch (error) {
       console.error('Failed to load initial data:', error);
@@ -259,7 +259,7 @@ export default function ArticlesScreen() {
         sortBy,
         sortOrder,
         published: true,
-        featured: showFeaturedOnly ? true : undefined
+        featured: showFeaturedOnly ? true : undefined,
       };
 
       if (searchQuery) {
@@ -275,13 +275,13 @@ export default function ArticlesScreen() {
       }
 
       const response = await ContentService.getArticles(searchParams);
-      
+
       if (reset) {
         setArticles(response.data);
       } else {
         setArticles(prev => [...prev, ...response.data]);
       }
-      
+
       setTotalArticles(response.total);
       setHasMore(response.hasMore);
       setCurrentPage(page + 1);
@@ -336,7 +336,7 @@ export default function ArticlesScreen() {
     Alert.alert('Coming Soon', 'Bookmark functionality will be implemented in the next phase.');
   };
 
-  const     clearFilters = () => {
+  const clearFilters = () => {
     setSelectedCategory(null);
     setSelectedTags([]);
     setShowFeaturedOnly(false);
@@ -349,7 +349,7 @@ export default function ArticlesScreen() {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays} days ago`;
     if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
@@ -383,16 +383,13 @@ export default function ArticlesScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         onScroll={({ nativeEvent }) => {
           const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
           const paddingToBottom = 20;
-          if (layoutMeasurement.height + contentOffset.y >= 
-              contentSize.height - paddingToBottom) {
+          if (layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom) {
             handleLoadMore();
           }
         }}
@@ -424,22 +421,12 @@ export default function ArticlesScreen() {
           >
             Filters
           </Button>
-          
-          <Button
-            mode="outlined"
-            onPress={() => setSortMenuVisible(true)}
-            icon="sort"
-            compact
-          >
+
+          <Button mode="outlined" onPress={() => setSortMenuVisible(true)} icon="sort" compact>
             Sort
           </Button>
-          
-          <Button
-            mode="outlined"
-            onPress={clearFilters}
-            icon="delete-sweep"
-            compact
-          >
+
+          <Button mode="outlined" onPress={clearFilters} icon="delete-sweep" compact>
             Clear
           </Button>
         </View>
@@ -448,7 +435,7 @@ export default function ArticlesScreen() {
         <Chip
           selected={showFeaturedOnly}
           onPress={() => setShowFeaturedOnly(!showFeaturedOnly)}
-          icon={showFeaturedOnly ? "star" : "star-outline"}
+          icon={showFeaturedOnly ? 'star' : 'star-outline'}
           style={{ marginBottom: theme.spacing.md }}
         >
           Featured Only
@@ -463,7 +450,7 @@ export default function ArticlesScreen() {
           >
             All Categories
           </Chip>
-          {categories.map((category) => (
+          {categories.map(category => (
             <Chip
               key={category.id}
               selected={selectedCategory === category.id}
@@ -480,15 +467,13 @@ export default function ArticlesScreen() {
         {allTags.length > 0 && (
           <View style={styles.tags}>
             <Text style={styles.cardExcerpt}>Popular Tags:</Text>
-            {allTags.slice(0, 10).map((tag) => (
+            {allTags.slice(0, 10).map(tag => (
               <Chip
                 key={tag}
                 selected={selectedTags.includes(tag)}
                 onPress={() => {
-                  setSelectedTags(prev => 
-                    prev.includes(tag) 
-                      ? prev.filter(t => t !== tag)
-                      : [...prev, tag]
+                  setSelectedTags(prev =>
+                    prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
                   );
                 }}
                 style={{ marginRight: theme.spacing.sm, marginBottom: theme.spacing.sm }}
@@ -502,99 +487,87 @@ export default function ArticlesScreen() {
 
         {/* Articles List */}
         {articles.length > 0 ? (
-          articles.map((article) => (
-            <Card 
-              key={article.id} 
-              style={styles.card}
-              onPress={() => handleArticlePress(article)}
-            >
-              <Card.Cover 
-                source={{ 
-                  uri: article.thumbnail_url || 'https://via.placeholder.com/300x200?text=No+Image' 
-                }} 
+          articles.map(article => (
+            <Card key={article.id} style={styles.card} onPress={() => handleArticlePress(article)}>
+              <Card.Cover
+                source={{
+                  uri: article.thumbnail_url || 'https://via.placeholder.com/300x200?text=No+Image',
+                }}
               />
               <Card.Content style={styles.cardContent}>
                 {/* Article Header with Author */}
                 <View style={styles.cardHeader}>
-                  <Avatar.Text 
-                    size={40} 
+                  <Avatar.Text
+                    size={40}
                     label={getInitials(article.author)}
                     style={{ backgroundColor: theme.colors.primary }}
                   />
                   <View style={styles.authorInfo}>
                     <Text style={styles.cardAuthor}>{article.author}</Text>
-                    <Text variant="bodySmall">
-                      {formatDate(article.published_at)}
-                    </Text>
+                    <Text variant="bodySmall">{formatDate(article.published_at)}</Text>
                   </View>
-                  {article.is_featured && (
-                    <Badge size={16}>
-                      Featured
-                    </Badge>
-                  )}
+                  {article.is_featured && <Badge size={16}>Featured</Badge>}
                 </View>
 
                 {/* Article Title */}
                 <Text style={styles.cardTitle} numberOfLines={2}>
                   {article.title}
                 </Text>
-                
+
                 {/* Article Meta */}
                 <View style={styles.cardMeta}>
-                  <Text variant="bodySmall">
-                    {formatDate(article.published_at)}
-                  </Text>
+                  <Text variant="bodySmall">{formatDate(article.published_at)}</Text>
                   <Text style={styles.readingTime}>
                     {calculateReadingTime(article.content)} min read
                   </Text>
                 </View>
-                
+
                 {/* Article Excerpt */}
                 <Text style={styles.cardExcerpt} numberOfLines={3}>
                   {article.excerpt}
                 </Text>
-                
+
                 {/* Article Stats */}
                 <View style={styles.stats}>
-                                     <View style={styles.stat}>
-                     <Text style={styles.statNumber}>{article.views}</Text>
-                     <Text style={styles.statLabel}>Views</Text>
-                   </View>
-                   <View style={styles.stat}>
-                     <Text style={styles.statNumber}>{article.tags && Array.isArray(article.tags) ? article.tags.length : 0}</Text>
-                     <Text style={styles.statLabel}>Tags</Text>
-                   </View>
-                   <View style={styles.stat}>
-                     <Text style={styles.statNumber}>
-                       {calculateReadingTime(article.content)}
-                     </Text>
-                     <Text style={styles.statLabel}>Min Read</Text>
-                   </View>
+                  <View style={styles.stat}>
+                    <Text style={styles.statNumber}>{article.views}</Text>
+                    <Text style={styles.statLabel}>Views</Text>
+                  </View>
+                  <View style={styles.stat}>
+                    <Text style={styles.statNumber}>
+                      {article.tags && Array.isArray(article.tags) ? article.tags.length : 0}
+                    </Text>
+                    <Text style={styles.statLabel}>Tags</Text>
+                  </View>
+                  <View style={styles.stat}>
+                    <Text style={styles.statNumber}>{calculateReadingTime(article.content)}</Text>
+                    <Text style={styles.statLabel}>Min Read</Text>
+                  </View>
                 </View>
               </Card.Content>
-              
+
               {/* Article Actions */}
               <Card.Actions style={styles.cardActions}>
-                <Button 
-                  icon="book-open" 
-                  mode="contained" 
+                <Button
+                  icon="book-open"
+                  mode="contained"
                   onPress={() => handleReadPress(article)}
                   compact
                 >
                   Read Article
                 </Button>
                 <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-                  <Button 
-                    icon="share" 
-                    mode="outlined" 
+                  <Button
+                    icon="share"
+                    mode="outlined"
                     onPress={() => handleSharePress(article)}
                     compact
                   >
                     Share
                   </Button>
-                  <Button 
-                    icon="bookmark" 
-                    mode="outlined" 
+                  <Button
+                    icon="bookmark"
+                    mode="outlined"
                     onPress={() => handleBookmarkPress(article)}
                     compact
                   >
@@ -606,16 +579,11 @@ export default function ArticlesScreen() {
           ))
         ) : (
           <View style={styles.emptyContainer}>
-            <MaterialIcons 
-              name="article" 
-              size={64} 
-              color={theme.colors.textSecondary} 
-            />
+            <MaterialIcons name="article" size={64} color={theme.colors.textSecondary} />
             <Text style={styles.emptyText}>
               {searchQuery || selectedCategory || selectedTags.length > 0
                 ? 'No articles match your current filters. Try adjusting your search criteria.'
-                : 'No articles available at the moment. Check back later for new content.'
-              }
+                : 'No articles available at the moment. Check back later for new content.'}
             </Text>
           </View>
         )}
@@ -635,11 +603,7 @@ export default function ArticlesScreen() {
         onDismiss={() => setFilterMenuVisible(false)}
         anchor={<View />}
       >
-        <Menu.Item
-          leadingIcon="tag"
-          title="Tags"
-          onPress={() => setFilterMenuVisible(false)}
-        />
+        <Menu.Item leadingIcon="tag" title="Tags" onPress={() => setFilterMenuVisible(false)} />
         <Menu.Item
           leadingIcon="calendar"
           title="Date Range"
@@ -657,29 +621,25 @@ export default function ArticlesScreen() {
       </Menu>
 
       {/* Sort Menu */}
-      <Menu
-        visible={sortMenuVisible}
-        onDismiss={() => setSortMenuVisible(false)}
-        anchor={<View />}
-      >
-                 <Menu.Item
-           leadingIcon="calendar"
-           title="Date (Newest First)"
-           onPress={() => {
-             setSortBy('published_at');
-             setSortOrder('desc');
-             setSortMenuVisible(false);
-           }}
-         />
-         <Menu.Item
-           leadingIcon="calendar"
-           title="Date (Oldest First)"
-           onPress={() => {
-             setSortBy('published_at');
-             setSortOrder('asc');
-             setSortMenuVisible(false);
-           }}
-         />
+      <Menu visible={sortMenuVisible} onDismiss={() => setSortMenuVisible(false)} anchor={<View />}>
+        <Menu.Item
+          leadingIcon="calendar"
+          title="Date (Newest First)"
+          onPress={() => {
+            setSortBy('published_at');
+            setSortOrder('desc');
+            setSortMenuVisible(false);
+          }}
+        />
+        <Menu.Item
+          leadingIcon="calendar"
+          title="Date (Oldest First)"
+          onPress={() => {
+            setSortBy('published_at');
+            setSortOrder('asc');
+            setSortMenuVisible(false);
+          }}
+        />
         <Menu.Item
           leadingIcon="sort-alphabetical-ascending"
           title="Title (A-Z)"

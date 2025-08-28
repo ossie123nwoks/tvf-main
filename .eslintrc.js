@@ -4,10 +4,11 @@ module.exports = {
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:react/recommended',
-    'plugin:react-native/all'
+    'plugin:react-native/all',
+    'plugin:prettier/recommended'
   ],
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'react', 'react-native'],
+  plugins: ['@typescript-eslint', 'react', 'react-native', 'prettier'],
   parserOptions: {
     ecmaFeatures: {
       jsx: true,
@@ -45,6 +46,9 @@ module.exports = {
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'prefer-const': 'warn',
     'no-var': 'error',
+    
+    // Prettier rules
+    'prettier/prettier': ['error', {}, { usePrettierrc: true }],
   },
   ignorePatterns: [
     'node_modules/**',

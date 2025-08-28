@@ -1,0 +1,27 @@
+# Build artifacts
+node_modules
+.expo
+dist
+build
+coverage
+
+# Generated files
+*.generated.*
+*.d.ts
+
+# Package files
+package-lock.json
+yarn.lock
+
+# Configuration files
+.eslintrc.js
+babel.config.js
+metro.config.js
+jest.config.js
+
+# Assets
+assets/
+
+# Documentation
+README.md
+*.md

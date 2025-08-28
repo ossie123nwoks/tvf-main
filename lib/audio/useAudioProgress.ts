@@ -17,9 +17,15 @@ export interface UseAudioProgressReturn {
 
 export const useAudioProgress = (): UseAudioProgressReturn => {
   const [currentProgress, setCurrentProgress] = useState<PlaybackProgress | null>(null);
-  const [playbackHistory, setPlaybackHistory] = useState<{ [audioUrl: string]: PlaybackProgress }>({});
+  const [playbackHistory, setPlaybackHistory] = useState<{ [audioUrl: string]: PlaybackProgress }>(
+    {}
+  );
   const [recentlyPlayed, setRecentlyPlayed] = useState<PlaybackProgress[]>([]);
-  const [completionStats, setCompletionStats] = useState<{ total: number; completed: number; inProgress: number }>({
+  const [completionStats, setCompletionStats] = useState<{
+    total: number;
+    completed: number;
+    inProgress: number;
+  }>({
     total: 0,
     completed: 0,
     inProgress: 0,
@@ -47,14 +53,17 @@ export const useAudioProgress = (): UseAudioProgressReturn => {
   }, []);
 
   // Check if audio should resume
-  const shouldResume = useCallback(async (audioUrl: string, options?: ResumeOptions): Promise<boolean> => {
-    try {
-      return await audioProgressTracker.shouldResume(audioUrl, options);
-    } catch (error) {
-      console.error('Failed to check resume condition:', error);
-      return false;
-    }
-  }, []);
+  const shouldResume = useCallback(
+    async (audioUrl: string, options?: ResumeOptions): Promise<boolean> => {
+      try {
+        return await audioProgressTracker.shouldResume(audioUrl, options);
+      } catch (error) {
+        console.error('Failed to check resume condition:', error);
+        return false;
+      }
+    },
+    []
+  );
 
   // Get resume position for audio
   const getResumePosition = useCallback(async (audioUrl: string): Promise<number> => {
@@ -67,14 +76,17 @@ export const useAudioProgress = (): UseAudioProgressReturn => {
   }, []);
 
   // Reset progress for specific audio
-  const resetProgress = useCallback(async (audioUrl: string): Promise<void> => {
-    try {
-      await audioProgressTracker.resetProgress(audioUrl);
-      await loadProgressData(); // Refresh data after reset
-    } catch (error) {
-      console.error('Failed to reset progress:', error);
-    }
-  }, [loadProgressData]);
+  const resetProgress = useCallback(
+    async (audioUrl: string): Promise<void> => {
+      try {
+        await audioProgressTracker.resetProgress(audioUrl);
+        await loadProgressData(); // Refresh data after reset
+      } catch (error) {
+        console.error('Failed to reset progress:', error);
+      }
+    },
+    [loadProgressData]
+  );
 
   // Clear all playback history
   const clearHistory = useCallback(async (): Promise<void> => {

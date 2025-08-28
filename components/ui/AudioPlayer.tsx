@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
-import { Text, Button, IconButton, ProgressBar, useTheme as usePaperTheme } from 'react-native-paper';
+import {
+  Text,
+  Button,
+  IconButton,
+  ProgressBar,
+  useTheme as usePaperTheme,
+} from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
@@ -30,11 +36,11 @@ export default function AudioPlayer({
   autoPlay = false,
   showProgress = true,
   showControls = true,
-  variant = 'default'
+  variant = 'default',
 }: AudioPlayerProps) {
   const { theme } = useTheme();
   const paperTheme = usePaperTheme();
-  
+
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +48,7 @@ export default function AudioPlayer({
   const [duration, setDuration] = useState(0);
   const [isBuffering, setIsBuffering] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
   const isMounted = useRef(true);
 
@@ -271,8 +277,8 @@ export default function AudioPlayer({
         <View style={styles.errorContainer}>
           <MaterialIcons name="error" size={24} color={theme.colors.error} />
           <Text style={styles.errorText}>{error}</Text>
-          <Button 
-            mode="contained" 
+          <Button
+            mode="contained"
             onPress={handleRetry}
             style={styles.retryButton}
             textColor="#FFFFFF"
@@ -288,7 +294,11 @@ export default function AudioPlayer({
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <MaterialIcons name="hourglass-empty" size={24} color={theme.colors.onSurfaceVariant || theme.colors.textSecondary} />
+          <MaterialIcons
+            name="hourglass-empty"
+            size={24}
+            color={theme.colors.onSurfaceVariant || theme.colors.textSecondary}
+          />
           <Text style={styles.loadingText}>Loading audio...</Text>
         </View>
       </View>
@@ -319,15 +329,15 @@ export default function AudioPlayer({
             style={styles.controlButton}
             iconColor={theme.colors.onSurfaceVariant || theme.colors.textSecondary}
           />
-          
+
           <IconButton
             icon={isPlaying ? 'pause' : 'play-arrow'}
             size={variant === 'minimal' ? 24 : 32}
             onPress={handlePlayPause}
             style={styles.playButton}
-            iconColor={theme.colors.onBackground || "#FFFFFF"}
+            iconColor={theme.colors.onBackground || '#FFFFFF'}
           />
-          
+
           <IconButton
             icon="skip-next"
             size={variant === 'minimal' ? 20 : 24}
@@ -353,7 +363,7 @@ export default function AudioPlayer({
               },
             }}
           />
-          
+
           <View style={styles.timeInfo}>
             <Text style={styles.timeText}>{formatTime(position)}</Text>
             <Text style={styles.timeText}>{formatTime(duration)}</Text>
@@ -363,4 +373,3 @@ export default function AudioPlayer({
     </View>
   );
 }
-

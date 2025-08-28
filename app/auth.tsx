@@ -85,7 +85,7 @@ export default function Auth() {
       padding: theme.spacing.lg,
       alignItems: 'center',
       borderTopWidth: 1,
-              borderTopColor: theme.colors.border,
+      borderTopColor: theme.colors.border,
     },
     footerText: {
       color: theme.colors.textSecondary,
@@ -179,13 +179,11 @@ export default function Auth() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Welcome to TRUEVINE FELLOWSHIP Church
-          </Text>
+          <Text style={styles.footerText}>Welcome to TRUEVINE FELLOWSHIP Church</Text>
           <Text style={styles.termsText}>
-            By signing up, you agree to our Terms of Service and Privacy Policy.
-            Your account will be created and you'll have access to all church content,
-            sermons, articles, and personalized features.
+            By signing up, you agree to our Terms of Service and Privacy Policy. Your account will
+            be created and you'll have access to all church content, sermons, articles, and
+            personalized features.
           </Text>
         </View>
       </View>

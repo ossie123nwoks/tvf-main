@@ -86,21 +86,30 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
   // Get network icon
   const getNetworkIcon = (type: string): string => {
     switch (type) {
-      case 'wifi': return 'wifi';
-      case 'cellular': return 'cellphone';
-      case 'ethernet': return 'ethernet';
-      default: return 'wifi-off';
+      case 'wifi':
+        return 'wifi';
+      case 'cellular':
+        return 'cellphone';
+      case 'ethernet':
+        return 'ethernet';
+      default:
+        return 'wifi-off';
     }
   };
 
   // Get network color
   const getNetworkColor = (strength: string): string => {
     switch (strength) {
-      case 'excellent': return theme.colors.success;
-      case 'good': return theme.colors.primary;
-      case 'fair': return theme.colors.warning;
-      case 'poor': return theme.colors.error;
-      default: return theme.colors.textSecondary;
+      case 'excellent':
+        return theme.colors.success;
+      case 'good':
+        return theme.colors.primary;
+      case 'fair':
+        return theme.colors.warning;
+      case 'poor':
+        return theme.colors.error;
+      default:
+        return theme.colors.textSecondary;
     }
   };
 
@@ -142,7 +151,7 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
             iconColor={theme.colors.primary}
           />
         </View>
-        
+
         {networkCondition ? (
           <View style={styles.networkInfo}>
             <View style={styles.networkRow}>
@@ -163,13 +172,13 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
                 mode="outlined"
                 style={[
                   styles.networkChip,
-                  { borderColor: getNetworkColor(networkCondition.strength) }
+                  { borderColor: getNetworkColor(networkCondition.strength) },
                 ]}
               >
                 {networkCondition.isMetered ? 'Metered' : 'Unlimited'}
               </Chip>
             </View>
-            
+
             {networkCondition.type === 'cellular' && (
               <Text variant="bodySmall" style={{ color: theme.colors.warning, marginTop: 8 }}>
                 ⚠️ Cellular data usage may incur charges
@@ -190,22 +199,18 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
         <Text variant="titleMedium" style={{ color: theme.colors.text, marginBottom: 16 }}>
           Recommended Quality
         </Text>
-        
+
         {currentRecommendation ? (
           <View style={styles.recommendationContainer}>
             <View style={styles.recommendationHeader}>
-                                <Chip
-                    mode="outlined"
-                    icon="star"
-                    style={{ backgroundColor: theme.colors.primary }}
-                  >
-                    {currentRecommendation.recommendedQuality.name}
-                  </Chip>
+              <Chip mode="outlined" icon="star" style={{ backgroundColor: theme.colors.primary }}>
+                {currentRecommendation.recommendedQuality.name}
+              </Chip>
               <Text variant="bodySmall" style={{ color: theme.colors.textSecondary, marginTop: 8 }}>
                 {currentRecommendation.reason}
               </Text>
             </View>
-            
+
             <View style={styles.recommendationDetails}>
               <View style={styles.recommendationDetail}>
                 <Text variant="bodySmall" style={{ color: theme.colors.textSecondary }}>
@@ -215,7 +220,7 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
                   {currentRecommendation.recommendedQuality.bitrate} kbps
                 </Text>
               </View>
-              
+
               <View style={styles.recommendationDetail}>
                 <Text variant="bodySmall" style={{ color: theme.colors.textSecondary }}>
                   File Size:
@@ -224,7 +229,7 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
                   {formatFileSize(currentRecommendation.recommendedQuality.fileSize)}
                 </Text>
               </View>
-              
+
               <View style={styles.recommendationDetail}>
                 <Text variant="bodySmall" style={{ color: theme.colors.textSecondary }}>
                   Download Time:
@@ -233,7 +238,7 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
                   ~{currentRecommendation.estimatedDownloadTime}s
                 </Text>
               </View>
-              
+
               <View style={styles.recommendationDetail}>
                 <Text variant="bodySmall" style={{ color: theme.colors.textSecondary }}>
                   Data Usage:
@@ -260,11 +265,11 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
         <Text variant="titleMedium" style={{ color: theme.colors.text, marginBottom: 16 }}>
           Available Qualities
         </Text>
-        
-        {availableQualities.map((quality) => {
+
+        {availableQualities.map(quality => {
           const isCurrent = currentQuality?.id === quality.id;
           const isRecommended = currentRecommendation?.recommendedQuality.id === quality.id;
-          
+
           return (
             <View key={quality.id} style={styles.qualityOption}>
               <View style={styles.qualityInfo}>
@@ -272,36 +277,37 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
                   <Text variant="bodyMedium" style={{ color: theme.colors.text }}>
                     {quality.name}
                   </Text>
-                                     {isCurrent && (
-                     <Chip mode="outlined" style={styles.currentChip}>
-                       Current
-                     </Chip>
-                   )}
-                   {isRecommended && (
-                     <Chip mode="outlined" style={styles.recommendedChip}>
-                       Recommended
-                     </Chip>
-                   )}
+                  {isCurrent && (
+                    <Chip mode="outlined" style={styles.currentChip}>
+                      Current
+                    </Chip>
+                  )}
+                  {isRecommended && (
+                    <Chip mode="outlined" style={styles.recommendedChip}>
+                      Recommended
+                    </Chip>
+                  )}
                 </View>
-                
+
                 <Text variant="bodySmall" style={{ color: theme.colors.textSecondary }}>
-                  {quality.bitrate} kbps • {quality.sampleRate} Hz • {quality.channels} channel{quality.channels > 1 ? 's' : ''}
+                  {quality.bitrate} kbps • {quality.sampleRate} Hz • {quality.channels} channel
+                  {quality.channels > 1 ? 's' : ''}
                 </Text>
-                
+
                 <Text variant="bodySmall" style={{ color: theme.colors.textSecondary }}>
                   {formatFileSize(quality.fileSize)} • {quality.description}
                 </Text>
               </View>
-              
+
               <View style={styles.qualityActions}>
-                                 <Button
-                   mode="outlined"
-                   onPress={() => handleQualitySelect(quality)}
-                   disabled={isCurrent}
-                 >
-                   {isCurrent ? 'Current' : 'Select'}
-                 </Button>
-                
+                <Button
+                  mode="outlined"
+                  onPress={() => handleQualitySelect(quality)}
+                  disabled={isCurrent}
+                >
+                  {isCurrent ? 'Current' : 'Select'}
+                </Button>
+
                 {!isCurrent && (
                   <IconButton
                     icon="compare"
@@ -321,7 +327,10 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
   // Render preferences dialog
   const renderPreferencesDialog = () => (
     <Portal>
-      <Dialog visible={preferencesDialogVisible} onDismiss={() => setPreferencesDialogVisible(false)}>
+      <Dialog
+        visible={preferencesDialogVisible}
+        onDismiss={() => setPreferencesDialogVisible(false)}
+      >
         <Dialog.Title>Audio Quality Preferences</Dialog.Title>
         <Dialog.Content>
           {tempPreferences && (
@@ -330,66 +339,86 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
                 <Text>Auto Quality Selection</Text>
                 <Switch
                   value={tempPreferences.autoQuality}
-                  onValueChange={(value) => setTempPreferences(prev => prev ? { ...prev, autoQuality: value } : null)}
+                  onValueChange={value =>
+                    setTempPreferences(prev => (prev ? { ...prev, autoQuality: value } : null))
+                  }
                 />
               </View>
-              
+
               <View style={styles.preferenceOption}>
                 <Text>Preferred Quality</Text>
                 <TextInput
                   value={tempPreferences.preferredQuality}
-                  onChangeText={(text) => setTempPreferences(prev => prev ? { ...prev, preferredQuality: text } : null)}
+                  onChangeText={text =>
+                    setTempPreferences(prev => (prev ? { ...prev, preferredQuality: text } : null))
+                  }
                   style={styles.preferenceInput}
                 />
               </View>
-              
+
               <View style={styles.preferenceOption}>
                 <Text>Max Bitrate (kbps)</Text>
                 <TextInput
                   value={tempPreferences.maxBitrate.toString()}
-                  onChangeText={(text) => setTempPreferences(prev => prev ? { ...prev, maxBitrate: parseInt(text) || 320 } : null)}
+                  onChangeText={text =>
+                    setTempPreferences(prev =>
+                      prev ? { ...prev, maxBitrate: parseInt(text) || 320 } : null
+                    )
+                  }
                   keyboardType="numeric"
                   style={styles.preferenceInput}
                 />
               </View>
-              
+
               <View style={styles.preferenceOption}>
                 <Text>Allow Cellular</Text>
                 <Switch
                   value={tempPreferences.allowCellular}
-                  onValueChange={(value) => setTempPreferences(prev => prev ? { ...prev, allowCellular: value } : null)}
+                  onValueChange={value =>
+                    setTempPreferences(prev => (prev ? { ...prev, allowCellular: value } : null))
+                  }
                 />
               </View>
-              
+
               <View style={styles.preferenceOption}>
                 <Text>Data Saver Mode</Text>
                 <Switch
                   value={tempPreferences.dataSaver}
-                  onValueChange={(value) => setTempPreferences(prev => prev ? { ...prev, dataSaver: value } : null)}
+                  onValueChange={value =>
+                    setTempPreferences(prev => (prev ? { ...prev, dataSaver: value } : null))
+                  }
                 />
               </View>
-              
+
               <View style={styles.preferenceOption}>
                 <Text>High Quality WiFi</Text>
                 <Switch
                   value={tempPreferences.highQualityWifi}
-                  onValueChange={(value) => setTempPreferences(prev => prev ? { ...prev, highQualityWifi: value } : null)}
+                  onValueChange={value =>
+                    setTempPreferences(prev => (prev ? { ...prev, highQualityWifi: value } : null))
+                  }
                 />
               </View>
-              
+
               <View style={styles.preferenceOption}>
                 <Text>Medium Quality Cellular</Text>
                 <Switch
                   value={tempPreferences.mediumQualityCellular}
-                  onValueChange={(value) => setTempPreferences(prev => prev ? { ...prev, mediumQualityCellular: value } : null)}
+                  onValueChange={value =>
+                    setTempPreferences(prev =>
+                      prev ? { ...prev, mediumQualityCellular: value } : null
+                    )
+                  }
                 />
               </View>
-              
+
               <View style={styles.preferenceOption}>
                 <Text>Low Quality Slow Networks</Text>
                 <Switch
                   value={tempPreferences.lowQualitySlow}
-                  onValueChange={(value) => setTempPreferences(prev => prev ? { ...prev, lowQualitySlow: value } : null)}
+                  onValueChange={value =>
+                    setTempPreferences(prev => (prev ? { ...prev, lowQualitySlow: value } : null))
+                  }
                 />
               </View>
             </ScrollView>
@@ -423,13 +452,13 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
                     {formatFileSize(selectedQuality1.fileSize)}
                   </Text>
                 </View>
-                
+
                 <View style={styles.comparisonVs}>
                   <Text variant="titleLarge" style={{ color: theme.colors.textSecondary }}>
                     VS
                   </Text>
                 </View>
-                
+
                 <View style={styles.comparisonQuality}>
                   <Text variant="titleMedium" style={{ color: theme.colors.secondary }}>
                     {selectedQuality2.name}
@@ -442,14 +471,17 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
                   </Text>
                 </View>
               </View>
-              
+
               <Divider style={{ marginVertical: 16 }} />
-              
+
               {(() => {
                 const comparison = getQualityComparison(selectedQuality1, selectedQuality2);
                 return (
                   <View style={styles.comparisonDetails}>
-                    <Text variant="bodyMedium" style={{ color: theme.colors.text, marginBottom: 8 }}>
+                    <Text
+                      variant="bodyMedium"
+                      style={{ color: theme.colors.text, marginBottom: 8 }}
+                    >
                       {comparison.qualityDifference}
                     </Text>
                     <Text variant="bodySmall" style={{ color: theme.colors.textSecondary }}>
@@ -471,10 +503,8 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
   return (
     <Portal>
       <Dialog visible={visible} onDismiss={onDismiss} style={styles.dialog}>
-        <Dialog.Title style={{ color: theme.colors.text }}>
-          Audio Quality Selection
-        </Dialog.Title>
-        
+        <Dialog.Title style={{ color: theme.colors.text }}>Audio Quality Selection</Dialog.Title>
+
         <Dialog.Content style={styles.dialogContent}>
           {isLoading ? (
             <View style={styles.loadingContainer}>
@@ -488,7 +518,7 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
               {renderNetworkStatus()}
               {renderQualityRecommendations()}
               {renderQualityOptions()}
-              
+
               <View style={styles.actionsContainer}>
                 <Button
                   mode="outlined"

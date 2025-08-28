@@ -1,5 +1,11 @@
 import { ContentService } from '../supabase/content';
-import { Sermon, Article, Category, ContentSearchParams, ContentFilters } from '../../types/content';
+import {
+  Sermon,
+  Article,
+  Category,
+  ContentSearchParams,
+  ContentFilters,
+} from '../../types/content';
 
 export interface SearchResult {
   id: string;
@@ -39,7 +45,7 @@ export class SearchService {
       const searchParams: ContentSearchParams = {
         query,
         limit: Math.min(limit, this.MAX_RESULTS),
-        published: true
+        published: true,
       };
 
       // Apply filters
@@ -65,8 +71,14 @@ export class SearchService {
           excerpt: sermon.description,
           category: sermon.category,
           tags: sermon.tags,
-          relevance: this.calculateRelevance(query, sermon.title, sermon.description, sermon.preacher, sermon.tags),
-          data: sermon
+          relevance: this.calculateRelevance(
+            query,
+            sermon.title,
+            sermon.description,
+            sermon.preacher,
+            sermon.tags
+          ),
+          data: sermon,
         }));
         results.push(...sermonResults);
       }
@@ -81,17 +93,20 @@ export class SearchService {
           excerpt: article.excerpt,
           category: article.category,
           tags: article.tags,
-          relevance: this.calculateRelevance(query, article.title, article.content, article.author, article.tags),
-          data: article
+          relevance: this.calculateRelevance(
+            query,
+            article.title,
+            article.content,
+            article.author,
+            article.tags
+          ),
+          data: article,
         }));
         results.push(...articleResults);
       }
 
       // Sort by relevance and return top results
-      return results
-        .sort((a, b) => b.relevance - a.relevance)
-        .slice(0, limit);
-
+      return results.sort((a, b) => b.relevance - a.relevance).slice(0, limit);
     } catch (error) {
       console.error('Search failed:', error);
       return [];
@@ -104,16 +119,16 @@ export class SearchService {
   static async searchByTags(tags: string[], type?: 'sermon' | 'article'): Promise<SearchResult[]> {
     try {
       const content = await ContentService.getContentByTags(tags, type);
-      
+
       return content.map(item => ({
         id: item.id,
-        type: 'publishedAt' in item ? 'article' as const : 'sermon' as const,
+        type: 'publishedAt' in item ? ('article' as const) : ('sermon' as const),
         title: item.title,
         excerpt: 'excerpt' in item ? item.excerpt : item.description,
         category: item.category,
         tags: item.tags,
         relevance: 1.0, // Tag matches get high relevance
-        data: item
+        data: item,
       }));
     } catch (error) {
       console.error('Tag search failed:', error);
@@ -124,19 +139,22 @@ export class SearchService {
   /**
    * Search by category
    */
-  static async searchByCategory(categoryId: string, type?: 'sermon' | 'article'): Promise<SearchResult[]> {
+  static async searchByCategory(
+    categoryId: string,
+    type?: 'sermon' | 'article'
+  ): Promise<SearchResult[]> {
     try {
       const content = await ContentService.getContentByCategory(categoryId, type);
-      
+
       return content.map(item => ({
         id: item.id,
-        type: 'publishedAt' in item ? 'article' as const : 'sermon' as const,
+        type: 'publishedAt' in item ? ('article' as const) : ('sermon' as const),
         title: item.title,
         excerpt: 'excerpt' in item ? item.excerpt : item.description,
         category: item.category,
         tags: item.tags,
         relevance: 0.8, // Category matches get good relevance
-        data: item
+        data: item,
       }));
     } catch (error) {
       console.error('Category search failed:', error);
@@ -154,11 +172,11 @@ export class SearchService {
 
     try {
       const suggestions = new Set<string>();
-      
+
       // Search for matching titles
       const [sermons, articles] = await Promise.all([
         ContentService.getSermons({ query: partialQuery, limit: 20 }),
-        ContentService.getArticles({ query: partialQuery, limit: 20 })
+        ContentService.getArticles({ query: partialQuery, limit: 20 }),
       ]);
 
       // Extract title suggestions
@@ -208,8 +226,16 @@ export class SearchService {
       // This would typically come from analytics data
       // For now, return some common church-related terms
       const trendingTerms = [
-        'faith', 'prayer', 'worship', 'bible study', 'community',
-        'forgiveness', 'grace', 'love', 'hope', 'peace'
+        'faith',
+        'prayer',
+        'worship',
+        'bible study',
+        'community',
+        'forgiveness',
+        'grace',
+        'love',
+        'hope',
+        'peace',
       ];
 
       return trendingTerms.slice(0, limit);
@@ -225,11 +251,11 @@ export class SearchService {
   static async getSearchFilters(): Promise<ContentFilters> {
     try {
       const categories = await ContentService.getCategories();
-      
+
       // Get all unique tags from content
       const [sermons, articles] = await Promise.all([
         ContentService.getSermons({ limit: 100 }),
-        ContentService.getArticles({ limit: 100 })
+        ContentService.getArticles({ limit: 100 }),
       ]);
 
       const allTags = new Set<string>();
@@ -248,7 +274,7 @@ export class SearchService {
         categories: categories.map(cat => cat.id),
         tags: Array.from(allTags),
         featured: undefined,
-        published: true
+        published: true,
       };
     } catch (error) {
       console.error('Failed to get search filters:', error);
@@ -256,7 +282,7 @@ export class SearchService {
         categories: [],
         tags: [],
         featured: undefined,
-        published: true
+        published: true,
       };
     }
   }
@@ -307,7 +333,7 @@ export class SearchService {
       title.toLowerCase().includes(queryLower),
       content.toLowerCase().includes(queryLower),
       author.toLowerCase().includes(queryLower),
-      tags.some(tag => tag.toLowerCase().includes(queryLower))
+      tags.some(tag => tag.toLowerCase().includes(queryLower)),
     ].filter(Boolean).length;
 
     if (matchCount > 1) {
@@ -331,7 +357,17 @@ export class SearchService {
     sortOrder?: 'asc' | 'desc';
     limit?: number;
   }): Promise<SearchResult[]> {
-    const { query, categories, tags, dateRange, featured, type = 'all', sortBy = 'relevance', sortOrder = 'desc', limit = 50 } = criteria;
+    const {
+      query,
+      categories,
+      tags,
+      dateRange,
+      featured,
+      type = 'all',
+      sortBy = 'relevance',
+      sortOrder = 'desc',
+      limit = 50,
+    } = criteria;
 
     try {
       let results: SearchResult[] = [];
@@ -339,7 +375,7 @@ export class SearchService {
       // Build search parameters
       const searchParams: ContentSearchParams = {
         limit: Math.min(limit, this.MAX_RESULTS),
-        published: true
+        published: true,
       };
 
       if (query) {
@@ -379,8 +415,16 @@ export class SearchService {
           excerpt: sermon.description,
           category: sermon.category,
           tags: sermon.tags,
-          relevance: query ? this.calculateRelevance(query, sermon.title, sermon.description, sermon.preacher, sermon.tags) : 1,
-          data: sermon
+          relevance: query
+            ? this.calculateRelevance(
+                query,
+                sermon.title,
+                sermon.description,
+                sermon.preacher,
+                sermon.tags
+              )
+            : 1,
+          data: sermon,
         }));
         results.push(...sermonResults);
       }
@@ -394,8 +438,16 @@ export class SearchService {
           excerpt: article.excerpt,
           category: article.category,
           tags: article.tags,
-          relevance: query ? this.calculateRelevance(query, article.title, article.content, article.author, article.tags) : 1,
-          data: article
+          relevance: query
+            ? this.calculateRelevance(
+                query,
+                article.title,
+                article.content,
+                article.author,
+                article.tags
+              )
+            : 1,
+          data: article,
         }));
         results.push(...articleResults);
       }
@@ -416,22 +468,21 @@ export class SearchService {
         results.sort((a, b) => b.relevance - a.relevance);
       } else if (sortBy === 'date') {
         results.sort((a, b) => {
-                const aDate = 'published_at' in a.data ? a.data.published_at : a.data.date;
-      const bDate = 'published_at' in b.data ? b.data.published_at : b.data.date;
-          return sortOrder === 'asc' 
+          const aDate = 'published_at' in a.data ? a.data.published_at : a.data.date;
+          const bDate = 'published_at' in b.data ? b.data.published_at : b.data.date;
+          return sortOrder === 'asc'
             ? new Date(aDate).getTime() - new Date(bDate).getTime()
             : new Date(bDate).getTime() - new Date(aDate).getTime();
         });
       } else if (sortBy === 'title') {
         results.sort((a, b) => {
-          return sortOrder === 'asc' 
+          return sortOrder === 'asc'
             ? a.title.localeCompare(b.title)
             : b.title.localeCompare(a.title);
         });
       }
 
       return results.slice(0, limit);
-
     } catch (error) {
       console.error('Advanced search failed:', error);
       return [];

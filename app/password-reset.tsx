@@ -15,22 +15,20 @@ export default function PasswordReset() {
   const { requestPasswordReset, confirmPasswordReset, loading, error, clearError } = useAuth();
   const router = useRouter();
   const params = useLocalSearchParams();
-  
+
   // Determine mode from URL params or default to request
-  const [mode, setMode] = useState<ResetMode>(
-    params.token ? 'confirm' : 'request'
-  );
-  
+  const [mode, setMode] = useState<ResetMode>(params.token ? 'confirm' : 'request');
+
   // Request mode state
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
-  
+
   // Confirm mode state
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
-  
+
   // Success state
   const [isSuccess, setIsSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -123,7 +121,7 @@ export default function PasswordReset() {
 
   const validatePassword = (): boolean => {
     let isValid = true;
-    
+
     if (!password) {
       setPasswordError('Password is required');
       isValid = false;
@@ -152,10 +150,12 @@ export default function PasswordReset() {
 
     clearError();
     const result = await requestPasswordReset({ email: email.trim() });
-    
+
     if (result.success) {
       setIsSuccess(true);
-      setSuccessMessage('Password reset email sent! Please check your inbox and follow the instructions.');
+      setSuccessMessage(
+        'Password reset email sent! Please check your inbox and follow the instructions.'
+      );
     }
   };
 
@@ -173,7 +173,7 @@ export default function PasswordReset() {
       token,
       newPassword: password,
     });
-    
+
     if ('code' in result) {
       // Error case
       setPasswordError(result.message);
@@ -193,7 +193,7 @@ export default function PasswordReset() {
     if (field === 'email' && emailError) setEmailError('');
     if (field === 'password' && passwordError) setPasswordError('');
     if (field === 'confirmPassword' && confirmPasswordError) setConfirmPasswordError('');
-    
+
     // Update state
     if (field === 'email') setEmail(value);
     if (field === 'password') setPassword(value);
@@ -207,19 +207,15 @@ export default function PasswordReset() {
           <Text style={styles.headerTitle}>TRUEVINE FELLOWSHIP</Text>
           <Text style={styles.headerSubtitle}>Password Reset</Text>
         </View>
-        
+
         <View style={styles.content}>
           <Card style={styles.successCard}>
             <Card.Content>
               <Text style={styles.successText}>{successMessage}</Text>
             </Card.Content>
           </Card>
-          
-          <Button
-            mode="contained"
-            onPress={handleBackToSignIn}
-            style={styles.button}
-          >
+
+          <Button mode="contained" onPress={handleBackToSignIn} style={styles.button}>
             Back to Sign In
           </Button>
         </View>
@@ -244,14 +240,19 @@ export default function PasswordReset() {
             <Card style={styles.card}>
               <Card.Content>
                 <Text style={styles.title}>Forgot Your Password?</Text>
-                <Text style={[styles.footerText, { marginBottom: theme.spacing.lg, textAlign: 'center' }]}>
+                <Text
+                  style={[
+                    styles.footerText,
+                    { marginBottom: theme.spacing.lg, textAlign: 'center' },
+                  ]}
+                >
                   Enter your email address and we'll send you a link to reset your password.
                 </Text>
-                
+
                 <TextInput
                   label="Email Address"
                   value={email}
-                  onChangeText={(value) => handleInputChange('email', value)}
+                  onChangeText={value => handleInputChange('email', value)}
                   style={styles.input}
                   mode="outlined"
                   keyboardType="email-address"
@@ -259,16 +260,10 @@ export default function PasswordReset() {
                   autoComplete="email"
                   error={!!emailError}
                 />
-                {emailError && (
-                  <Text style={styles.errorText}>{emailError}</Text>
-                )}
+                {emailError && <Text style={styles.errorText}>{emailError}</Text>}
 
                 {error && (
-                  <ErrorDisplay
-                    error={error}
-                    onDismiss={() => clearError()}
-                    compact={true}
-                  />
+                  <ErrorDisplay error={error} onDismiss={() => clearError()} compact={true} />
                 )}
 
                 <Button
@@ -287,28 +282,31 @@ export default function PasswordReset() {
             <Card style={styles.card}>
               <Card.Content>
                 <Text style={styles.title}>Set New Password</Text>
-                <Text style={[styles.footerText, { marginBottom: theme.spacing.lg, textAlign: 'center' }]}>
+                <Text
+                  style={[
+                    styles.footerText,
+                    { marginBottom: theme.spacing.lg, textAlign: 'center' },
+                  ]}
+                >
                   Enter your new password below.
                 </Text>
-                
+
                 <TextInput
                   label="New Password"
                   value={password}
-                  onChangeText={(value) => handleInputChange('password', value)}
+                  onChangeText={value => handleInputChange('password', value)}
                   style={styles.input}
                   mode="outlined"
                   secureTextEntry
                   autoComplete="new-password"
                   error={!!passwordError}
                 />
-                {passwordError && (
-                  <Text style={styles.errorText}>{passwordError}</Text>
-                )}
+                {passwordError && <Text style={styles.errorText}>{passwordError}</Text>}
 
                 <TextInput
                   label="Confirm New Password"
                   value={confirmPassword}
-                  onChangeText={(value) => handleInputChange('confirmPassword', value)}
+                  onChangeText={value => handleInputChange('confirmPassword', value)}
                   style={styles.input}
                   mode="outlined"
                   secureTextEntry
@@ -320,11 +318,7 @@ export default function PasswordReset() {
                 )}
 
                 {error && (
-                  <ErrorDisplay
-                    error={error}
-                    onDismiss={() => clearError()}
-                    compact={true}
-                  />
+                  <ErrorDisplay error={error} onDismiss={() => clearError()} compact={true} />
                 )}
 
                 <Button
@@ -342,11 +336,7 @@ export default function PasswordReset() {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Remember your password? </Text>
-            <Button
-              mode="text"
-              onPress={handleBackToSignIn}
-              style={styles.button}
-            >
+            <Button mode="text" onPress={handleBackToSignIn} style={styles.button}>
               Sign In
             </Button>
           </View>

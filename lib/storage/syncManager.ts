@@ -72,13 +72,13 @@ export class SyncManager {
   private statsKey = '@sync_stats';
   private optionsKey = '@sync_options';
   private conflictsKey = '@sync_conflicts';
-  
+
   private syncQueue: SyncItem[] = [];
   private activeSyncs: Set<string> = new Set();
   private syncInProgress = false;
   private syncInterval: NodeJS.Timeout | null = null;
   private networkListener: (() => void) | null = null;
-  
+
   private defaultOptions: SyncOptions = {
     autoSync: true,
     syncOnWifi: true,
@@ -111,13 +111,13 @@ export class SyncManager {
       await this.loadSyncQueue();
       await this.loadSyncStats();
       await this.loadSyncOptions();
-      
+
       // Set up network monitoring
       this.setupNetworkMonitoring();
-      
+
       // Set up periodic sync
       this.setupPeriodicSync();
-      
+
       // Start initial sync if auto-sync is enabled
       if (this.defaultOptions.autoSync) {
         this.startSync();
@@ -131,18 +131,19 @@ export class SyncManager {
    * Set up network monitoring
    */
   private setupNetworkMonitoring(): void {
-    this.networkListener = NetInfo.addEventListener((state) => {
+    this.networkListener = NetInfo.addEventListener(state => {
       if (state.isConnected && this.defaultOptions.autoSync) {
         // Check if we should sync based on connection type
-        if ((state.type === 'wifi' && this.defaultOptions.syncOnWifi) ||
-            (state.type === 'cellular' && this.defaultOptions.syncOnCellular)) {
-          
+        if (
+          (state.type === 'wifi' && this.defaultOptions.syncOnWifi) ||
+          (state.type === 'cellular' && this.defaultOptions.syncOnCellular)
+        ) {
           // First, sync offline content that was downloaded while offline
           this.syncOfflineContent();
-          
+
           // Then check for content updates
           this.checkForContentUpdates();
-          
+
           // Finally, start the regular sync process
           this.startSync();
         }
@@ -157,18 +158,23 @@ export class SyncManager {
     if (this.syncInterval) {
       clearInterval(this.syncInterval);
     }
-    
-    this.syncInterval = setInterval(() => {
-      if (this.defaultOptions.autoSync) {
-        this.startSync();
-      }
-    }, this.defaultOptions.syncInterval * 60 * 1000);
+
+    this.syncInterval = setInterval(
+      () => {
+        if (this.defaultOptions.autoSync) {
+          this.startSync();
+        }
+      },
+      this.defaultOptions.syncInterval * 60 * 1000
+    );
   }
 
   /**
    * Add item to sync queue
    */
-  async addToSyncQueue(syncItem: Omit<SyncItem, 'id' | 'createdAt' | 'lastAttempt' | 'status' | 'retryCount'>): Promise<string> {
+  async addToSyncQueue(
+    syncItem: Omit<SyncItem, 'id' | 'createdAt' | 'lastAttempt' | 'status' | 'retryCount'>
+  ): Promise<string> {
     try {
       const item: SyncItem = {
         ...syncItem,
@@ -181,12 +187,12 @@ export class SyncManager {
 
       this.syncQueue.push(item);
       await this.saveSyncQueue();
-      
+
       // Start sync if auto-sync is enabled
       if (this.defaultOptions.autoSync && !this.syncInProgress) {
         this.startSync();
       }
-      
+
       return item.id;
     } catch (error) {
       console.error('Failed to add item to sync queue:', error);
@@ -197,12 +203,15 @@ export class SyncManager {
   /**
    * Add offline content to sync queue for synchronization
    */
-  async addOfflineContentToSync(contentType: 'sermon' | 'article' | 'audio' | 'image' | 'document', contentId: string, priority: 'high' | 'medium' | 'low' = 'medium'): Promise<string> {
+  async addOfflineContentToSync(
+    contentType: 'sermon' | 'article' | 'audio' | 'image' | 'document',
+    contentId: string,
+    priority: 'high' | 'medium' | 'low' = 'medium'
+  ): Promise<string> {
     try {
       // Check if content is already in sync queue
-      const existingItem = this.syncQueue.find(item => 
-        item.contentType === contentType && 
-        item.contentId === contentId
+      const existingItem = this.syncQueue.find(
+        item => item.contentType === contentType && item.contentId === contentId
       );
 
       if (existingItem) {
@@ -239,7 +248,7 @@ export class SyncManager {
     try {
       // Get all completed offline downloads that need syncing
       const completedDownloads = offlineDownloadService.getCompletedDownloads();
-      
+
       for (const download of completedDownloads) {
         // Add to sync queue for metadata updates
         await this.addOfflineContentToSync(
@@ -293,7 +302,7 @@ export class SyncManager {
 
     try {
       this.syncInProgress = true;
-      
+
       // Sort queue by priority and creation time
       if (this.defaultOptions.priorityOrder) {
         this.syncQueue.sort((a, b) => {
@@ -306,7 +315,6 @@ export class SyncManager {
 
       // Process sync items
       await this.processSyncQueue();
-      
     } catch (error) {
       console.error('Sync process failed:', error);
     } finally {
@@ -318,16 +326,19 @@ export class SyncManager {
    * Process sync queue
    */
   private async processSyncQueue(): Promise<void> {
-    const pendingItems = this.syncQueue.filter(item => 
-      item.status === 'pending' || 
-      (item.status === 'failed' && this.defaultOptions.retryFailedItems && item.retryCount < this.defaultOptions.maxRetryAttempts)
+    const pendingItems = this.syncQueue.filter(
+      item =>
+        item.status === 'pending' ||
+        (item.status === 'failed' &&
+          this.defaultOptions.retryFailedItems &&
+          item.retryCount < this.defaultOptions.maxRetryAttempts)
     );
 
     if (pendingItems.length === 0) return;
 
     // Process items with concurrency limit
     const chunks = this.chunkArray(pendingItems, this.defaultOptions.maxConcurrentSyncs);
-    
+
     for (const chunk of chunks) {
       const promises = chunk.map(item => this.processSyncItem(item));
       await Promise.allSettled(promises);
@@ -339,14 +350,14 @@ export class SyncManager {
    */
   private async processSyncItem(item: SyncItem): Promise<void> {
     if (this.activeSyncs.has(item.id)) return;
-    
+
     try {
       this.activeSyncs.add(item.id);
       item.status = 'in_progress';
       item.lastAttempt = Date.now();
-      
+
       await this.saveSyncQueue();
-      
+
       switch (item.type) {
         case 'download':
           await this.syncDownload(item);
@@ -361,19 +372,18 @@ export class SyncManager {
           await this.syncDelete(item);
           break;
       }
-      
+
       item.status = 'completed';
       await this.updateSyncStats('success');
-      
     } catch (error) {
       console.error(`Failed to sync item ${item.id}:`, error);
-      
+
       item.status = 'failed';
       item.retryCount++;
       item.errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       await this.updateSyncStats('failure');
-      
+
       // Handle conflicts
       if (this.isConflictError(error)) {
         await this.handleSyncConflict(item, error);
@@ -424,16 +434,21 @@ export class SyncManager {
           originalUrl: item.remoteUrl,
         },
       });
-
     } catch (error) {
-      throw new Error(`Download sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Download sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
   /**
    * Update metadata for offline content
    */
-  private async updateOfflineContentMetadata(contentType: string, contentId: string, remoteContent: any): Promise<void> {
+  private async updateOfflineContentMetadata(
+    contentType: string,
+    contentId: string,
+    remoteContent: any
+  ): Promise<void> {
     try {
       // Update local metadata with remote information
       // This ensures offline content has the latest metadata
@@ -480,9 +495,10 @@ export class SyncManager {
       if (uploadResult.remoteUrl) {
         item.remoteUrl = uploadResult.remoteUrl;
       }
-
     } catch (error) {
-      throw new Error(`Upload sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Upload sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -492,14 +508,11 @@ export class SyncManager {
   private async syncUpdate(item: SyncItem): Promise<void> {
     try {
       // Update remote content
-      await this.updateRemoteContent(
-        item.contentType,
-        item.contentId,
-        item.metadata
-      );
-
+      await this.updateRemoteContent(item.contentType, item.contentId, item.metadata);
     } catch (error) {
-      throw new Error(`Update sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Update sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -510,14 +523,15 @@ export class SyncManager {
     try {
       // Delete from remote server
       await this.deleteRemoteContent(item.contentType, item.contentId);
-      
+
       // Remove from local storage if exists
       if (item.localPath) {
         await offlineDownloadService.cancelDownload(item.id);
       }
-
     } catch (error) {
-      throw new Error(`Delete sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Delete sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -539,7 +553,7 @@ export class SyncManager {
         conflict.resolution = this.resolveConflict(conflict);
         conflict.resolvedAt = Date.now();
         conflict.resolvedBy = 'auto';
-        
+
         // Retry sync with resolved conflict
         item.status = 'pending';
         item.retryCount = 0;
@@ -548,7 +562,6 @@ export class SyncManager {
 
       // Save conflict for manual resolution if needed
       await this.saveSyncConflict(conflict);
-      
     } catch (conflictError) {
       console.error('Failed to handle sync conflict:', conflictError);
     }
@@ -559,12 +572,12 @@ export class SyncManager {
    */
   private determineConflictType(error: any): SyncConflict['conflictType'] {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     if (errorMessage.includes('version')) return 'version_mismatch';
     if (errorMessage.includes('content')) return 'content_mismatch';
     if (errorMessage.includes('delete')) return 'deletion_conflict';
     if (errorMessage.includes('permission')) return 'permission_denied';
-    
+
     return 'content_mismatch';
   }
 
@@ -595,10 +608,10 @@ export class SyncManager {
     const failedItems = this.syncQueue.filter(item => item.status === 'failed').length;
     const inProgressItems = this.activeSyncs.size;
     const currentItem = this.syncQueue.find(item => this.activeSyncs.has(item.id));
-    
+
     // Calculate estimated time remaining
     const estimatedTimeRemaining = this.calculateEstimatedTimeRemaining();
-    
+
     // Calculate bytes transferred
     const bytesTransferred = this.calculateBytesTransferred();
     const totalBytes = this.calculateTotalBytes();
@@ -653,13 +666,12 @@ export class SyncManager {
       const current = await this.getSyncOptions();
       const updated = { ...current, ...options };
       await AsyncStorage.setItem(this.optionsKey, JSON.stringify(updated));
-      
+
       // Update local options
       Object.assign(this.defaultOptions, updated);
-      
+
       // Reconfigure sync if needed
       this.setupPeriodicSync();
-      
     } catch (error) {
       console.error('Failed to update sync options:', error);
     }
@@ -681,35 +693,37 @@ export class SyncManager {
   /**
    * Resolve sync conflict manually
    */
-  async resolveSyncConflict(conflictId: string, resolution: SyncConflict['resolution']): Promise<void> {
+  async resolveSyncConflict(
+    conflictId: string,
+    resolution: SyncConflict['resolution']
+  ): Promise<void> {
     try {
       const conflicts = await this.getSyncConflicts();
       const conflict = conflicts.find(c => c.syncItem.id === conflictId);
-      
+
       if (!conflict) {
         throw new Error('Conflict not found');
       }
-      
+
       conflict.resolution = resolution;
       conflict.resolvedAt = Date.now();
       conflict.resolvedBy = 'manual';
-      
+
       // Update conflict in storage
       await this.saveSyncConflicts(conflicts);
-      
+
       // Retry sync with resolved conflict
       const syncItem = conflict.syncItem;
       syncItem.status = 'pending';
       syncItem.retryCount = 0;
       syncItem.errorMessage = undefined;
-      
+
       await this.saveSyncQueue();
-      
+
       // Start sync if not already running
       if (!this.syncInProgress) {
         this.startSync();
       }
-      
     } catch (error) {
       console.error('Failed to resolve sync conflict:', error);
       throw error;
@@ -734,20 +748,19 @@ export class SyncManager {
   async retryFailedSyncs(): Promise<void> {
     try {
       const failedItems = this.syncQueue.filter(item => item.status === 'failed');
-      
+
       for (const item of failedItems) {
         item.status = 'pending';
         item.retryCount = 0;
         item.errorMessage = undefined;
       }
-      
+
       await this.saveSyncQueue();
-      
+
       // Start sync if not already running
       if (!this.syncInProgress) {
         this.startSync();
       }
-      
     } catch (error) {
       console.error('Failed to retry failed syncs:', error);
     }
@@ -799,10 +812,10 @@ export class SyncManager {
     const inProgressItems = this.activeSyncs.size;
     const completedItems = this.syncQueue.filter(item => item.status === 'completed').length;
     const failedItems = this.syncQueue.filter(item => item.status === 'failed').length;
-    
+
     // Get offline content count
     const offlineContentCount = offlineDownloadService.getCompletedDownloads().length;
-    
+
     return {
       totalItems,
       pendingItems,
@@ -892,7 +905,7 @@ export class SyncManager {
   private async updateSyncStats(result: 'success' | 'failure'): Promise<void> {
     try {
       const stats = await this.getSyncStats();
-      
+
       if (result === 'success') {
         stats.successfulSyncs++;
         stats.totalItemsSynced++;
@@ -900,10 +913,10 @@ export class SyncManager {
         stats.failedSyncs++;
         stats.retryAttempts++;
       }
-      
+
       stats.totalSyncs++;
       stats.lastSyncTime = Date.now();
-      
+
       await AsyncStorage.setItem(this.statsKey, JSON.stringify(stats));
     } catch (error) {
       console.error('Failed to update sync stats:', error);
@@ -940,19 +953,19 @@ export class SyncManager {
     // Simple estimation based on completed vs remaining items
     const completedItems = this.syncQueue.filter(item => item.status === 'completed').length;
     const remainingItems = this.syncQueue.length - completedItems;
-    
+
     if (remainingItems === 0) return 0;
-    
+
     // Assume average 5 seconds per item
     return remainingItems * 5;
   }
 
   private calculateBytesTransferred(): number {
     // Calculate based on completed downloads
-    const completedDownloads = this.syncQueue.filter(item => 
-      item.type === 'download' && item.status === 'completed'
+    const completedDownloads = this.syncQueue.filter(
+      item => item.type === 'download' && item.status === 'completed'
     );
-    
+
     return completedDownloads.reduce((total, item) => {
       return total + (item.metadata?.fileSize || 0);
     }, 0);
@@ -970,10 +983,12 @@ export class SyncManager {
 
   private isConflictError(error: any): boolean {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return errorMessage.includes('conflict') || 
-           errorMessage.includes('version') || 
-           errorMessage.includes('already exists') ||
-           errorMessage.includes('permission denied');
+    return (
+      errorMessage.includes('conflict') ||
+      errorMessage.includes('version') ||
+      errorMessage.includes('already exists') ||
+      errorMessage.includes('permission denied')
+    );
   }
 
   // Placeholder methods for remote operations
@@ -987,7 +1002,12 @@ export class SyncManager {
     }
   }
 
-  private async uploadContentToRemote(contentType: string, contentId: string, localPath: string, metadata: any): Promise<any> {
+  private async uploadContentToRemote(
+    contentType: string,
+    contentId: string,
+    localPath: string,
+    metadata: any
+  ): Promise<any> {
     // This would integrate with your upload service
     // For now, return a mock result
     return {
@@ -996,7 +1016,11 @@ export class SyncManager {
     };
   }
 
-  private async updateRemoteContent(contentType: string, contentId: string, metadata: any): Promise<void> {
+  private async updateRemoteContent(
+    contentType: string,
+    contentId: string,
+    metadata: any
+  ): Promise<void> {
     // This would integrate with your update service
     // For now, just log the operation
     console.log(`Updating remote ${contentType} ${contentId} with metadata:`, metadata);
@@ -1017,12 +1041,12 @@ export class SyncManager {
         clearInterval(this.syncInterval);
         this.syncInterval = null;
       }
-      
+
       if (this.networkListener) {
         this.networkListener();
         this.networkListener = null;
       }
-      
+
       this.syncInProgress = false;
       this.activeSyncs.clear();
     } catch (error) {

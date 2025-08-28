@@ -23,12 +23,12 @@ interface SearchSkeletonProps {
   resultCount?: number;
 }
 
-export function LoadingSpinner({ 
-  type = 'content', 
-  message, 
+export function LoadingSpinner({
+  type = 'content',
+  message,
   size = 'large',
   showIcon = true,
-  iconName
+  iconName,
 }: LoadingStatesProps) {
   const { theme } = useTheme();
 
@@ -107,27 +107,18 @@ export function LoadingSpinner({
       <View style={styles.content}>
         {showIcon && (
           <MaterialIcons
-            name={iconName || getDefaultIcon() as any}
+            name={iconName || (getDefaultIcon() as any)}
             size={size === 'large' ? 48 : 32}
             color={theme.colors.primary}
             style={styles.icon}
           />
         )}
-        
-        <ActivityIndicator 
-          size={size} 
-          color={theme.colors.primary} 
-        />
-        
-        <Text style={styles.message}>
-          {message || getDefaultMessage()}
-        </Text>
-        
-        {getSubtitle() && (
-          <Text style={styles.subtitle}>
-            {getSubtitle()}
-          </Text>
-        )}
+
+        <ActivityIndicator size={size} color={theme.colors.primary} />
+
+        <Text style={styles.message}>{message || getDefaultMessage()}</Text>
+
+        {getSubtitle() && <Text style={styles.subtitle}>{getSubtitle()}</Text>}
       </View>
     </View>
   );
@@ -177,12 +168,37 @@ export function ContentSkeleton({ type, count = 3 }: ContentSkeletonProps) {
   const renderSermonSkeleton = () => (
     <Card style={styles.skeleton}>
       <Card.Content>
-        <View style={{ height: 20, backgroundColor: theme.colors.surface, marginBottom: theme.spacing.sm, borderRadius: 4 }} />
-        <View style={{ height: 16, backgroundColor: theme.colors.surface, marginBottom: theme.spacing.sm, borderRadius: 4 }} />
-        <View style={{ height: 16, backgroundColor: theme.colors.surface, marginBottom: theme.spacing.sm, borderRadius: 4 }} />
+        <View
+          style={{
+            height: 20,
+            backgroundColor: theme.colors.surface,
+            marginBottom: theme.spacing.sm,
+            borderRadius: 4,
+          }}
+        />
+        <View
+          style={{
+            height: 16,
+            backgroundColor: theme.colors.surface,
+            marginBottom: theme.spacing.sm,
+            borderRadius: 4,
+          }}
+        />
+        <View
+          style={{
+            height: 16,
+            backgroundColor: theme.colors.surface,
+            marginBottom: theme.spacing.sm,
+            borderRadius: 4,
+          }}
+        />
         <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-          <View style={{ flex: 1, height: 16, backgroundColor: theme.colors.surface, borderRadius: 4 }} />
-          <View style={{ flex: 1, height: 16, backgroundColor: theme.colors.surface, borderRadius: 4 }} />
+          <View
+            style={{ flex: 1, height: 16, backgroundColor: theme.colors.surface, borderRadius: 4 }}
+          />
+          <View
+            style={{ flex: 1, height: 16, backgroundColor: theme.colors.surface, borderRadius: 4 }}
+          />
         </View>
       </Card.Content>
     </Card>
@@ -190,14 +206,45 @@ export function ContentSkeleton({ type, count = 3 }: ContentSkeletonProps) {
 
   const renderArticleSkeleton = () => (
     <Card style={styles.skeleton}>
-      <View style={{ height: 200, backgroundColor: theme.colors.surface, marginBottom: theme.spacing.sm }} />
+      <View
+        style={{
+          height: 200,
+          backgroundColor: theme.colors.surface,
+          marginBottom: theme.spacing.sm,
+        }}
+      />
       <Card.Content>
-        <View style={{ height: 20, backgroundColor: theme.colors.surface, marginBottom: theme.spacing.sm, borderRadius: 4 }} />
-        <View style={{ height: 16, backgroundColor: theme.colors.surface, marginBottom: theme.spacing.sm, borderRadius: 4 }} />
-        <View style={{ height: 16, backgroundColor: theme.colors.surface, marginBottom: theme.spacing.sm, borderRadius: 4 }} />
+        <View
+          style={{
+            height: 20,
+            backgroundColor: theme.colors.surface,
+            marginBottom: theme.spacing.sm,
+            borderRadius: 4,
+          }}
+        />
+        <View
+          style={{
+            height: 16,
+            backgroundColor: theme.colors.surface,
+            marginBottom: theme.spacing.sm,
+            borderRadius: 4,
+          }}
+        />
+        <View
+          style={{
+            height: 16,
+            backgroundColor: theme.colors.surface,
+            marginBottom: theme.spacing.sm,
+            borderRadius: 4,
+          }}
+        />
         <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-          <View style={{ flex: 1, height: 16, backgroundColor: theme.colors.surface, borderRadius: 4 }} />
-          <View style={{ flex: 1, height: 16, backgroundColor: theme.colors.surface, borderRadius: 4 }} />
+          <View
+            style={{ flex: 1, height: 16, backgroundColor: theme.colors.surface, borderRadius: 4 }}
+          />
+          <View
+            style={{ flex: 1, height: 16, backgroundColor: theme.colors.surface, borderRadius: 4 }}
+          />
         </View>
       </Card.Content>
     </Card>
@@ -206,16 +253,37 @@ export function ContentSkeleton({ type, count = 3 }: ContentSkeletonProps) {
   const renderCategorySkeleton = () => (
     <Card style={styles.skeleton}>
       <Card.Content>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.sm }}>
-          <View style={{ width: 40, height: 40, backgroundColor: theme.colors.surface, borderRadius: 20, marginRight: theme.spacing.sm }} />
+        <View
+          style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.sm }}
+        >
+          <View
+            style={{
+              width: 40,
+              height: 40,
+              backgroundColor: theme.colors.surface,
+              borderRadius: 20,
+              marginRight: theme.spacing.sm,
+            }}
+          />
           <View style={{ flex: 1 }}>
-            <View style={{ height: 18, backgroundColor: theme.colors.surface, marginBottom: theme.spacing.xs, borderRadius: 4 }} />
+            <View
+              style={{
+                height: 18,
+                backgroundColor: theme.colors.surface,
+                marginBottom: theme.spacing.xs,
+                borderRadius: 4,
+              }}
+            />
             <View style={{ height: 14, backgroundColor: theme.colors.surface, borderRadius: 4 }} />
           </View>
         </View>
         <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-          <View style={{ flex: 1, height: 16, backgroundColor: theme.colors.surface, borderRadius: 4 }} />
-          <View style={{ flex: 1, height: 16, backgroundColor: theme.colors.surface, borderRadius: 4 }} />
+          <View
+            style={{ flex: 1, height: 16, backgroundColor: theme.colors.surface, borderRadius: 4 }}
+          />
+          <View
+            style={{ flex: 1, height: 16, backgroundColor: theme.colors.surface, borderRadius: 4 }}
+          />
         </View>
       </Card.Content>
     </Card>
@@ -237,9 +305,7 @@ export function ContentSkeleton({ type, count = 3 }: ContentSkeletonProps) {
   return (
     <View style={styles.container}>
       {Array.from({ length: count }).map((_, index) => (
-        <View key={index}>
-          {renderSkeleton()}
-        </View>
+        <View key={index}>{renderSkeleton()}</View>
       ))}
     </View>
   );
@@ -266,16 +332,44 @@ export function SearchSkeleton({ resultCount = 5 }: SearchSkeletonProps) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={{ height: 20, backgroundColor: theme.colors.surface, marginBottom: theme.spacing.md, borderRadius: 4 }} />
+        <View
+          style={{
+            height: 20,
+            backgroundColor: theme.colors.surface,
+            marginBottom: theme.spacing.md,
+            borderRadius: 4,
+          }}
+        />
         <View style={{ height: 16, backgroundColor: theme.colors.surface, borderRadius: 4 }} />
       </View>
-      
+
       {Array.from({ length: resultCount }).map((_, index) => (
         <Card key={index} style={styles.skeleton}>
           <Card.Content>
-            <View style={{ height: 18, backgroundColor: theme.colors.surface, marginBottom: theme.spacing.sm, borderRadius: 4 }} />
-            <View style={{ height: 16, backgroundColor: theme.colors.surface, marginBottom: theme.spacing.sm, borderRadius: 4 }} />
-            <View style={{ height: 16, backgroundColor: theme.colors.surface, marginBottom: theme.spacing.sm, borderRadius: 4 }} />
+            <View
+              style={{
+                height: 18,
+                backgroundColor: theme.colors.surface,
+                marginBottom: theme.spacing.sm,
+                borderRadius: 4,
+              }}
+            />
+            <View
+              style={{
+                height: 16,
+                backgroundColor: theme.colors.surface,
+                marginBottom: theme.spacing.sm,
+                borderRadius: 4,
+              }}
+            />
+            <View
+              style={{
+                height: 16,
+                backgroundColor: theme.colors.surface,
+                marginBottom: theme.spacing.sm,
+                borderRadius: 4,
+              }}
+            />
             <View style={{ height: 14, backgroundColor: theme.colors.surface, borderRadius: 4 }} />
           </Card.Content>
         </Card>
@@ -284,12 +378,12 @@ export function SearchSkeleton({ resultCount = 5 }: SearchSkeletonProps) {
   );
 }
 
-export function EmptyState({ 
+export function EmptyState({
   icon = 'inbox',
   title = 'No content found',
-  message = 'There\'s nothing to display at the moment.',
+  message = "There's nothing to display at the moment.",
   actionLabel,
-  onAction
+  onAction,
 }: {
   icon?: string;
   title?: string;
@@ -339,13 +433,16 @@ export function EmptyState({
           color={theme.colors.textSecondary}
           style={styles.icon}
         />
-        
+
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.message}>{message}</Text>
-        
+
         {actionLabel && onAction && (
-          <Text 
-            style={[styles.message, { color: theme.colors.primary, textDecorationLine: 'underline' }]}
+          <Text
+            style={[
+              styles.message,
+              { color: theme.colors.primary, textDecorationLine: 'underline' },
+            ]}
             onPress={onAction}
           >
             {actionLabel}
@@ -356,12 +453,12 @@ export function EmptyState({
   );
 }
 
-export function ErrorState({ 
+export function ErrorState({
   icon = 'error',
   title = 'Something went wrong',
   message = 'We encountered an error while loading your content.',
   actionLabel = 'Try Again',
-  onAction
+  onAction,
 }: {
   icon?: string;
   title?: string;
@@ -414,13 +511,16 @@ export function ErrorState({
           color={theme.colors.error}
           style={styles.icon}
         />
-        
+
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.message}>{message}</Text>
-        
+
         {onAction && (
-          <Text 
-            style={[styles.message, { color: theme.colors.primary, textDecorationLine: 'underline' }]}
+          <Text
+            style={[
+              styles.message,
+              { color: theme.colors.primary, textDecorationLine: 'underline' },
+            ]}
             onPress={onAction}
           >
             {actionLabel}

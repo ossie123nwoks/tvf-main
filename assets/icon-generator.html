@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRUEVINE FELLOWSHIP App Icon Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        canvas {
+            border: 1px solid #ddd;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input, select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .download-links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .download-link {
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .download-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>TRUEVINE FELLOWSHIP App Icon Generator</h1>
+        <p>Use this tool to generate app icons and splash screens for the TRUEVINE FELLOWSHIP app.</p>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="iconType">Icon Type:</label>
+                <select id="iconType">
+                    <option value="app-icon">App Icon (1024x1024)</option>
+                    <option value="adaptive-icon">Adaptive Icon (1024x1024)</option>
+                    <option value="splash">Splash Screen (2048x2048)</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="bgColor">Background Color:</label>
+                <input type="color" id="bgColor" value="#FFFFFF">
+            </div>
+            
+            <div class="control-group">
+                <label for="primaryColor">Primary Color:</label>
+                <input type="color" id="primaryColor" value="#4CAF50">
+            </div>
+            
+            <div class="control-group">
+                <label for="secondaryColor">Secondary Color:</label>
+                <input type="color" id="secondaryColor" value="#2196F3">
+            </div>
+            
+            <div class="control-group">
+                <label for="iconStyle">Icon Style:</label>
+                <select id="iconStyle">
+                    <option value="cross">Cross</option>
+                    <option value="church">Church</option>
+                    <option value="bible">Bible</option>
+                    <option value="dove">Dove</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="textEnabled">Show Text:</label>
+                <input type="checkbox" id="textEnabled" checked>
+            </div>
+            
+            <div class="control-group">
+                <label for="textContent">Text Content:</label>
+                <input type="text" id="textContent" value="TVF" style="width: 100px;">
+            </div>
+            
+            <div class="control-group">
+                <label for="textColor">Text Color:</label>
+                <input type="color" id="textColor" value="#000000">
+            </div>
+            
+            <div class="control-group">
+                <button id="generateBtn">Generate Icon</button>
+                <button id="downloadBtn">Download Icon</button>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="iconCanvas" width="1024" height="1024"></canvas>
+        </div>
+        
+        <div class="download-links">
+            <div class="download-link">
+                <a id="downloadLink" href="#" download="icon.png">Download Generated Icon</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('iconCanvas');
+        const ctx = canvas.getContext('2d');
+        const iconTypeSelect = document.getElementById('iconType');
+        const bgColorInput = document.getElementById('bgColor');
+        const primaryColorInput = document.getElementById('primaryColor');
+        const secondaryColorInput = document.getElementById('secondaryColor');
+        const iconStyleSelect = document.getElementById('iconStyle');
+        const textEnabledCheckbox = document.getElementById('textEnabled');
+        const textContentInput = document.getElementById('textContent');
+        const textColorInput = document.getElementById('textColor');
+        const generateBtn = document.getElementById('generateBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const downloadLink = document.getElementById('downloadLink');
+        
+        // Initial render
+        generateIcon();
+        
+        // Event listeners
+        generateBtn.addEventListener('click', generateIcon);
+        downloadBtn.addEventListener('click', downloadIcon);
+        
+        function generateIcon() {
+            const iconType = iconTypeSelect.value;
+            const bgColor = bgColorInput.value;
+            const primaryColor = primaryColorInput.value;
+            const secondaryColor = secondaryColorInput.value;
+            const iconStyle = iconStyleSelect.value;
+            const textEnabled = textEnabledCheckbox.checked;
+            const textContent = textContentInput.value;
+            const textColor = textColorInput.value;
+            
+            // Clear canvas
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw icon based on style
+            switch (iconStyle) {
+                case 'cross':
+                    drawCross(primaryColor, secondaryColor);
+                    break;
+                case 'church':
+                    drawChurch(primaryColor, secondaryColor);
+                    break;
+                case 'bible':
+                    drawBible(primaryColor, secondaryColor);
+                    break;
+                case 'dove':
+                    drawDove(primaryColor, secondaryColor);
+                    break;
+            }
+            
+            // Draw text if enabled
+            if (textEnabled) {
+                drawText(textContent, textColor);
+            }
+            
+            // Update download link
+            updateDownloadLink();
+        }
+        
+        function drawCross(primaryColor, secondaryColor) {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const width = canvas.width * 0.2;
+            const height = canvas.height * 0.6;
+            
+            // Draw vertical part
+            ctx.fillStyle = primaryColor;
+            ctx.fillRect(centerX - width / 2, centerY - height / 2, width, height);
+            
+            // Draw horizontal part
+            ctx.fillStyle = secondaryColor;
+            ctx.fillRect(centerX - height / 2, centerY - width / 2, height, width);
+            
+            // Add glow effect
+            ctx.shadowColor = primaryColor;
+            ctx.shadowBlur = 30;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, width * 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+        
+        function drawChurch(primaryColor, secondaryColor) {
+            const centerX = canvas.width / 2;
+            const baseY = canvas.height * 0.7;
+            const width = canvas.width * 0.6;
+            const height = canvas.height * 0.4;
+            const roofHeight = canvas.height * 0.2;
+            const doorWidth = width * 0.3;
+            const doorHeight = height * 0.5;
+            const windowSize = width * 0.1;
+            
+            // Draw church body
+            ctx.fillStyle = primaryColor;
+            ctx.fillRect(centerX - width / 2, baseY - height, width, height);
+            
+            // Draw roof
+            ctx.fillStyle = secondaryColor;
+            ctx.beginPath();
+            ctx.moveTo(centerX - width / 2, baseY - height);
+            ctx.lineTo(centerX, baseY - height - roofHeight);
+            ctx.lineTo(centerX + width / 2, baseY - height);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw door
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(centerX - doorWidth / 2, baseY - doorHeight, doorWidth, doorHeight);
+            
+            // Draw windows
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(centerX - width / 3 - windowSize / 2, baseY - height * 0.7, windowSize, windowSize);
+            ctx.fillRect(centerX + width / 3 - windowSize / 2, baseY - height * 0.7, windowSize, windowSize);
+            
+            // Draw cross on top
+            const crossWidth = width * 0.1;
+            const crossHeight = height * 0.2;
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(centerX - crossWidth / 2, baseY - height - roofHeight - crossHeight, crossWidth, crossHeight);
+            ctx.fillRect(centerX - crossHeight / 2, baseY - height - roofHeight - crossHeight * 0.7, crossHeight, crossWidth);
+        }
+        
+        function drawBible(primaryColor, secondaryColor) {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const width = canvas.width * 0.6;
+            const height = canvas.height * 0.4;
+            const thickness = height * 0.2;
+            
+            // Draw book cover
+            ctx.fillStyle = primaryColor;
+            ctx.beginPath();
+            ctx.moveTo(centerX - width / 2, centerY - height / 2);
+            ctx.lineTo(centerX + width / 2, centerY - height / 2);
+            ctx.lineTo(centerX + width / 2, centerY + height / 2);
+            ctx.lineTo(centerX - width / 2, centerY + height / 2);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw book spine
+            ctx.fillStyle = secondaryColor;
+            ctx.beginPath();
+            ctx.moveTo(centerX - width / 2, centerY - height / 2);
+            ctx.lineTo(centerX - width / 2 + thickness, centerY - height / 2 - thickness / 2);
+            ctx.lineTo(centerX + width / 2 + thickness, centerY - height / 2 - thickness / 2);
+            ctx.lineTo(centerX + width / 2, centerY - height / 2);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw book pages
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.moveTo(centerX - width / 2, centerY - height / 2);
+            ctx.lineTo(centerX - width / 2 + thickness, centerY - height / 2 - thickness / 2);
+            ctx.lineTo(centerX - width / 2 + thickness, centerY + height / 2 - thickness / 2);
+            ctx.lineTo(centerX - width / 2, centerY + height / 2);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw cross on cover
+            const crossWidth = width * 0.1;
+            const crossHeight = height * 0.6;
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(centerX - crossWidth / 2, centerY - crossHeight / 2, crossWidth, crossHeight);
+            ctx.fillRect(centerX - crossHeight / 3, centerY - crossWidth / 2, crossHeight * 2/3, crossWidth);
+        }
+        
+        function drawDove(primaryColor, secondaryColor) {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const size = canvas.width * 0.4;
+            
+            // Draw dove body
+            ctx.fillStyle = primaryColor;
+            ctx.beginPath();
+            ctx.ellipse(centerX, centerY, size / 2, size / 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw head
+            ctx.beginPath();
+            ctx.arc(centerX + size / 2, centerY - size / 4, size / 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw beak
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.moveTo(centerX + size / 2 + size / 4, centerY - size / 4);
+            ctx.lineTo(centerX + size / 2 + size / 3, centerY - size / 6);
+            ctx.lineTo(centerX + size / 2 + size / 4, centerY - size / 8);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw wings
+            ctx.fillStyle = secondaryColor;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - size / 6);
+            ctx.quadraticCurveTo(centerX - size / 2, centerY - size / 2, centerX - size / 2, centerY);
+            ctx.quadraticCurveTo(centerX - size / 3, centerY + size / 6, centerX, centerY + size / 6);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - size / 6);
+            ctx.quadraticCurveTo(centerX, centerY - size / 2, centerX + size / 4, centerY - size / 3);
+            ctx.quadraticCurveTo(centerX + size / 3, centerY - size / 6, centerX, centerY);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw tail
+            ctx.fillStyle = primaryColor;
+            ctx.beginPath();
+            ctx.moveTo(centerX - size / 2, centerY);
+            ctx.lineTo(centerX - size * 0.8, centerY + size / 4);
+            ctx.lineTo(centerX - size / 2, centerY + size / 6);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw eye
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(centerX + size / 2 + size / 8, centerY - size / 4 - size / 16, size / 30, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function drawText(text, color) {
+            const fontSize = canvas.width * 0.15;
+            ctx.font = `bold ${fontSize}px Arial`;
+            ctx.fillStyle = color;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, canvas.width / 2, canvas.height * 0.8);
+        }
+        
+        function downloadIcon() {
+            const dataURL = canvas.toDataURL('image/png');
+            downloadLink.href = dataURL;
+            downloadLink.download = `${iconTypeSelect.value}.png`;
+            downloadLink.click();
+        }
+        
+        function updateDownloadLink() {
+            const dataURL = canvas.toDataURL('image/png');
+            downloadLink.href = dataURL;
+            downloadLink.download = `${iconTypeSelect.value}.png`;
+        }
+    </script>
+</body>
+</html>

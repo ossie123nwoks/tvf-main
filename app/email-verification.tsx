@@ -15,16 +15,14 @@ export default function EmailVerification() {
   const { user, requestEmailVerification, loading, error, clearError } = useAuth();
   const router = useRouter();
   const params = useLocalSearchParams();
-  
+
   // Determine mode from URL params or default to request
-  const [mode, setMode] = useState<VerificationMode>(
-    params.token ? 'confirm' : 'request'
-  );
-  
+  const [mode, setMode] = useState<VerificationMode>(params.token ? 'confirm' : 'request');
+
   // Request mode state
   const [email, setEmail] = useState(user?.email || '');
   const [emailError, setEmailError] = useState('');
-  
+
   // Success state
   const [isSuccess, setIsSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -171,17 +169,19 @@ export default function EmailVerification() {
 
     clearError();
     const result = await requestEmailVerification({ email: email.trim() });
-    
+
     if (result.success) {
       setIsSuccess(true);
-      setSuccessMessage('Verification email sent! Please check your inbox and click the verification link.');
+      setSuccessMessage(
+        'Verification email sent! Please check your inbox and click the verification link.'
+      );
     }
   };
 
   const handleAutoVerification = async () => {
     setIsVerifying(true);
     clearError();
-    
+
     // Simulate verification process
     setTimeout(() => {
       setIsVerifying(false);
@@ -210,27 +210,19 @@ export default function EmailVerification() {
           <Text style={styles.headerTitle}>TRUEVINE FELLOWSHIP</Text>
           <Text style={styles.headerSubtitle}>Email Verification</Text>
         </View>
-        
+
         <View style={styles.content}>
           <Card style={styles.successCard}>
             <Card.Content>
               <Text style={styles.successText}>{successMessage}</Text>
             </Card.Content>
           </Card>
-          
-          <Button
-            mode="contained"
-            onPress={handleBackToDashboard}
-            style={styles.button}
-          >
+
+          <Button mode="contained" onPress={handleBackToDashboard} style={styles.button}>
             Continue to Dashboard
           </Button>
-          
-          <Button
-            mode="outlined"
-            onPress={handleBackToSignIn}
-            style={styles.button}
-          >
+
+          <Button mode="outlined" onPress={handleBackToSignIn} style={styles.button}>
             Back to Sign In
           </Button>
         </View>
@@ -245,7 +237,7 @@ export default function EmailVerification() {
           <Text style={styles.headerTitle}>TRUEVINE FELLOWSHIP</Text>
           <Text style={styles.headerSubtitle}>Verifying Email</Text>
         </View>
-        
+
         <View style={styles.content}>
           <Card style={styles.card}>
             <Card.Content>
@@ -278,10 +270,10 @@ export default function EmailVerification() {
               <Card.Content>
                 <Text style={styles.title}>Email Verification Required</Text>
                 <Text style={styles.description}>
-                  To access all features of the TRUEVINE FELLOWSHIP Church app, 
-                  please verify your email address.
+                  To access all features of the TRUEVINE FELLOWSHIP Church app, please verify your
+                  email address.
                 </Text>
-                
+
                 <View style={styles.stepsContainer}>
                   <View style={styles.step}>
                     <View style={styles.stepNumber}>
@@ -289,14 +281,14 @@ export default function EmailVerification() {
                     </View>
                     <Text style={styles.stepText}>Enter your email address below</Text>
                   </View>
-                  
+
                   <View style={styles.step}>
                     <View style={styles.stepNumber}>
                       <Text style={styles.stepNumberText}>2</Text>
                     </View>
                     <Text style={styles.stepText}>Check your inbox for verification email</Text>
                   </View>
-                  
+
                   <View style={styles.step}>
                     <View style={styles.stepNumber}>
                       <Text style={styles.stepNumberText}>3</Text>
@@ -304,7 +296,7 @@ export default function EmailVerification() {
                     <Text style={styles.stepText}>Click the verification link in the email</Text>
                   </View>
                 </View>
-                
+
                 <TextInput
                   label="Email Address"
                   value={email}
@@ -316,16 +308,10 @@ export default function EmailVerification() {
                   autoComplete="email"
                   error={!!emailError}
                 />
-                {emailError && (
-                  <Text style={styles.errorText}>{emailError}</Text>
-                )}
+                {emailError && <Text style={styles.errorText}>{emailError}</Text>}
 
                 {error && (
-                  <ErrorDisplay
-                    error={error}
-                    onDismiss={() => clearError()}
-                    compact={true}
-                  />
+                  <ErrorDisplay error={error} onDismiss={() => clearError()} compact={true} />
                 )}
 
                 <Button
@@ -361,11 +347,7 @@ export default function EmailVerification() {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Already verified? </Text>
-            <Button
-              mode="text"
-              onPress={handleBackToSignIn}
-              style={styles.button}
-            >
+            <Button mode="text" onPress={handleBackToSignIn} style={styles.button}>
               Sign In
             </Button>
           </View>

@@ -8,7 +8,13 @@ export interface UseOfflineDownloadsReturn {
   pendingDownloads: DownloadItem[];
   failedDownloads: DownloadItem[];
   storageInfo: StorageInfo;
-  addDownload: (type: DownloadItem['type'], title: string, url: string, metadata?: Record<string, any>, options?: DownloadOptions) => Promise<string>;
+  addDownload: (
+    type: DownloadItem['type'],
+    title: string,
+    url: string,
+    metadata?: Record<string, any>,
+    options?: DownloadOptions
+  ) => Promise<string>;
   pauseDownload: (id: string) => Promise<void>;
   resumeDownload: (id: string) => Promise<void>;
   cancelDownload: (id: string) => Promise<void>;
@@ -49,52 +55,64 @@ export const useOfflineDownloads = (): UseOfflineDownloadsReturn => {
   }, []);
 
   // Add new download
-  const addDownload = useCallback(async (
-    type: DownloadItem['type'],
-    title: string,
-    url: string,
-    metadata?: Record<string, any>,
-    options?: DownloadOptions
-  ): Promise<string> => {
-    try {
-      const id = await offlineDownloadService.addDownload(type, title, url, metadata, options);
-      await loadData(); // Refresh data after adding download
-      return id;
-    } catch (error) {
-      console.error('Failed to add download:', error);
-      throw error;
-    }
-  }, [loadData]);
+  const addDownload = useCallback(
+    async (
+      type: DownloadItem['type'],
+      title: string,
+      url: string,
+      metadata?: Record<string, any>,
+      options?: DownloadOptions
+    ): Promise<string> => {
+      try {
+        const id = await offlineDownloadService.addDownload(type, title, url, metadata, options);
+        await loadData(); // Refresh data after adding download
+        return id;
+      } catch (error) {
+        console.error('Failed to add download:', error);
+        throw error;
+      }
+    },
+    [loadData]
+  );
 
   // Pause download
-  const pauseDownload = useCallback(async (id: string): Promise<void> => {
-    try {
-      await offlineDownloadService.pauseDownload(id);
-      await loadData(); // Refresh data after pausing
-    } catch (error) {
-      console.error('Failed to pause download:', error);
-    }
-  }, [loadData]);
+  const pauseDownload = useCallback(
+    async (id: string): Promise<void> => {
+      try {
+        await offlineDownloadService.pauseDownload(id);
+        await loadData(); // Refresh data after pausing
+      } catch (error) {
+        console.error('Failed to pause download:', error);
+      }
+    },
+    [loadData]
+  );
 
   // Resume download
-  const resumeDownload = useCallback(async (id: string): Promise<void> => {
-    try {
-      await offlineDownloadService.resumeDownload(id);
-      await loadData(); // Refresh data after resuming
-    } catch (error) {
-      console.error('Failed to resume download:', error);
-    }
-  }, [loadData]);
+  const resumeDownload = useCallback(
+    async (id: string): Promise<void> => {
+      try {
+        await offlineDownloadService.resumeDownload(id);
+        await loadData(); // Refresh data after resuming
+      } catch (error) {
+        console.error('Failed to resume download:', error);
+      }
+    },
+    [loadData]
+  );
 
   // Cancel download
-  const cancelDownload = useCallback(async (id: string): Promise<void> => {
-    try {
-      await offlineDownloadService.cancelDownload(id);
-      await loadData(); // Refresh data after canceling
-    } catch (error) {
-      console.error('Failed to cancel download:', error);
-    }
-  }, [loadData]);
+  const cancelDownload = useCallback(
+    async (id: string): Promise<void> => {
+      try {
+        await offlineDownloadService.cancelDownload(id);
+        await loadData(); // Refresh data after canceling
+      } catch (error) {
+        console.error('Failed to cancel download:', error);
+      }
+    },
+    [loadData]
+  );
 
   // Check if content is available offline
   const isAvailableOffline = useCallback(async (url: string): Promise<boolean> => {

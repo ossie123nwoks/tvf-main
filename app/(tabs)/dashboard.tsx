@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Linking, Dimensions, useWindowDimensions } from 'react-native';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Linking,
+  Dimensions,
+  useWindowDimensions,
+} from 'react-native';
 import { Text, Card, Button, Avatar, useTheme as usePaperTheme } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -16,7 +23,7 @@ export default function DashboardScreen() {
   const { user } = useAuth();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-  
+
   // Responsive breakpoints
   const isTablet = screenWidth >= 768;
   const isLargeScreen = screenWidth >= 1024;
@@ -93,7 +100,10 @@ export default function DashboardScreen() {
   });
 
   return (
-    <ContentGuard requireAuth={true} fallbackMessage="Sign in to access your personalized dashboard">
+    <ContentGuard
+      requireAuth={true}
+      fallbackMessage="Sign in to access your personalized dashboard"
+    >
       <View style={styles.container}>
         <ScrollView style={styles.scrollView}>
           <View style={styles.header}>
@@ -103,12 +113,12 @@ export default function DashboardScreen() {
                 <Text style={styles.subtitle}>Fellowship Church</Text>
               </View>
               <View style={styles.headerActions}>
-                <Button 
-                  icon={isDark ? "weather-night" : "weather-sunny"} 
+                <Button
+                  icon={isDark ? 'weather-night' : 'weather-sunny'}
                   mode="contained-tonal"
                   onPress={toggleTheme}
                 >
-                  {isDark ? "Dark" : "Light"}
+                  {isDark ? 'Dark' : 'Light'}
                 </Button>
                 <Avatar.Image
                   size={isTablet ? 50 : 40}
@@ -120,82 +130,88 @@ export default function DashboardScreen() {
             </View>
           </View>
 
-        <View style={styles.actionButtons}>
-          <Button
-            mode="contained"
-            style={styles.actionButton}
-            icon={() => <MaterialIcons name="headphones" size={24} color="white" />}
-            onPress={() => router.push('/(tabs)/sermons')}
-          >
-            Listen to Sermons
-          </Button>
-          <Button
-            mode="outlined"
-            style={styles.actionButton}
-            icon={() => <MaterialIcons name="article" size={24} color={theme.colors.primary} />}
-            onPress={() => router.push('/(tabs)/articles')}
-          >
-            Read Articles
-          </Button>
-          <Button
-            mode="outlined"
-            style={styles.actionButton}
-            icon={() => <MaterialIcons name="language" size={24} color={theme.colors.primary} />}
-            onPress={() => Linking.openURL('https://truevinefellowship.org')}
-          >
-            Visit Website
-          </Button>
-        </View>
+          <View style={styles.actionButtons}>
+            <Button
+              mode="contained"
+              style={styles.actionButton}
+              icon={() => <MaterialIcons name="headphones" size={24} color="white" />}
+              onPress={() => router.push('/(tabs)/sermons')}
+            >
+              Listen to Sermons
+            </Button>
+            <Button
+              mode="outlined"
+              style={styles.actionButton}
+              icon={() => <MaterialIcons name="article" size={24} color={theme.colors.primary} />}
+              onPress={() => router.push('/(tabs)/articles')}
+            >
+              Read Articles
+            </Button>
+            <Button
+              mode="outlined"
+              style={styles.actionButton}
+              icon={() => <MaterialIcons name="language" size={24} color={theme.colors.primary} />}
+              onPress={() => Linking.openURL('https://truevinefellowship.org')}
+            >
+              Visit Website
+            </Button>
+          </View>
 
-        <View style={styles.contentGrid}>
-          <View style={styles.contentColumn}>
-            <View style={styles.featuredSection}>
-              <Text style={styles.sectionTitle}>Featured Sermon</Text>
-              <Card style={styles.card}>
-                <Card.Cover source={{ uri: 'https://via.placeholder.com/300x200' }} />
-                <Card.Content>
-                  <Text variant="titleMedium">Sunday Service - Faith & Grace</Text>
-                  <Text variant="bodyMedium">Pastor Johnson</Text>
-                  <Text variant="bodySmall">45 minutes • 2 days ago</Text>
-                </Card.Content>
-                <Card.Actions>
-                  <Button mode="contained" onPress={() => router.push('/(tabs)/sermons')}>Play</Button>
-                  <Button mode="outlined" onPress={() => router.push('/(tabs)/sermons')}>Download</Button>
-                </Card.Actions>
-              </Card>
+          <View style={styles.contentGrid}>
+            <View style={styles.contentColumn}>
+              <View style={styles.featuredSection}>
+                <Text style={styles.sectionTitle}>Featured Sermon</Text>
+                <Card style={styles.card}>
+                  <Card.Cover source={{ uri: 'https://via.placeholder.com/300x200' }} />
+                  <Card.Content>
+                    <Text variant="titleMedium">Sunday Service - Faith & Grace</Text>
+                    <Text variant="bodyMedium">Pastor Johnson</Text>
+                    <Text variant="bodySmall">45 minutes • 2 days ago</Text>
+                  </Card.Content>
+                  <Card.Actions>
+                    <Button mode="contained" onPress={() => router.push('/(tabs)/sermons')}>
+                      Play
+                    </Button>
+                    <Button mode="outlined" onPress={() => router.push('/(tabs)/sermons')}>
+                      Download
+                    </Button>
+                  </Card.Actions>
+                </Card>
+              </View>
+            </View>
+
+            <View style={styles.contentColumn}>
+              <View style={styles.featuredSection}>
+                <Text style={styles.sectionTitle}>Latest Articles</Text>
+                <Card style={styles.card}>
+                  <Card.Content>
+                    <Text variant="titleMedium">Walking in Faith</Text>
+                    <Text variant="bodyMedium">A reflection on daily spiritual practices</Text>
+                    <Text variant="bodySmall">By Sarah Wilson • 1 week ago</Text>
+                  </Card.Content>
+                  <Card.Actions>
+                    <Button mode="outlined" onPress={() => router.push('/(tabs)/articles')}>
+                      Read More
+                    </Button>
+                  </Card.Actions>
+                </Card>
+              </View>
             </View>
           </View>
 
-          <View style={styles.contentColumn}>
-            <View style={styles.featuredSection}>
-              <Text style={styles.sectionTitle}>Latest Articles</Text>
-              <Card style={styles.card}>
-                <Card.Content>
-                  <Text variant="titleMedium">Walking in Faith</Text>
-                  <Text variant="bodyMedium">A reflection on daily spiritual practices</Text>
-                  <Text variant="bodySmall">By Sarah Wilson • 1 week ago</Text>
-                </Card.Content>
-                <Card.Actions>
-                  <Button mode="outlined" onPress={() => router.push('/(tabs)/articles')}>Read More</Button>
-                </Card.Actions>
-              </Card>
-            </View>
-          </View>
-        </View>
+          {/* Deep Linking Demo Section */}
+          <DeepLinkDemo />
+        </ScrollView>
 
-        {/* Deep Linking Demo Section */}
-        <DeepLinkDemo />
-      </ScrollView>
-      
-      <ProfileModal
-        visible={showProfileModal}
-        onDismiss={() => setShowProfileModal(false)}
-        onSignOut={() => {
-          setShowProfileModal(false);
-          router.replace('/auth');
-        }}
-      />
-    </View>
+        <ProfileModal
+          visible={showProfileModal}
+          onDismiss={() => setShowProfileModal(false)}
+          onSignOut={() => {
+            setShowProfileModal(false);
+            router.replace('/auth');
+          }}
+        />
+      </View>
     </ContentGuard>
   );
 }

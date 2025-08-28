@@ -86,7 +86,7 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
     try {
       setIsPerformingCleanup(true);
       const result = await performCleanup(cleanupOptions);
-      
+
       setCleanupDialogVisible(false);
       // Show success message
       console.log('Cleanup completed:', result);
@@ -104,7 +104,7 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
         <Text variant="titleMedium" style={{ color: theme.colors.text, marginBottom: 16 }}>
           Storage Overview
         </Text>
-        
+
         {storageUsage && (
           <>
             <View style={styles.storageRow}>
@@ -115,7 +115,7 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
                 {formatFileSize(storageUsage.totalSpace)}
               </Text>
             </View>
-            
+
             <View style={styles.storageRow}>
               <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
                 Used Space:
@@ -124,7 +124,7 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
                 {formatFileSize(storageUsage.usedSpace)}
               </Text>
             </View>
-            
+
             <View style={styles.storageRow}>
               <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
                 Available Space:
@@ -133,7 +133,7 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
                 {formatFileSize(storageUsage.availableSpace)}
               </Text>
             </View>
-            
+
             <View style={styles.storageRow}>
               <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
                 Usage:
@@ -163,7 +163,7 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
         <Text variant="titleMedium" style={{ color: theme.colors.text, marginBottom: 16 }}>
           Storage Health
         </Text>
-        
+
         <View style={styles.healthScoreContainer}>
           <View style={styles.healthScoreCircle}>
             <Text variant="displaySmall" style={{ color: getHealthScoreColor(storageHealthScore) }}>
@@ -190,8 +190,8 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
         <Text variant="titleMedium" style={{ color: theme.colors.text, marginBottom: 16 }}>
           Content Type Breakdown
         </Text>
-        
-        {contentTypeUsage.map((typeUsage) => (
+
+        {contentTypeUsage.map(typeUsage => (
           <View key={typeUsage.type} style={styles.typeUsageRow}>
             <View style={styles.typeInfo}>
               <Chip mode="outlined" style={styles.typeChip}>
@@ -222,7 +222,7 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
         <Text variant="titleMedium" style={{ color: theme.colors.text, marginBottom: 16 }}>
           Download Analytics
         </Text>
-        
+
         {storageAnalytics && (
           <>
             <View style={styles.analyticsGrid}>
@@ -234,7 +234,7 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
                   Total Downloads
                 </Text>
               </View>
-              
+
               <View style={styles.analyticsItem}>
                 <Text variant="titleLarge" style={{ color: theme.colors.success }}>
                   {storageAnalytics.successfulDownloads}
@@ -243,7 +243,7 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
                   Successful
                 </Text>
               </View>
-              
+
               <View style={styles.analyticsItem}>
                 <Text variant="titleLarge" style={{ color: theme.colors.error }}>
                   {storageAnalytics.failedDownloads}
@@ -252,7 +252,7 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
                   Failed
                 </Text>
               </View>
-              
+
               <View style={styles.analyticsItem}>
                 <Text variant="titleLarge" style={{ color: theme.colors.warning }}>
                   {storageAnalytics.downloadSuccessRate.toFixed(1)}%
@@ -262,9 +262,9 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
                 </Text>
               </View>
             </View>
-            
+
             <Divider style={{ marginVertical: 16 }} />
-            
+
             <View style={styles.analyticsDetails}>
               <Text variant="bodyMedium" style={{ color: theme.colors.textSecondary }}>
                 Average Download Size: {formatFileSize(storageAnalytics.averageDownloadSize)}
@@ -289,7 +289,7 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
         <Text variant="titleMedium" style={{ color: theme.colors.text, marginBottom: 16 }}>
           Optimization Recommendations
         </Text>
-        
+
         {storageRecommendations && (
           <>
             <View style={styles.recommendationHeader}>
@@ -297,19 +297,21 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
                 mode={storageRecommendations.shouldCleanup ? 'contained' : 'outlined'}
                 icon={storageRecommendations.shouldCleanup ? 'alert' : 'check-circle'}
                 style={{
-                  backgroundColor: storageRecommendations.shouldCleanup ? theme.colors.warning : theme.colors.success,
+                  backgroundColor: storageRecommendations.shouldCleanup
+                    ? theme.colors.warning
+                    : theme.colors.success,
                 }}
               >
                 {storageRecommendations.shouldCleanup ? 'Cleanup Recommended' : 'Storage Optimized'}
               </Chip>
-              
+
               {storageRecommendations.shouldCleanup && (
                 <Text variant="bodyMedium" style={{ color: theme.colors.warning, marginTop: 8 }}>
                   Potential savings: {formatFileSize(storageRecommendations.recommendedCleanupSize)}
                 </Text>
               )}
             </View>
-            
+
             <View style={styles.recommendationDetails}>
               {storageRecommendations.oldContentCount > 0 && (
                 <Text variant="bodySmall" style={{ color: theme.colors.textSecondary }}>
@@ -327,10 +329,14 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
                 </Text>
               )}
             </View>
-            
+
             <View style={styles.optimizationSuggestions}>
               {storageRecommendations.optimizationSuggestions.map((suggestion, index) => (
-                <Text key={index} variant="bodySmall" style={{ color: theme.colors.textSecondary, marginTop: 4 }}>
+                <Text
+                  key={index}
+                  variant="bodySmall"
+                  style={{ color: theme.colors.textSecondary, marginTop: 4 }}
+                >
                   • {suggestion}
                 </Text>
               ))}
@@ -350,44 +356,54 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
           <Text variant="bodyMedium" style={{ marginBottom: 16 }}>
             Configure cleanup options to free up storage space:
           </Text>
-          
+
           <View style={styles.cleanupOption}>
             <Text>Remove old content</Text>
             <Switch
               value={cleanupOptions.removeOldContent}
-              onValueChange={(value) => setCleanupOptions(prev => ({ ...prev, removeOldContent: value }))}
+              onValueChange={value =>
+                setCleanupOptions(prev => ({ ...prev, removeOldContent: value }))
+              }
             />
           </View>
-          
+
           <View style={styles.cleanupOption}>
             <Text>Remove failed downloads</Text>
             <Switch
               value={cleanupOptions.removeFailedDownloads}
-              onValueChange={(value) => setCleanupOptions(prev => ({ ...prev, removeFailedDownloads: value }))}
+              onValueChange={value =>
+                setCleanupOptions(prev => ({ ...prev, removeFailedDownloads: value }))
+              }
             />
           </View>
-          
+
           <View style={styles.cleanupOption}>
             <Text>Remove rarely used content</Text>
             <Switch
               value={cleanupOptions.removeRarelyUsed}
-              onValueChange={(value) => setCleanupOptions(prev => ({ ...prev, removeRarelyUsed: value }))}
+              onValueChange={value =>
+                setCleanupOptions(prev => ({ ...prev, removeRarelyUsed: value }))
+              }
             />
           </View>
-          
+
           <View style={styles.cleanupOption}>
             <Text>Remove duplicates</Text>
             <Switch
               value={cleanupOptions.removeDuplicates}
-              onValueChange={(value) => setCleanupOptions(prev => ({ ...prev, removeDuplicates: value }))}
+              onValueChange={value =>
+                setCleanupOptions(prev => ({ ...prev, removeDuplicates: value }))
+              }
             />
           </View>
-          
+
           <View style={styles.cleanupOption}>
             <Text>Age threshold (days)</Text>
             <TextInput
               value={cleanupOptions.ageThreshold.toString()}
-              onChangeText={(text) => setCleanupOptions(prev => ({ ...prev, ageThreshold: parseInt(text) || 30 }))}
+              onChangeText={text =>
+                setCleanupOptions(prev => ({ ...prev, ageThreshold: parseInt(text) || 30 }))
+              }
               keyboardType="numeric"
               style={styles.cleanupInput}
             />
@@ -413,7 +429,7 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
         <Dialog.Title style={{ color: theme.colors.text }}>
           Storage Analytics Dashboard
         </Dialog.Title>
-        
+
         <Dialog.Content style={styles.dialogContent}>
           {isLoading ? (
             <View style={styles.loadingContainer}>
@@ -429,7 +445,7 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
               {renderContentTypeBreakdown()}
               {renderAnalytics()}
               {renderRecommendations()}
-              
+
               <View style={styles.actionsContainer}>
                 <Button
                   mode="contained"

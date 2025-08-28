@@ -25,11 +25,11 @@ export default function SplashScreen({
   showSubtitle = true,
   logoSize = 120,
   titleSize = 32,
-  subtitleSize = 18
+  subtitleSize = 18,
 }: SplashScreenProps) {
   const { theme } = useTheme();
   const paperTheme = usePaperTheme();
-  
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -173,7 +173,7 @@ export default function SplashScreen({
   const renderLoadingDots = () => {
     return (
       <View style={styles.loadingDots}>
-        {[0, 1, 2].map((index) => (
+        {[0, 1, 2].map(index => (
           <Animated.View
             key={index}
             style={[
@@ -309,4 +309,3 @@ export default function SplashScreen({
     </View>
   );
 }
-
