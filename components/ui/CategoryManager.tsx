@@ -304,8 +304,8 @@ export default function CategoryManager({
       description: category.description,
       color: category.color,
       icon: category.icon,
-      parentId: category.parentId || '',
-      sortOrder: category.sortOrder,
+      parentId: category.parent_id || '',
+      sortOrder: category.sort_order,
       is_active: category.is_active,
     });
     setEditDialogVisible(true);

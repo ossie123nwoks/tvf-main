@@ -1,0 +1,397 @@
+{
+  "designSystem": {
+    "name": "Modern Mobile App Design System",
+    "version": "1.0.0",
+    "description": "A comprehensive design system for modern mobile applications with purple accent theme",
+    
+    "colorPalette": {
+      "primary": {
+        "purple": "#6366F1",
+        "purpleDark": "#4F46E5",
+        "purpleLight": "#A78BFA"
+      },
+      "neutrals": {
+        "background": "#F8FAFC",
+        "cardBackground": "#FFFFFF",
+        "textPrimary": "#1E293B",
+        "textSecondary": "#64748B",
+        "textMuted": "#94A3B8",
+        "border": "#E2E8F0"
+      },
+      "gradients": {
+        "primaryGradient": "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)",
+        "backgroundGradient": "linear-gradient(180deg, #F1F5F9 0%, #E2E8F0 100%)"
+      }
+    },
+
+    "typography": {
+      "fontFamily": {
+        "primary": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+      },
+      "sizes": {
+        "h1": "24px",
+        "h2": "20px",
+        "h3": "18px",
+        "body": "16px",
+        "bodySmall": "14px",
+        "caption": "12px"
+      },
+      "weights": {
+        "light": "300",
+        "regular": "400",
+        "medium": "500",
+        "semiBold": "600",
+        "bold": "700"
+      },
+      "lineHeights": {
+        "tight": "1.2",
+        "normal": "1.4",
+        "relaxed": "1.6"
+      }
+    },
+
+    "spacing": {
+      "xs": "4px",
+      "sm": "8px",
+      "md": "16px",
+      "lg": "24px",
+      "xl": "32px",
+      "xxl": "48px"
+    },
+
+    "borderRadius": {
+      "sm": "8px",
+      "md": "12px",
+      "lg": "16px",
+      "xl": "20px",
+      "full": "50%"
+    },
+
+    "shadows": {
+      "card": "0 2px 8px rgba(0, 0, 0, 0.1)",
+      "elevated": "0 4px 16px rgba(0, 0, 0, 0.12)",
+      "button": "0 2px 4px rgba(99, 102, 241, 0.2)"
+    },
+
+    "components": {
+      "mobileScreen": {
+        "structure": {
+          "maxWidth": "375px",
+          "minHeight": "812px",
+          "padding": "20px",
+          "backgroundColor": "background",
+          "borderRadius": "xl"
+        },
+        "layout": {
+          "type": "flexColumn",
+          "gap": "lg",
+          "alignItems": "stretch"
+        }
+      },
+
+      "header": {
+        "structure": {
+          "height": "60px",
+          "padding": "md",
+          "backgroundColor": "transparent"
+        },
+        "layout": {
+          "type": "flexRow",
+          "justifyContent": "spaceBetween",
+          "alignItems": "center"
+        },
+        "elements": {
+          "title": {
+            "fontSize": "h2",
+            "fontWeight": "semiBold",
+            "color": "textPrimary"
+          },
+          "statusIndicators": {
+            "position": "topRight",
+            "gap": "xs"
+          }
+        }
+      },
+
+      "heroSection": {
+        "structure": {
+          "minHeight": "200px",
+          "padding": "lg",
+          "backgroundColor": "cardBackground",
+          "borderRadius": "lg",
+          "boxShadow": "card"
+        },
+        "layout": {
+          "type": "flexColumn",
+          "alignItems": "center",
+          "gap": "md",
+          "textAlign": "center"
+        },
+        "elements": {
+          "icon": {
+            "size": "80px",
+            "borderRadius": "lg",
+            "marginBottom": "md"
+          },
+          "title": {
+            "fontSize": "h1",
+            "fontWeight": "bold",
+            "color": "textPrimary",
+            "marginBottom": "sm"
+          },
+          "subtitle": {
+            "fontSize": "body",
+            "color": "textSecondary",
+            "lineHeight": "relaxed"
+          }
+        }
+      },
+
+      "card": {
+        "structure": {
+          "padding": "lg",
+          "backgroundColor": "cardBackground",
+          "borderRadius": "lg",
+          "boxShadow": "card",
+          "border": "1px solid border"
+        },
+        "layout": {
+          "type": "flexColumn",
+          "gap": "md"
+        },
+        "variants": {
+          "elevated": {
+            "boxShadow": "elevated",
+            "transform": "translateY(-2px)"
+          },
+          "interactive": {
+            "cursor": "pointer",
+            "transition": "all 0.2s ease",
+            "hover": {
+              "boxShadow": "elevated",
+              "transform": "translateY(-2px)"
+            }
+          }
+        }
+      },
+
+      "button": {
+        "structure": {
+          "height": "48px",
+          "padding": "0 24px",
+          "borderRadius": "md",
+          "border": "none",
+          "cursor": "pointer",
+          "fontSize": "body",
+          "fontWeight": "medium",
+          "transition": "all 0.2s ease"
+        },
+        "variants": {
+          "primary": {
+            "backgroundColor": "primary.purple",
+            "color": "white",
+            "boxShadow": "button",
+            "hover": {
+              "backgroundColor": "primary.purpleDark"
+            }
+          },
+          "secondary": {
+            "backgroundColor": "transparent",
+            "color": "primary.purple",
+            "border": "1px solid primary.purple",
+            "hover": {
+              "backgroundColor": "primary.purple",
+              "color": "white"
+            }
+          },
+          "ghost": {
+            "backgroundColor": "transparent",
+            "color": "textSecondary",
+            "hover": {
+              "backgroundColor": "background"
+            }
+          }
+        }
+      },
+
+      "formInput": {
+        "structure": {
+          "height": "48px",
+          "padding": "0 16px",
+          "backgroundColor": "cardBackground",
+          "border": "1px solid border",
+          "borderRadius": "md",
+          "fontSize": "body",
+          "color": "textPrimary"
+        },
+        "states": {
+          "focus": {
+            "borderColor": "primary.purple",
+            "boxShadow": "0 0 0 3px rgba(99, 102, 241, 0.1)"
+          },
+          "error": {
+            "borderColor": "#EF4444"
+          }
+        }
+      },
+
+      "checklistItem": {
+        "structure": {
+          "padding": "md",
+          "backgroundColor": "cardBackground",
+          "borderRadius": "md",
+          "border": "1px solid border"
+        },
+        "layout": {
+          "type": "flexRow",
+          "alignItems": "center",
+          "gap": "md"
+        },
+        "elements": {
+          "icon": {
+            "size": "20px",
+            "color": "primary.purple",
+            "flexShrink": "0"
+          },
+          "content": {
+            "fontSize": "bodySmall",
+            "color": "textPrimary",
+            "lineHeight": "normal"
+          }
+        }
+      },
+
+      "avatar": {
+        "structure": {
+          "borderRadius": "full",
+          "border": "2px solid white",
+          "backgroundColor": "primary.purple"
+        },
+        "sizes": {
+          "sm": "32px",
+          "md": "48px",
+          "lg": "64px",
+          "xl": "80px"
+        }
+      },
+
+      "iconButton": {
+        "structure": {
+          "width": "40px",
+          "height": "40px",
+          "borderRadius": "full",
+          "backgroundColor": "cardBackground",
+          "border": "1px solid border",
+          "cursor": "pointer",
+          "transition": "all 0.2s ease"
+        },
+        "layout": {
+          "type": "flex",
+          "alignItems": "center",
+          "justifyContent": "center"
+        },
+        "states": {
+          "hover": {
+            "backgroundColor": "primary.purple",
+            "color": "white",
+            "borderColor": "primary.purple"
+          }
+        }
+      },
+
+      "bottomNavigation": {
+        "structure": {
+          "height": "80px",
+          "backgroundColor": "cardBackground",
+          "borderTop": "1px solid border",
+          "padding": "md"
+        },
+        "layout": {
+          "type": "flexRow",
+          "justifyContent": "spaceAround",
+          "alignItems": "center"
+        }
+      }
+    },
+
+    "layoutPatterns": {
+      "screenTypes": {
+        "onboarding": {
+          "structure": ["header", "heroSection", "primaryButton"],
+          "spacing": "xl",
+          "backgroundColor": "background"
+        },
+        "authentication": {
+          "structure": ["header", "form", "primaryButton", "secondaryActions"],
+          "spacing": "lg",
+          "backgroundColor": "background"
+        },
+        "dashboard": {
+          "structure": ["header", "welcomeCard", "actionCards", "bottomNavigation"],
+          "spacing": "md",
+          "backgroundColor": "background"
+        },
+        "profile": {
+          "structure": ["header", "profileCard", "menuItems"],
+          "spacing": "md",
+          "backgroundColor": "background"
+        }
+      },
+      "gridSystems": {
+        "singleColumn": {
+          "columns": 1,
+          "gap": "md",
+          "padding": "md"
+        },
+        "twoColumn": {
+          "columns": 2,
+          "gap": "sm",
+          "padding": "md"
+        }
+      }
+    },
+
+    "animations": {
+      "transitions": {
+        "default": "all 0.2s ease",
+        "slow": "all 0.3s ease",
+        "bounce": "all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55)"
+      },
+      "keyframes": {
+        "fadeIn": {
+          "from": { "opacity": 0, "transform": "translateY(10px)" },
+          "to": { "opacity": 1, "transform": "translateY(0)" }
+        },
+        "slideUp": {
+          "from": { "transform": "translateY(100%)" },
+          "to": { "transform": "translateY(0)" }
+        }
+      }
+    },
+
+    "accessibility": {
+      "minimumTouchTarget": "44px",
+      "colorContrast": {
+        "minimum": "4.5:1",
+        "preferred": "7:1"
+      },
+      "focusIndicator": {
+        "outline": "2px solid primary.purple",
+        "outlineOffset": "2px"
+      }
+    },
+
+    "responsive": {
+      "breakpoints": {
+        "mobile": "320px",
+        "mobileLarge": "375px",
+        "tablet": "768px"
+      },
+      "scalingFactors": {
+        "mobile": 1.0,
+        "mobileLarge": 1.1,
+        "tablet": 1.2
+      }
+    }
+  }
+}

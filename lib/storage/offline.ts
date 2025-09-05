@@ -196,14 +196,14 @@ export class OfflineDownloadService {
 
       const result = await downloadResumable.downloadAsync();
 
-      if (result.status === 200) {
+      if (result && result.status === 200) {
         item.status = 'completed';
         item.progress = 1;
         item.downloadedSize = item.size;
         item.updatedAt = Date.now();
         console.log(`Download completed: ${item.title}`);
       } else {
-        throw new Error(`Download failed with status: ${result.status}`);
+        throw new Error(`Download failed with status: ${result?.status || 'unknown'}`);
       }
     } catch (error) {
       throw error;

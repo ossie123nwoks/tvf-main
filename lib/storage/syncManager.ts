@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { offlineDownloadService, DownloadItem } from './offline';
 import { audioQualityManager } from '../audio/qualityManager';
-import { contentService } from '../supabase/content';
+import { ContentService } from '../supabase/content';
 
 export interface SyncItem {
   id: string;
@@ -421,19 +421,16 @@ export class SyncManager {
       );
 
       // Add to offline download service
-      await offlineDownloadService.addDownload({
-        id: item.id,
-        title: remoteContent.title || 'Unknown',
-        type: item.contentType,
-        url: recommendation.recommendedQuality.url,
-        localPath: item.localPath || '',
-        priority: item.priority === 'high' ? 'high' : 'normal',
-        metadata: {
+      await offlineDownloadService.addDownload(
+        item.contentType === 'sermon' ? 'audio' : item.contentType as 'audio' | 'article' | 'image' | 'document',
+        remoteContent.title || 'Unknown',
+        recommendation.recommendedQuality.url,
+        {
           ...item.metadata,
           quality: recommendation.recommendedQuality.id,
           originalUrl: item.remoteUrl,
-        },
-      });
+        }
+      );
     } catch (error) {
       throw new Error(
         `Download sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -993,13 +990,20 @@ export class SyncManager {
 
   // Placeholder methods for remote operations
   private async getRemoteContent(contentType: string, contentId: string): Promise<any> {
-    // This would integrate with your content service
-    try {
-      return await contentService.getContentById(contentType, contentId);
-    } catch (error) {
-      console.error('Failed to get remote content:', error);
-      return null;
-    }
+          // This would integrate with your content service
+      try {
+        if (contentType === 'sermon') {
+          return await ContentService.getSermonById(contentId);
+        } else if (contentType === 'article') {
+          return await ContentService.getArticleById(contentId);
+        } else {
+          console.error('Unsupported content type:', contentType);
+          return null;
+        }
+      } catch (error) {
+        console.error('Failed to get remote content:', error);
+        return null;
+      }
   }
 
   private async uploadContentToRemote(

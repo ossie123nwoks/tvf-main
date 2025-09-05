@@ -76,68 +76,68 @@ export interface AppTheme {
 
 export const lightTheme: AppTheme = {
   colors: {
-    primary: '#1976D2',
-    secondary: '#424242',
-    background: '#FFFFFF',
-    surface: '#F5F5F5',
-    surfaceVariant: '#FAFAFA',
-    onBackground: '#212121',
-    onSurface: '#212121',
-    onSurfaceVariant: '#757575',
-    disabled: '#BDBDBD',
-    text: '#212121',
-    textSecondary: '#757575',
-    textTertiary: '#9E9E9E',
-    border: '#E0E0E0',
-    borderLight: '#F0F0F0',
-    error: '#D32F2F',
-    success: '#388E3C',
-    warning: '#F57C00',
-    info: '#1976D2',
+    primary: '#6366F1', // Purple from design system
+    secondary: '#8B5CF6', // Purple light variant
+    background: '#F8FAFC', // Background from design system
+    surface: '#FFFFFF', // Card background
+    surfaceVariant: '#F1F5F9', // Light background variant
+    onBackground: '#1E293B', // Text primary
+    onSurface: '#1E293B', // Text primary
+    onSurfaceVariant: '#64748B', // Text secondary
+    disabled: '#94A3B8', // Text muted
+    text: '#1E293B', // Text primary
+    textSecondary: '#64748B', // Text secondary
+    textTertiary: '#94A3B8', // Text muted
+    border: '#E2E8F0', // Border from design system
+    borderLight: '#F1F5F9', // Light border
+    error: '#EF4444', // Red for errors
+    success: '#10B981', // Green for success
+    warning: '#F59E0B', // Amber for warnings
+    info: '#6366F1', // Purple for info
     // Content-specific colors
-    cardBackground: '#FFFFFF',
-    cardBorder: '#E0E0E0',
-    cardShadow: '#000000',
+    cardBackground: '#FFFFFF', // Card background
+    cardBorder: '#E2E8F0', // Card border
+    cardShadow: '#000000', // Card shadow
     // Interactive elements
-    ripple: '#E3F2FD',
-    overlay: '#000000',
+    ripple: '#A78BFA', // Purple light for ripple
+    overlay: '#000000', // Overlay
     // Status colors
-    online: '#4CAF50',
-    offline: '#F44336',
+    online: '#10B981', // Green for online
+    offline: '#EF4444', // Red for offline
     // Audio player specific
-    audioProgress: '#1976D2',
-    audioProgressBackground: '#E3F2FD',
-    audioControl: '#1976D2',
+    audioProgress: '#6366F1', // Purple for progress
+    audioProgressBackground: '#A78BFA', // Light purple for background
+    audioControl: '#6366F1', // Purple for controls
     // Content types
-    sermon: '#2196F3',
-    article: '#4CAF50',
-    category: '#FF9800',
+    sermon: '#6366F1', // Purple for sermons
+    article: '#8B5CF6', // Purple light for articles
+    category: '#A78BFA', // Purple light for categories
   },
   spacing: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
+    xs: 4, // xs from design system
+    sm: 8, // sm from design system
+    md: 16, // md from design system
+    lg: 24, // lg from design system
+    xl: 32, // xl from design system
   },
   borderRadius: {
-    sm: 4,
-    md: 8,
-    lg: 16,
+    sm: 8, // sm from design system
+    md: 12, // md from design system
+    lg: 16, // lg from design system
   },
   shadows: {
     small: {
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 1 },
+      shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
-      shadowRadius: 2,
+      shadowRadius: 8,
       elevation: 2,
     },
     medium: {
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.12,
+      shadowRadius: 16,
       elevation: 4,
     },
     large: {
@@ -152,42 +152,42 @@ export const lightTheme: AppTheme = {
 
 export const darkTheme: AppTheme = {
   colors: {
-    primary: '#90CAF9',
-    secondary: '#BDBDBD',
-    background: '#121212',
-    surface: '#1E1E1E',
-    surfaceVariant: '#2A2A2A',
-    onBackground: '#FFFFFF',
-    onSurface: '#FFFFFF',
-    onSurfaceVariant: '#BDBDBD',
-    disabled: '#616161',
-    text: '#FFFFFF',
-    textSecondary: '#BDBDBD',
-    textTertiary: '#757575',
-    border: '#424242',
-    borderLight: '#2A2A2A',
-    error: '#EF5350',
-    success: '#66BB6A',
-    warning: '#FFB74D',
-    info: '#64B5F6',
+    primary: '#A78BFA', // Purple light for dark mode
+    secondary: '#8B5CF6', // Purple for dark mode
+    background: '#0F172A', // Dark background
+    surface: '#1E293B', // Dark surface
+    surfaceVariant: '#334155', // Dark surface variant
+    onBackground: '#F8FAFC', // Light text on dark background
+    onSurface: '#F8FAFC', // Light text on dark surface
+    onSurfaceVariant: '#CBD5E1', // Light text on dark surface variant
+    disabled: '#64748B', // Muted text
+    text: '#F8FAFC', // Primary text
+    textSecondary: '#CBD5E1', // Secondary text
+    textTertiary: '#94A3B8', // Tertiary text
+    border: '#334155', // Dark border
+    borderLight: '#475569', // Light dark border
+    error: '#F87171', // Red for errors
+    success: '#34D399', // Green for success
+    warning: '#FBBF24', // Amber for warnings
+    info: '#A78BFA', // Purple for info
     // Content-specific colors
-    cardBackground: '#1E1E1E',
-    cardBorder: '#424242',
-    cardShadow: '#000000',
+    cardBackground: '#1E293B', // Dark card background
+    cardBorder: '#334155', // Dark card border
+    cardShadow: '#000000', // Card shadow
     // Interactive elements
-    ripple: '#1A237E',
-    overlay: '#000000',
+    ripple: '#4F46E5', // Purple dark for ripple
+    overlay: '#000000', // Overlay
     // Status colors
-    online: '#81C784',
-    offline: '#E57373',
+    online: '#34D399', // Green for online
+    offline: '#F87171', // Red for offline
     // Audio player specific
-    audioProgress: '#90CAF9',
-    audioProgressBackground: '#1A237E',
-    audioControl: '#90CAF9',
+    audioProgress: '#A78BFA', // Purple light for progress
+    audioProgressBackground: '#4F46E5', // Purple dark for background
+    audioControl: '#A78BFA', // Purple light for controls
     // Content types
-    sermon: '#64B5F6',
-    article: '#81C784',
-    category: '#FFB74D',
+    sermon: '#A78BFA', // Purple light for sermons
+    article: '#8B5CF6', // Purple for articles
+    category: '#6366F1', // Purple for categories
   },
   spacing: {
     xs: 4,
@@ -204,16 +204,16 @@ export const darkTheme: AppTheme = {
   shadows: {
     small: {
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 1 },
+      shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.3,
-      shadowRadius: 2,
+      shadowRadius: 8,
       elevation: 2,
     },
     medium: {
       shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.4,
-      shadowRadius: 4,
+      shadowRadius: 16,
       elevation: 4,
     },
     large: {

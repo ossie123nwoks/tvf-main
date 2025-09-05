@@ -474,7 +474,7 @@ export class StorageManager {
       const history = await this.getStorageUsageHistory();
 
       const newEntry = {
-        timestamp: Date.now(),
+        date: new Date().toISOString(),
         usedSpace: usage.usedSpace,
         downloadCount: usage.downloadCount,
       };

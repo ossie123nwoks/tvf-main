@@ -27,7 +27,7 @@ export default function ArticlesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<'published_at' | 'title' | 'popularity'>('published_at');
+  const [sortBy, setSortBy] = useState<'date' | 'title' | 'popularity' | 'views' | 'downloads'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showFeaturedOnly, setShowFeaturedOnly] = useState(false);
 
@@ -55,25 +55,31 @@ export default function ArticlesScreen() {
     },
     scrollView: {
       flex: 1,
-      padding: theme.spacing.md,
     },
+    // Header section - matches design system
     header: {
-      marginBottom: theme.spacing.lg,
+      padding: theme.spacing.lg,
+      backgroundColor: theme.colors.cardBackground,
+      marginBottom: theme.spacing.md,
+      ...theme.shadows.small,
     },
     title: {
       fontSize: 24,
-      fontWeight: 'bold',
+      fontWeight: '700',
       color: theme.colors.text,
       marginBottom: theme.spacing.sm,
     },
     subtitle: {
-      fontSize: 14,
+      fontSize: 16,
       color: theme.colors.textSecondary,
       marginBottom: theme.spacing.md,
     },
+    // Search and filters
     searchBar: {
       marginBottom: theme.spacing.md,
-      backgroundColor: theme.colors.surface,
+      backgroundColor: theme.colors.cardBackground,
+      borderRadius: theme.borderRadius.md,
+      ...theme.shadows.small,
     },
     filtersRow: {
       flexDirection: 'row',
@@ -93,22 +99,27 @@ export default function ArticlesScreen() {
       gap: theme.spacing.sm,
       marginBottom: theme.spacing.lg,
     },
+    // Article cards - matches design system
     card: {
+      marginHorizontal: theme.spacing.md,
       marginBottom: theme.spacing.md,
-      backgroundColor: theme.colors.surface,
-      elevation: 2,
+      backgroundColor: theme.colors.cardBackground,
+      borderRadius: theme.borderRadius.lg,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      ...theme.shadows.medium,
     },
     cardContent: {
-      padding: theme.spacing.md,
+      padding: theme.spacing.lg,
     },
     cardHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: theme.spacing.sm,
+      marginBottom: theme.spacing.md,
     },
     authorInfo: {
       flex: 1,
-      marginLeft: theme.spacing.sm,
+      marginLeft: theme.spacing.md,
     },
     cardTitle: {
       fontSize: 20,
@@ -126,7 +137,7 @@ export default function ArticlesScreen() {
     cardMeta: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: theme.spacing.sm,
+      marginBottom: theme.spacing.md,
       gap: theme.spacing.sm,
     },
     cardExcerpt: {
@@ -136,17 +147,17 @@ export default function ArticlesScreen() {
       marginBottom: theme.spacing.md,
     },
     cardActions: {
-      paddingHorizontal: theme.spacing.md,
-      paddingBottom: theme.spacing.md,
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.lg,
       flexDirection: 'row',
       justifyContent: 'space-between',
     },
     stats: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: theme.spacing.md,
+      gap: theme.spacing.lg,
       marginBottom: theme.spacing.md,
-      paddingTop: theme.spacing.sm,
+      paddingTop: theme.spacing.md,
       borderTopWidth: 1,
       borderTopColor: theme.colors.border,
     },
@@ -155,12 +166,13 @@ export default function ArticlesScreen() {
     },
     statNumber: {
       fontSize: 16,
-      fontWeight: 'bold',
+      fontWeight: '600',
       color: theme.colors.primary,
     },
     statLabel: {
-      fontSize: 11,
+      fontSize: 12,
       color: theme.colors.textSecondary,
+      marginTop: theme.spacing.xs,
     },
     loadingContainer: {
       flex: 1,
@@ -182,9 +194,10 @@ export default function ArticlesScreen() {
     },
     fab: {
       position: 'absolute',
-      margin: theme.spacing.md,
+      margin: theme.spacing.lg,
       right: 0,
       bottom: 0,
+      backgroundColor: theme.colors.primary,
     },
     readingTime: {
       fontSize: 12,
@@ -340,7 +353,7 @@ export default function ArticlesScreen() {
     setSelectedCategory(null);
     setSelectedTags([]);
     setShowFeaturedOnly(false);
-    setSortBy('published_at');
+    setSortBy('date');
     setSortOrder('desc');
   };
 
@@ -626,7 +639,7 @@ export default function ArticlesScreen() {
           leadingIcon="calendar"
           title="Date (Newest First)"
           onPress={() => {
-            setSortBy('published_at');
+            setSortBy('date');
             setSortOrder('desc');
             setSortMenuVisible(false);
           }}
@@ -635,7 +648,7 @@ export default function ArticlesScreen() {
           leadingIcon="calendar"
           title="Date (Oldest First)"
           onPress={() => {
-            setSortBy('published_at');
+            setSortBy('date');
             setSortOrder('asc');
             setSortMenuVisible(false);
           }}

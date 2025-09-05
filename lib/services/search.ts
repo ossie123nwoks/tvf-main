@@ -69,7 +69,7 @@ export class SearchService {
           type: 'sermon' as const,
           title: sermon.title,
           excerpt: sermon.description,
-          category: sermon.category,
+          category: sermon.category_id,
           tags: sermon.tags,
           relevance: this.calculateRelevance(
             query,
@@ -91,7 +91,7 @@ export class SearchService {
           type: 'article' as const,
           title: article.title,
           excerpt: article.excerpt,
-          category: article.category,
+          category: article.category_id,
           tags: article.tags,
           relevance: this.calculateRelevance(
             query,
@@ -125,7 +125,7 @@ export class SearchService {
         type: 'publishedAt' in item ? ('article' as const) : ('sermon' as const),
         title: item.title,
         excerpt: 'excerpt' in item ? item.excerpt : item.description,
-        category: item.category,
+        category: item.category_id,
         tags: item.tags,
         relevance: 1.0, // Tag matches get high relevance
         data: item,
@@ -151,7 +151,7 @@ export class SearchService {
         type: 'publishedAt' in item ? ('article' as const) : ('sermon' as const),
         title: item.title,
         excerpt: 'excerpt' in item ? item.excerpt : item.description,
-        category: item.category,
+        category: item.category_id,
         tags: item.tags,
         relevance: 0.8, // Category matches get good relevance
         data: item,
@@ -400,8 +400,12 @@ export class SearchService {
       if (sortBy === 'relevance' && query) {
         // Relevance sorting is handled after search
         searchParams.sortBy = 'date';
+      } else if (sortBy === 'popularity') {
+        searchParams.sortBy = 'downloads';
+      } else if (sortBy === 'date' || sortBy === 'title' || sortBy === 'views' || sortBy === 'downloads') {
+        searchParams.sortBy = sortBy;
       } else {
-        searchParams.sortBy = sortBy === 'popularity' ? 'downloads' : sortBy;
+        searchParams.sortBy = 'date';
       }
       searchParams.sortOrder = sortOrder;
 
@@ -413,7 +417,7 @@ export class SearchService {
           type: 'sermon' as const,
           title: sermon.title,
           excerpt: sermon.description,
-          category: sermon.category,
+          category: sermon.category_id,
           tags: sermon.tags,
           relevance: query
             ? this.calculateRelevance(
@@ -436,7 +440,7 @@ export class SearchService {
           type: 'article' as const,
           title: article.title,
           excerpt: article.excerpt,
-          category: article.category,
+          category: article.category_id,
           tags: article.tags,
           relevance: query
             ? this.calculateRelevance(

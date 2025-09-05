@@ -183,7 +183,7 @@ export class ContentService {
       tags,
       page = 1,
       limit = 20,
-      sortBy = 'published_at',
+      sortBy = 'date',
       sortOrder = 'desc',
       featured,
       published = true,
@@ -214,8 +214,18 @@ export class ContentService {
       queryBuilder = queryBuilder.eq('is_published', published);
     }
 
-    // Apply sorting
-    const sortColumn = sortBy === 'popularity' ? 'views' : sortBy;
+    // Apply sorting - map sortBy values to actual database columns
+    let sortColumn: string;
+    switch (sortBy) {
+      case 'date':
+        sortColumn = 'published_at'; // Articles use published_at instead of date
+        break;
+      case 'popularity':
+        sortColumn = 'views';
+        break;
+      default:
+        sortColumn = sortBy;
+    }
     queryBuilder = queryBuilder.order(sortColumn, { ascending: sortOrder === 'asc' });
 
     // Apply pagination

@@ -20,7 +20,7 @@ import { useRouter } from 'expo-router';
 import { SessionStatus } from '@/components/auth/SessionStatus';
 
 export default function Profile() {
-  const { theme } = useTheme();
+  const { theme, isDark, setTheme } = useTheme();
   const { user, signOut, updateProfile, changePassword, deleteAccount, loading } = useAuth();
   const router = useRouter();
 
@@ -64,81 +64,146 @@ export default function Profile() {
     scrollView: {
       flex: 1,
     },
-    header: {
+    // Hero Section - matches design system
+    heroSection: {
+      minHeight: 200,
       padding: theme.spacing.lg,
+      backgroundColor: theme.colors.cardBackground,
+      borderRadius: theme.borderRadius.lg,
+      margin: theme.spacing.md,
+      marginBottom: theme.spacing.lg,
       alignItems: 'center',
-      backgroundColor: theme.colors.primary,
-    },
-    headerTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: '#FFFFFF',
-      marginBottom: theme.spacing.sm,
-    },
-    headerSubtitle: {
-      fontSize: 16,
-      color: '#FFFFFF',
-      opacity: 0.9,
+      ...theme.shadows.medium,
     },
     avatar: {
       marginBottom: theme.spacing.md,
+      borderWidth: 3,
+      borderColor: theme.colors.primary,
+    },
+    heroTitle: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: theme.colors.text,
+      marginBottom: theme.spacing.sm,
+      textAlign: 'center',
+    },
+    heroSubtitle: {
+      fontSize: 16,
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: theme.spacing.xs,
+    },
+    memberSince: {
+      fontSize: 14,
+      color: theme.colors.textTertiary,
+      textAlign: 'center',
     },
     content: {
-      padding: theme.spacing.lg,
+      paddingHorizontal: theme.spacing.md,
+      paddingBottom: theme.spacing.xl,
     },
+    // Card styling - matches design system
     card: {
       marginBottom: theme.spacing.md,
-      backgroundColor: theme.colors.surface,
+      backgroundColor: theme.colors.cardBackground,
+      borderRadius: theme.borderRadius.lg,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      ...theme.shadows.small,
+    },
+    cardContent: {
+      padding: theme.spacing.lg,
     },
     sectionTitle: {
       fontSize: 18,
-      fontWeight: 'bold',
+      fontWeight: '600',
       color: theme.colors.text,
       marginBottom: theme.spacing.md,
     },
+    // Form inputs - matches design system
     input: {
       marginBottom: theme.spacing.md,
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.cardBackground,
+      borderRadius: theme.borderRadius.md,
     },
+    // Row layouts
     row: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: theme.spacing.sm,
+      marginBottom: theme.spacing.md,
+      paddingVertical: theme.spacing.sm,
     },
     rowText: {
       color: theme.colors.text,
       fontSize: 16,
+      fontWeight: '500',
     },
     rowSubtext: {
       color: theme.colors.textSecondary,
       fontSize: 14,
+      marginTop: theme.spacing.xs,
     },
-    button: {
-      marginTop: theme.spacing.md,
-    },
-    dangerButton: {
-      marginTop: theme.spacing.lg,
-      backgroundColor: theme.colors.error,
-    },
+    // Switch containers
     switchContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: theme.spacing.sm,
+      marginBottom: theme.spacing.md,
+      paddingVertical: theme.spacing.sm,
     },
     switchText: {
       color: theme.colors.text,
       fontSize: 16,
       flex: 1,
+      marginRight: theme.spacing.md,
     },
+    // Buttons - matches design system
+    button: {
+      marginTop: theme.spacing.md,
+      borderRadius: theme.borderRadius.md,
+      height: 48,
+    },
+    primaryButton: {
+      backgroundColor: theme.colors.primary,
+      borderRadius: theme.borderRadius.md,
+      height: 48,
+    },
+    secondaryButton: {
+      backgroundColor: 'transparent',
+      borderWidth: 1,
+      borderColor: theme.colors.primary,
+      borderRadius: theme.borderRadius.md,
+      height: 48,
+    },
+    dangerButton: {
+      marginTop: theme.spacing.lg,
+      backgroundColor: theme.colors.error,
+      borderRadius: theme.borderRadius.md,
+      height: 48,
+    },
+    // Dialog inputs
     passwordInput: {
       marginBottom: theme.spacing.md,
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.cardBackground,
+      borderRadius: theme.borderRadius.md,
     },
     deleteInput: {
       marginBottom: theme.spacing.md,
-      backgroundColor: theme.colors.background,
+      backgroundColor: theme.colors.cardBackground,
+      borderRadius: theme.borderRadius.md,
+    },
+    // Action buttons row
+    actionButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: theme.spacing.lg,
+      gap: theme.spacing.md,
+    },
+    actionButton: {
+      flex: 1,
+      borderRadius: theme.borderRadius.md,
+      height: 48,
     },
   });
 
@@ -257,18 +322,18 @@ export default function Profile() {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
+        {/* Hero Section - matches design system */}
+        <View style={styles.heroSection}>
           <Avatar.Image
             size={80}
             source={{ uri: user.avatarUrl || 'https://via.placeholder.com/80' }}
             style={styles.avatar}
           />
-          <Text style={styles.headerTitle}>
+          <Text style={styles.heroTitle}>
             {user.firstName} {user.lastName}
           </Text>
-          <Text style={styles.headerSubtitle}>{user.email}</Text>
-          <Text style={styles.headerSubtitle}>
+          <Text style={styles.heroSubtitle}>{user.email}</Text>
+          <Text style={styles.memberSince}>
             Member since {new Date(user.createdAt).toLocaleDateString()}
           </Text>
         </View>
@@ -276,7 +341,7 @@ export default function Profile() {
         <View style={styles.content}>
           {/* Profile Information */}
           <Card style={styles.card}>
-            <Card.Content>
+            <Card.Content style={styles.cardContent}>
               <Text style={styles.sectionTitle}>Profile Information</Text>
 
               {isEditing ? (
@@ -309,11 +374,18 @@ export default function Profile() {
                       mode="contained"
                       onPress={handleSaveProfile}
                       loading={loading}
-                      style={{ flex: 1 }}
+                      style={[styles.actionButton, styles.primaryButton]}
+                      buttonColor={theme.colors.primary}
+                      textColor="#FFFFFF"
                     >
                       Save
                     </Button>
-                    <Button mode="outlined" onPress={handleCancelEdit} style={{ flex: 1 }}>
+                    <Button 
+                      mode="outlined" 
+                      onPress={handleCancelEdit} 
+                      style={[styles.actionButton, styles.secondaryButton]}
+                      textColor={theme.colors.primary}
+                    >
                       Cancel
                     </Button>
                   </View>
@@ -341,7 +413,13 @@ export default function Profile() {
                     <Text style={styles.rowSubtext}>{user.isEmailVerified ? 'Yes' : 'No'}</Text>
                   </View>
 
-                  <Button mode="outlined" onPress={() => setIsEditing(true)} style={styles.button}>
+                  <Button 
+                    mode="contained" 
+                    onPress={() => setIsEditing(true)} 
+                    style={styles.primaryButton}
+                    buttonColor={theme.colors.primary}
+                    textColor="#FFFFFF"
+                  >
                     Edit Profile
                   </Button>
                 </>
@@ -351,7 +429,7 @@ export default function Profile() {
 
           {/* Preferences */}
           <Card style={styles.card}>
-            <Card.Content>
+            <Card.Content style={styles.cardContent}>
               <Text style={styles.sectionTitle}>Preferences</Text>
 
               <View style={styles.switchContainer}>
@@ -362,10 +440,12 @@ export default function Profile() {
                     setEditData(prev => ({
                       ...prev,
                       preferences: {
-                        ...(prev.preferences || {}),
+                        ...prev.preferences,
                         notifications: {
-                          ...(prev.preferences?.notifications || {}),
                           newContent: value,
+                          reminders: prev.preferences?.notifications?.reminders ?? true,
+                          updates: prev.preferences?.notifications?.updates ?? true,
+                          marketing: prev.preferences?.notifications?.marketing ?? false,
                         },
                       },
                     }))
@@ -381,10 +461,12 @@ export default function Profile() {
                     setEditData(prev => ({
                       ...prev,
                       preferences: {
-                        ...(prev.preferences || {}),
+                        ...prev.preferences,
                         notifications: {
-                          ...(prev.preferences?.notifications || {}),
+                          newContent: prev.preferences?.notifications?.newContent ?? true,
                           reminders: value,
+                          updates: prev.preferences?.notifications?.updates ?? true,
+                          marketing: prev.preferences?.notifications?.marketing ?? false,
                         },
                       },
                     }))
@@ -411,9 +493,9 @@ export default function Profile() {
               <View style={styles.switchContainer}>
                 <Text style={styles.switchText}>Dark Theme</Text>
                 <Switch
-                  value={theme.isDark}
+                  value={isDark}
                   onValueChange={value => {
-                    theme.setTheme(value);
+                    setTheme(value);
                     setEditData(prev => ({
                       ...prev,
                       preferences: {
@@ -432,21 +514,30 @@ export default function Profile() {
 
           {/* Account Actions */}
           <Card style={styles.card}>
-            <Card.Content>
+            <Card.Content style={styles.cardContent}>
               <Text style={styles.sectionTitle}>Account Actions</Text>
 
-              <Button
-                mode="outlined"
-                onPress={() => setShowPasswordDialog(true)}
-                style={styles.button}
-                icon="lock"
-              >
-                Change Password
-              </Button>
+              <View style={styles.actionButtons}>
+                <Button
+                  mode="outlined"
+                  onPress={() => setShowPasswordDialog(true)}
+                  style={[styles.actionButton, styles.secondaryButton]}
+                  icon="lock"
+                  textColor={theme.colors.primary}
+                >
+                  Change Password
+                </Button>
 
-              <Button mode="outlined" onPress={handleSignOut} style={styles.button} icon="logout">
-                Sign Out
-              </Button>
+                <Button 
+                  mode="outlined" 
+                  onPress={handleSignOut} 
+                  style={[styles.actionButton, styles.secondaryButton]} 
+                  icon="logout"
+                  textColor={theme.colors.primary}
+                >
+                  Sign Out
+                </Button>
+              </View>
 
               <Button
                 mode="contained"
@@ -454,6 +545,7 @@ export default function Profile() {
                 style={styles.dangerButton}
                 icon="delete"
                 buttonColor={theme.colors.error}
+                textColor="#FFFFFF"
               >
                 Delete Account
               </Button>
