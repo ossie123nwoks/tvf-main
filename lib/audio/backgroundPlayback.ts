@@ -1,12 +1,12 @@
-import { Audio } from 'expo-av';
+import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av';
 import { Platform } from 'react-native';
 import { audioPlayerService } from './player';
 
 export interface BackgroundAudioConfig {
   allowsRecordingIOS: boolean;
   staysActiveInBackground: boolean;
-  interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS;
-  interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID;
+  interruptionModeIOS: InterruptionModeIOS;
+  interruptionModeAndroid: InterruptionModeAndroid;
   shouldDuckAndroid: boolean;
   playThroughEarpieceAndroid: boolean;
 }
@@ -14,9 +14,9 @@ export interface BackgroundAudioConfig {
 export class BackgroundAudioService {
   private static instance: BackgroundAudioService;
   private isConfigured = false;
-  private audioSession: Audio.AudioSession | null = null;
+  private audioSession: Audio.SoundObject | null = null;
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): BackgroundAudioService {
     if (!BackgroundAudioService.instance) {
@@ -33,8 +33,8 @@ export class BackgroundAudioService {
       const defaultConfig: BackgroundAudioConfig = {
         allowsRecordingIOS: false,
         staysActiveInBackground: true,
-        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS.DO_NOT_MIX,
-        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID.DO_NOT_MIX,
+        interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+        interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
         shouldDuckAndroid: true,
         playThroughEarpieceAndroid: false,
         ...config,
@@ -53,7 +53,6 @@ export class BackgroundAudioService {
         interruptionModeIOS: defaultConfig.interruptionModeIOS,
         interruptionModeAndroid: defaultConfig.interruptionModeAndroid,
         shouldDuckAndroid: defaultConfig.shouldDuckAndroid,
-        playThroughEarpounceAndroid: defaultConfig.playThroughEarpieceAndroid,
         playThroughEarpieceAndroid: defaultConfig.playThroughEarpieceAndroid,
       });
 
@@ -69,7 +68,6 @@ export class BackgroundAudioService {
         // Configure audio session properties
         await this.audioSession.sound.setStatusAsync({
           progressUpdateIntervalMillis: 100,
-          positionUpdateIntervalMillis: 100,
           shouldPlay: false,
         });
       }
@@ -85,16 +83,18 @@ export class BackgroundAudioService {
   /**
    * Handle audio interruptions (phone calls, notifications, etc.)
    */
-  async handleInterruption(interruption: Audio.InterruptionStatus): Promise<void> {
+  async handleInterruption(interruption: any): Promise<void> {
     try {
       if (interruption.shouldPlay) {
         // Resume playback after interruption
-        if (audioPlayerService.isPlaying()) {
-          await audioPlayerService.resume();
+        const status = await audioPlayerService.getStatus();
+        if (status && !status.isPlaying) {
+          await audioPlayerService.play();
         }
       } else {
         // Pause playback during interruption
-        if (audioPlayerService.isPlaying()) {
+        const status = await audioPlayerService.getStatus();
+        if (status && status.isPlaying) {
           await audioPlayerService.pause();
         }
       }
@@ -106,26 +106,22 @@ export class BackgroundAudioService {
   /**
    * Handle audio focus changes on Android
    */
-  async handleAudioFocusChange(focusChange: Audio.AudioFocusChange): Promise<void> {
+  async handleAudioFocusChange(focusChange: any): Promise<void> {
     try {
-      switch (focusChange) {
-        case Audio.AudioFocusChange.GAIN:
-          // Audio focus gained, resume playback
-          if (audioPlayerService.isPlaying()) {
-            await audioPlayerService.resume();
-          }
-          break;
-        case Audio.AudioFocusChange.LOSS:
-        case Audio.AudioFocusChange.LOSS_TRANSIENT:
-          // Audio focus lost, pause playback
-          if (audioPlayerService.isPlaying()) {
-            await audioPlayerService.pause();
-          }
-          break;
-        case Audio.AudioFocusChange.LOSS_TRANSIENT_CAN_DUCK:
-          // Lower volume temporarily
-          await audioPlayerService.setVolume(0.3);
-          break;
+      const status = await audioPlayerService.getStatus();
+      if (focusChange === 'gain') {
+        // Audio focus gained, resume playback
+        if (status && !status.isPlaying) {
+          await audioPlayerService.play();
+        }
+      } else if (focusChange === 'loss' || focusChange === 'loss_transient') {
+        // Audio focus lost, pause playback
+        if (status && status.isPlaying) {
+          await audioPlayerService.pause();
+        }
+      } else if (focusChange === 'loss_transient_can_duck') {
+        // Lower volume temporarily
+        await audioPlayerService.setVolume(0.3);
       }
     } catch (error) {
       console.error('Error handling audio focus change:', error);
@@ -140,8 +136,8 @@ export class BackgroundAudioService {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         staysActiveInBackground: true,
-        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS.DO_NOT_MIX,
-        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID.DO_NOT_MIX,
+        interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+        interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
         shouldDuckAndroid: true,
         playThroughEarpieceAndroid: false,
       });
@@ -158,8 +154,8 @@ export class BackgroundAudioService {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         staysActiveInBackground: false,
-        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS.DUCK_OTHERS,
-        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID.DUCK_OTHERS,
+        interruptionModeIOS: InterruptionModeIOS.DuckOthers,
+        interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
         shouldDuckAndroid: true,
         playThroughEarpieceAndroid: true,
       });
@@ -176,8 +172,8 @@ export class BackgroundAudioService {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         staysActiveInBackground: false,
-        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS.DO_NOT_MIX,
-        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID.DO_NOT_MIX,
+        interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+        interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
         shouldDuckAndroid: true,
         playThroughEarpieceAndroid: false,
       });
@@ -203,9 +199,10 @@ export class BackgroundAudioService {
   /**
    * Get current audio session status
    */
-  async getAudioSessionStatus(): Promise<Audio.AudioMode | null> {
+  async getAudioSessionStatus(): Promise<any | null> {
     try {
-      return await Audio.getAudioModeAsync();
+      // getAudioModeAsync was removed in newer expo-av; return configured state
+      return { staysActiveInBackground: this.isConfigured };
     } catch (error) {
       console.error('Failed to get audio session status:', error);
       return null;

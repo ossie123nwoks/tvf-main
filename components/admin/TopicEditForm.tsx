@@ -25,7 +25,7 @@ export default function TopicEditForm() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { checkPermission } = useAdminAuth();
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [topic, setTopic] = useState<Topic | null>(null);
@@ -37,7 +37,7 @@ export default function TopicEditForm() {
     is_active: true,
   });
 
-  const canEdit = checkPermission(['topics.manage']);
+  const canEdit = checkPermission('topics.manage');
 
   useEffect(() => {
     if (id) {
@@ -172,7 +172,7 @@ export default function TopicEditForm() {
             <Text style={[styles.title, { color: theme.colors.onSurface }]}>
               Edit Topic
             </Text>
-            
+
             <TextInput
               label="Topic Name *"
               value={formData.name}
@@ -180,7 +180,7 @@ export default function TopicEditForm() {
               style={styles.input}
               mode="outlined"
             />
-            
+
             <TextInput
               label="Description"
               value={formData.description}
@@ -190,7 +190,7 @@ export default function TopicEditForm() {
               multiline
               numberOfLines={3}
             />
-            
+
             <TextInput
               label="Color (Hex Code)"
               value={formData.color}
@@ -199,7 +199,7 @@ export default function TopicEditForm() {
               mode="outlined"
               placeholder="#1976D2"
             />
-            
+
             <TextInput
               label="Icon Name"
               value={formData.icon}
@@ -208,7 +208,7 @@ export default function TopicEditForm() {
               mode="outlined"
               placeholder="label"
             />
-            
+
             <View style={styles.switchContainer}>
               <Text style={[styles.switchLabel, { color: theme.colors.onSurface }]}>
                 Active
@@ -221,7 +221,7 @@ export default function TopicEditForm() {
           </Card.Content>
         </Card>
       </ScrollView>
-      
+
       <View style={styles.buttonContainer}>
         <Button
           mode="outlined"
@@ -241,7 +241,7 @@ export default function TopicEditForm() {
           Save Changes
         </Button>
       </View>
-      
+
       {canEdit && (
         <Button
           mode="outlined"

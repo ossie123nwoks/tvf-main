@@ -25,7 +25,7 @@ export default function SermonEditForm() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { checkPermission } = useAdminAuth();
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sermon, setSermon] = useState<Sermon | null>(null);
@@ -40,7 +40,7 @@ export default function SermonEditForm() {
     is_published: true,
   });
 
-  const canEdit = checkPermission(['content.sermons.edit']);
+  const canEdit = checkPermission('content.sermons.edit');
 
   useEffect(() => {
     if (id) {
@@ -53,7 +53,7 @@ export default function SermonEditForm() {
       setLoading(true);
       // For now, we'll use mock data since we don't have a getSermonById method
       // In a real app, you'd call AdminService.getSermonById(id)
-      const mockSermon: Sermon = {
+      const mockSermon = {
         id: id!,
         title: 'Sample Sermon',
         description: 'This is a sample sermon description',
@@ -63,9 +63,14 @@ export default function SermonEditForm() {
         duration: 1800, // 30 minutes in seconds
         date: new Date().toISOString(),
         is_published: true,
+        category_id: '',
+        tags: [],
+        downloads: 0,
+        views: 0,
+        is_featured: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      };
+      } as Sermon;
       setSermon(mockSermon);
       setFormData({
         title: mockSermon.title,
@@ -108,7 +113,7 @@ export default function SermonEditForm() {
         duration: formData.duration ? parseInt(formData.duration) : null,
         date: formData.date ? new Date(formData.date).toISOString() : new Date().toISOString(),
       };
-      
+
       // In a real app, you'd call AdminService.updateSermon(id, updateData)
       console.log('Updating sermon:', id, updateData);
       Alert.alert('Success', 'Sermon updated successfully');
@@ -191,7 +196,7 @@ export default function SermonEditForm() {
             <Text style={[styles.title, { color: theme.colors.onSurface }]}>
               Edit Sermon
             </Text>
-            
+
             <TextInput
               label="Sermon Title *"
               value={formData.title}
@@ -199,7 +204,7 @@ export default function SermonEditForm() {
               style={styles.input}
               mode="outlined"
             />
-            
+
             <TextInput
               label="Preacher *"
               value={formData.preacher}
@@ -207,7 +212,7 @@ export default function SermonEditForm() {
               style={styles.input}
               mode="outlined"
             />
-            
+
             <TextInput
               label="Description"
               value={formData.description}
@@ -217,7 +222,7 @@ export default function SermonEditForm() {
               multiline
               numberOfLines={3}
             />
-            
+
             <TextInput
               label="Audio URL"
               value={formData.audio_url}
@@ -226,7 +231,7 @@ export default function SermonEditForm() {
               mode="outlined"
               placeholder="https://example.com/audio.mp3"
             />
-            
+
             <TextInput
               label="Thumbnail URL"
               value={formData.thumbnail_url}
@@ -235,7 +240,7 @@ export default function SermonEditForm() {
               mode="outlined"
               placeholder="https://example.com/thumbnail.jpg"
             />
-            
+
             <TextInput
               label="Duration (seconds)"
               value={formData.duration}
@@ -245,7 +250,7 @@ export default function SermonEditForm() {
               placeholder="1800"
               keyboardType="numeric"
             />
-            
+
             <TextInput
               label="Date"
               value={formData.date}
@@ -254,7 +259,7 @@ export default function SermonEditForm() {
               mode="outlined"
               placeholder="YYYY-MM-DD"
             />
-            
+
             <View style={styles.switchContainer}>
               <Text style={[styles.switchLabel, { color: theme.colors.onSurface }]}>
                 Published
@@ -267,7 +272,7 @@ export default function SermonEditForm() {
           </Card.Content>
         </Card>
       </ScrollView>
-      
+
       <View style={styles.buttonContainer}>
         <Button
           mode="outlined"
@@ -287,7 +292,7 @@ export default function SermonEditForm() {
           Save Changes
         </Button>
       </View>
-      
+
       {canEdit && (
         <Button
           mode="outlined"

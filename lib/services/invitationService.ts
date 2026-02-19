@@ -83,7 +83,7 @@ class InvitationService {
    */
   private generateDownloadLinks(platform: string): string {
     const baseUrl = 'https://tvffellowship.com/download';
-    
+
     switch (platform) {
       case 'ios':
         return `${baseUrl}/ios`;
@@ -299,7 +299,7 @@ class InvitationService {
       }
 
       const invitations = (data || []).map(this.mapDatabaseInvitationToInvitation);
-      
+
       const totalInvitations = invitations.length;
       const pendingInvitations = invitations.filter(i => i.status === 'pending').length;
       const sentInvitations = invitations.filter(i => i.status === 'sent').length;
@@ -307,7 +307,7 @@ class InvitationService {
       const openedInvitations = invitations.filter(i => i.status === 'opened').length;
       const installedInvitations = invitations.filter(i => i.status === 'installed').length;
       const expiredInvitations = invitations.filter(i => i.status === 'expired').length;
-      
+
       const conversionRate = totalInvitations > 0 ? (installedInvitations / totalInvitations) * 100 : 0;
 
       const byPlatform = invitations.reduce((acc, inv) => {
@@ -357,7 +357,7 @@ class InvitationService {
    * Generate invitation message
    */
   generateInvitationMessage(invitation: AppInvitation, customMessage?: string): string {
-    const baseMessage = customMessage || 
+    const baseMessage = customMessage ||
       `Hi! I'd like to invite you to join TRUEVINE FELLOWSHIP Church through our mobile app. ` +
       `The app gives you access to sermons, articles, and church updates. ` +
       `Download it here: ${invitation.downloadLink}`;
@@ -374,7 +374,7 @@ class InvitationService {
     text: string;
   } {
     const subject = `${invitation.inviterName} invited you to TRUEVINE FELLOWSHIP Church`;
-    
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -462,7 +462,7 @@ class InvitationService {
     const progression = ['pending', 'sent', 'delivered', 'opened', 'installed'];
     const currentIndex = progression.indexOf(current);
     const newIndex = progression.indexOf(newStatus);
-    
+
     return newIndex > currentIndex;
   }
 
@@ -521,5 +521,4 @@ class InvitationService {
 // Export singleton instance
 export const invitationService = new InvitationService();
 
-// Export types
-export type { AppInvitation, InvitationInput, InvitationStats, InvitationAnalytics };
+// Types are exported inline above

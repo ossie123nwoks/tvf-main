@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Share, Alert } from 'react-native';
+import { View, Share, Alert, ShareContent as RNShareContent, ShareAction } from 'react-native';
 import { Button, Card, Text, useTheme, IconButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { generateDeepLink } from '@/lib/utils/deepLinking';
@@ -13,7 +13,7 @@ export interface ContentSharingProps {
   description?: string;
   author?: string;
   date?: string;
-  onShare?: (shareResult: Share.ShareResult) => void;
+  onShare?: (shareResult: ShareAction) => void;
 }
 
 export const ContentSharing: React.FC<ContentSharingProps> = ({
@@ -114,83 +114,82 @@ export const ContentSharing: React.FC<ContentSharingProps> = ({
   return (
     <>
       <Card style={{ margin: 16, backgroundColor: theme.colors.surface }}>
-      <Card.Content>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-          <MaterialCommunityIcons name={getShareIcon()} size={24} color={theme.colors.primary} />
-          <Text variant="titleMedium" style={{ marginLeft: 8, color: theme.colors.onSurface }}>
-            Share {getContentTypeLabel()}
+        <Card.Content>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+            <MaterialCommunityIcons name={getShareIcon()} size={24} color={theme.colors.primary} />
+            <Text variant="titleMedium" style={{ marginLeft: 8, color: theme.colors.onSurface }}>
+              Share {getContentTypeLabel()}
+            </Text>
+          </View>
+
+          <Text variant="titleLarge" style={{ marginBottom: 8, color: theme.colors.onSurface }}>
+            {title}
           </Text>
-        </View>
 
-        <Text variant="titleLarge" style={{ marginBottom: 8, color: theme.colors.onSurface }}>
-          {title}
-        </Text>
+          {author && (
+            <Text
+              variant="bodyMedium"
+              style={{ marginBottom: 4, color: theme.colors.onSurfaceVariant }}
+            >
+              by {author}
+            </Text>
+          )}
 
-        {author && (
-          <Text
-            variant="bodyMedium"
-            style={{ marginBottom: 4, color: theme.colors.onSurfaceVariant }}
-          >
-            by {author}
-          </Text>
-        )}
+          {date && (
+            <Text
+              variant="bodySmall"
+              style={{ marginBottom: 12, color: theme.colors.onSurfaceVariant }}
+            >
+              {date}
+            </Text>
+          )}
 
-        {date && (
+          {description && (
+            <Text variant="bodyMedium" style={{ marginBottom: 16, color: theme.colors.onSurface }}>
+              {description}
+            </Text>
+          )}
+
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <Button
+              mode="contained"
+              onPress={handleAdvancedShare}
+              icon="share-variant"
+              style={{ flex: 1 }}
+              buttonColor={theme.colors.primary}
+              textColor={theme.colors.onPrimary}
+            >
+              Share
+            </Button>
+
+            <Button
+              mode="outlined"
+              onPress={handleCopyLink}
+              icon="link-variant"
+              style={{ flex: 1 }}
+              textColor={theme.colors.primary}
+            >
+              Copy Link
+            </Button>
+          </View>
+
           <Text
             variant="bodySmall"
-            style={{ marginBottom: 12, color: theme.colors.onSurfaceVariant }}
+            style={{ marginTop: 12, color: theme.colors.onSurfaceVariant, textAlign: 'center' }}
           >
-            {date}
+            When someone opens this link, they'll be taken directly to this {type} in the TRUEVINE
+            FELLOWSHIP app.
           </Text>
-        )}
+        </Card.Content>
+      </Card>
 
-        {description && (
-          <Text variant="bodyMedium" style={{ marginBottom: 16, color: theme.colors.onSurface }}>
-            {description}
-          </Text>
-        )}
-
-        <View style={{ flexDirection: 'row', gap: 12 }}>
-          <Button
-            mode="contained"
-            onPress={handleAdvancedShare}
-            icon="share-variant"
-            style={{ flex: 1 }}
-            buttonColor={theme.colors.primary}
-            textColor={theme.colors.onPrimary}
-          >
-            Share
-          </Button>
-
-          <Button
-            mode="outlined"
-            onPress={handleCopyLink}
-            icon="link-variant"
-            style={{ flex: 1 }}
-            textColor={theme.colors.primary}
-            outlineColor={theme.colors.primary}
-          >
-            Copy Link
-          </Button>
-        </View>
-
-        <Text
-          variant="bodySmall"
-          style={{ marginTop: 12, color: theme.colors.onSurfaceVariant, textAlign: 'center' }}
-        >
-          When someone opens this link, they'll be taken directly to this {type} in the TRUEVINE
-          FELLOWSHIP app.
-        </Text>
-      </Card.Content>
-    </Card>
-
-    {/* Advanced Sharing Modal */}
-    <AdvancedSharingModal
-      visible={showAdvancedModal}
-      onDismiss={() => setShowAdvancedModal(false)}
-      content={shareContent}
-      onShareSuccess={handleShareSuccess}
-    />
+      {/* Advanced Sharing Modal */}
+      <AdvancedSharingModal
+        visible={showAdvancedModal}
+        onDismiss={() => setShowAdvancedModal(false)}
+        content={shareContent}
+        onShareSuccess={handleShareSuccess}
+      />
     </>
   );
 };

@@ -41,7 +41,7 @@ export default function NotificationDetailsModal({
   const { theme } = useTheme();
   const paperTheme = usePaperTheme();
   const { getNotificationAnalytics, getNotificationEngagement } = useNotificationHistory();
-  
+
   const [analytics, setAnalytics] = useState<any>(null);
   const [engagement, setEngagement] = useState<any[]>([]);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
@@ -226,7 +226,7 @@ export default function NotificationDetailsModal({
         getNotificationAnalytics(notification.id),
         getNotificationEngagement(notification.id),
       ]);
-      
+
       setAnalytics(analyticsData);
       setEngagement(engagementData);
     } catch (error) {
@@ -337,7 +337,7 @@ export default function NotificationDetailsModal({
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     if (days < 7) return `${days}d ago`;
-    
+
     return date.toLocaleDateString();
   };
 
@@ -379,11 +379,11 @@ export default function NotificationDetailsModal({
                   >
                     {notification.type}
                   </Chip>
-                  
+
                   {notification.priority && notification.priority !== 'normal' && (
                     <Chip
-                      size="small"
-                      style={{ 
+                      compact
+                      style={{
                         backgroundColor: getPriorityColor(notification.priority) + '20',
                         marginLeft: theme.spacing.sm,
                       }}
@@ -402,33 +402,33 @@ export default function NotificationDetailsModal({
                     <Text style={styles.metaLabel}>Sent:</Text>
                     <Text style={styles.metaValue}>{formatDate(notification.sentAt)}</Text>
                   </View>
-                  
+
                   {notification.readAt && (
                     <View style={styles.metaItem}>
                       <Text style={styles.metaLabel}>Read:</Text>
                       <Text style={styles.metaValue}>{formatDate(notification.readAt)}</Text>
                     </View>
                   )}
-                  
+
                   <View style={styles.metaItem}>
                     <Text style={styles.metaLabel}>Status:</Text>
                     <Chip
-                      size="small"
+                      compact
                       style={{
-                        backgroundColor: notification.isRead 
-                          ? theme.colors.successContainer 
+                        backgroundColor: notification.isRead
+                          ? theme.colors.successContainer
                           : theme.colors.warningContainer,
                       }}
                       textStyle={{
-                        color: notification.isRead 
-                          ? theme.colors.success 
+                        color: notification.isRead
+                          ? theme.colors.success
                           : theme.colors.warning,
                       }}
                     >
                       {notification.isRead ? 'Read' : 'Unread'}
                     </Chip>
                   </View>
-                  
+
                   {notification.source && notification.source !== 'system' && (
                     <View style={styles.metaItem}>
                       <Text style={styles.metaLabel}>Source:</Text>
@@ -459,7 +459,7 @@ export default function NotificationDetailsModal({
                         Mark Read
                       </Button>
                     )}
-                    
+
                     {notification.data?.contentId && (
                       <Button
                         mode="outlined"
@@ -470,7 +470,7 @@ export default function NotificationDetailsModal({
                         View Content
                       </Button>
                     )}
-                    
+
                     {notification.data?.deepLink && (
                       <Button
                         mode="outlined"
@@ -482,7 +482,7 @@ export default function NotificationDetailsModal({
                       </Button>
                     )}
                   </View>
-                  
+
                   <View style={styles.actionButtons}>
                     <IconButton
                       icon="archive"
@@ -502,7 +502,7 @@ export default function NotificationDetailsModal({
             {/* Analytics Section */}
             <View style={styles.analyticsSection}>
               <Text style={styles.analyticsTitle}>Analytics</Text>
-              
+
               {loadingAnalytics ? (
                 <View style={styles.emptyState}>
                   <ActivityIndicator size="small" color={theme.colors.primary} />
@@ -516,27 +516,27 @@ export default function NotificationDetailsModal({
                         <Text style={styles.analyticsValue}>{analytics.sentCount}</Text>
                         <Text style={styles.analyticsLabel}>Sent</Text>
                       </View>
-                      
+
                       <View style={styles.analyticsItem}>
                         <Text style={styles.analyticsValue}>{analytics.deliveredCount}</Text>
                         <Text style={styles.analyticsLabel}>Delivered</Text>
                       </View>
-                      
+
                       <View style={styles.analyticsItem}>
                         <Text style={styles.analyticsValue}>{analytics.openedCount}</Text>
                         <Text style={styles.analyticsLabel}>Opened</Text>
                       </View>
-                      
+
                       <View style={styles.analyticsItem}>
                         <Text style={styles.analyticsValue}>{analytics.clickedCount}</Text>
                         <Text style={styles.analyticsLabel}>Clicked</Text>
                       </View>
-                      
+
                       <View style={styles.analyticsItem}>
                         <Text style={styles.analyticsValue}>{analytics.deliveryRate.toFixed(1)}%</Text>
                         <Text style={styles.analyticsLabel}>Delivery Rate</Text>
                       </View>
-                      
+
                       <View style={styles.analyticsItem}>
                         <Text style={styles.analyticsValue}>{analytics.openRate.toFixed(1)}%</Text>
                         <Text style={styles.analyticsLabel}>Open Rate</Text>
@@ -554,20 +554,20 @@ export default function NotificationDetailsModal({
               {engagement.length > 0 && (
                 <View style={styles.engagementList}>
                   <Text style={styles.dataTitle}>Recent Engagement</Text>
-                  
+
                   {engagement.slice(0, 5).map((item, index) => (
                     <View key={index} style={styles.engagementItem}>
                       <MaterialIcons
                         name={
                           item.action === 'opened' ? 'visibility' :
-                          item.action === 'clicked' ? 'touch-app' :
-                          item.action === 'dismissed' ? 'close' : 'info'
+                            item.action === 'clicked' ? 'touch-app' :
+                              item.action === 'dismissed' ? 'close' : 'info'
                         }
                         size={20}
                         color={getNotificationColor(notification.type)}
                         style={styles.engagementIcon}
                       />
-                      
+
                       <View style={styles.engagementContent}>
                         <Text style={styles.engagementAction}>
                           {item.action.charAt(0).toUpperCase() + item.action.slice(1)}

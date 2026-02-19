@@ -36,12 +36,12 @@ const MediaMetadataSection: React.FC<MediaMetadataSectionProps> = ({
   onClose,
 }) => {
   const { theme } = useTheme();
-  
+
   // State management
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Metadata state
   const [filename, setFilename] = useState(file.filename);
   const [description, setDescription] = useState('');
@@ -184,7 +184,7 @@ const MediaMetadataSection: React.FC<MediaMetadataSectionProps> = ({
     try {
       setLoading(true);
       setError(null);
-      
+
       // Load additional metadata from the file
       setDescription(file.metadata?.description || '');
       setTags(file.metadata?.tags || []);
@@ -283,8 +283,8 @@ const MediaMetadataSection: React.FC<MediaMetadataSectionProps> = ({
 
   const getFileIcon = (mimeType: string) => {
     if (mimeType.startsWith('image/')) return 'image';
-    if (mimeType.startsWith('video/')) return 'video';
-    if (mimeType.startsWith('audio/')) return 'music';
+    if (mimeType.startsWith('video/')) return 'videocam';
+    if (mimeType.startsWith('audio/')) return 'music-note';
     if (mimeType.includes('pdf')) return 'picture-as-pdf';
     return 'insert-drive-file';
   };
@@ -346,7 +346,7 @@ const MediaMetadataSection: React.FC<MediaMetadataSectionProps> = ({
       <Card style={styles.section}>
         <Card.Content>
           <Text style={styles.sectionTitle}>Basic Information</Text>
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Filename</Text>
             <TextInput
@@ -385,7 +385,7 @@ const MediaMetadataSection: React.FC<MediaMetadataSectionProps> = ({
       <Card style={styles.section}>
         <Card.Content>
           <Text style={styles.sectionTitle}>Tags</Text>
-          
+
           <View style={styles.tagsContainer}>
             {tags.map((tag, index) => (
               <Chip
@@ -422,7 +422,7 @@ const MediaMetadataSection: React.FC<MediaMetadataSectionProps> = ({
       <Card style={styles.section}>
         <Card.Content>
           <Text style={styles.sectionTitle}>Custom Metadata</Text>
-          
+
           <View style={styles.metadataContainer}>
             {Object.entries(customMetadata).map(([key, value]) => (
               <View key={key} style={styles.metadataItem}>
@@ -435,7 +435,7 @@ const MediaMetadataSection: React.FC<MediaMetadataSectionProps> = ({
                 />
               </View>
             ))}
-            
+
             {Object.keys(customMetadata).length === 0 && (
               <Text style={{ textAlign: 'center', color: theme.colors.textSecondary, fontStyle: 'italic' }}>
                 No custom metadata
@@ -473,7 +473,7 @@ const MediaMetadataSection: React.FC<MediaMetadataSectionProps> = ({
       <Card style={styles.section}>
         <Card.Content>
           <Text style={styles.sectionTitle}>System Information</Text>
-          
+
           <View style={styles.metadataContainer}>
             <View style={styles.metadataItem}>
               <Text style={styles.metadataKey}>File ID</Text>

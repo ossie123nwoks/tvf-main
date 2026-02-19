@@ -47,7 +47,7 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
   onCleanupComplete,
 }) => {
   const { theme } = useTheme();
-  
+
   // State management
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -230,7 +230,7 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
       setLoading(true);
       setError(null);
       const result = await AdminService.cleanupUnusedMediaFiles(cleanupOlderThanDays, true);
-      setCleanupResult(result);
+      setCleanupResult(result as any);
     } catch (err) {
       console.error('Error loading cleanup preview:', err);
       setError(err instanceof Error ? err.message : 'Failed to load cleanup preview');
@@ -269,16 +269,16 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
             try {
               setCleanupInProgress(true);
               const result = await AdminService.cleanupUnusedMediaFiles(cleanupOlderThanDays, false);
-              
+
               Alert.alert(
                 'Cleanup Complete',
                 `Successfully deleted ${result.deletedCount} files and freed up ${formatFileSize(result.totalSize)} of space.`
               );
-              
+
               // Refresh data
               await loadUsageStats();
               await loadCleanupPreview();
-              
+
               if (onCleanupComplete) {
                 onCleanupComplete(result);
               }
@@ -309,8 +309,8 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
 
   const getFileIcon = (mimeType: string) => {
     if (mimeType.startsWith('image/')) return 'image';
-    if (mimeType.startsWith('video/')) return 'video';
-    if (mimeType.startsWith('audio/')) return 'music';
+    if (mimeType.startsWith('video/')) return 'videocam';
+    if (mimeType.startsWith('audio/')) return 'music-note';
     if (mimeType.includes('pdf')) return 'picture-as-pdf';
     return 'insert-drive-file';
   };
@@ -359,12 +359,12 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
             {cleanupOlderThanDays} days
           </Chip>
         </View>
-        
+
         <View style={styles.cleanupContent}>
           <Text style={{ marginBottom: theme.spacing.sm }}>
             Files older than {cleanupOlderThanDays} days that are not being used:
           </Text>
-          
+
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.sm }}>
             <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.colors.primary }}>
               {cleanupResult.count}
@@ -435,7 +435,7 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
       >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Cleanup Settings</Text>
-          
+
           <View style={styles.modalSection}>
             <Text style={styles.modalSectionTitle}>Cleanup Age</Text>
             <Text style={styles.modalText}>

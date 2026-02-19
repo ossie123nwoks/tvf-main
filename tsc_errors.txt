@@ -1,0 +1,309 @@
+﻿
+> tvf-app@1.0.0 type-check
+> tsc --noEmit
+
+app/(tabs)/articles.tsx(729,9): error TS2322: Type '(data: Article[] | null | undefined, index: number) => { length: number; offset: number; index: number; }' is not assignable to type '(data: ArrayLike<Article> | null | undefined, index: number) => { length: number; offset: number; index: number; }'.
+  Types of parameters 'data' and 'data' are incompatible.
+    Type 'ArrayLike<Article> | null | undefined' is not assignable to type 'Article[] | null | undefined'.
+      Type 'ArrayLike<Article>' is missing the following properties from type 'Article[]': pop, push, concat, join, and 34 more.
+app/(tabs)/profile.tsx(60,9): error TS2322: Type 'true | RegExpMatchArray | null' is not assignable to type 'boolean'.
+  Type 'null' is not assignable to type 'boolean'.
+app/admin/article/edit/[id].tsx(127,36): error TS2339: Property 'description' does not exist on type 'Article'.
+app/admin/article/edit/[id].tsx(132,36): error TS2339: Property 'scheduled_at' does not exist on type 'Article'.
+app/admin/sermon/edit/[id].tsx(135,35): error TS2339: Property 'scheduled_at' does not exist on type 'Sermon'.
+app/auth-callback.tsx(26,62): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string | number | boolean'.
+  Type 'string[]' is not assignable to type 'string | number | boolean'.
+app/shared/[id].tsx(342,56): error TS2339: Property 'primaryContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+app/shared/[id].tsx(363,22): error TS2339: Property 'description' does not exist on type 'Sermon | Article'.
+  Property 'description' does not exist on type 'Article'.
+app/shared/[id].tsx(365,26): error TS2339: Property 'description' does not exist on type 'Sermon | Article'.
+  Property 'description' does not exist on type 'Article'.
+components/admin/AdminAuthGuard.tsx(111,39): error TS2551: Property 'onPrimary' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'. Did you mean 'primary'?
+components/admin/AdminAuthGuard.tsx(162,13): error TS2322: Type '"shield-account"' is not assignable to type '"description" | "android" | "web" | "portrait" | "landscape" | "light" | "image" | "message" | "facebook" | "https" | "output" | "policy" | "fingerprint" | "sort" | "map" | "filter" | ... 2218 more ... | undefined'.
+components/admin/ArticleEditForm.tsx(40,35): error TS2345: Argument of type 'string[]' is not assignable to parameter of type 'string'.
+components/admin/ArticleEditForm.tsx(53,13): error TS2740: Type '{ id: string; title: string; content: string; author: string; thumbnail_url: string; is_published: true; created_at: string; updated_at: string; }' is missing the following properties from type 'Article': excerpt, category_id, tags, views, and 2 more.
+components/admin/ArticleEditForm.tsx(237,62): error TS2339: Property 'outline' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/admin/MediaCleanupSection.tsx(178,37): error TS2339: Property 'warningContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/admin/MediaCleanupSection.tsx(233,24): error TS2345: Argument of type '{ filesToDelete: any[]; totalSize: any; count: number; deletedCount?: undefined; } | { deletedCount: number; totalSize: any; filesToDelete?: undefined; count?: undefined; }' is not assignable to parameter of type 'SetStateAction<CleanupResult | null>'.
+  Type '{ deletedCount: number; totalSize: any; filesToDelete?: undefined; count?: undefined; }' is not assignable to type 'SetStateAction<CleanupResult | null>'.
+    Type '{ deletedCount: number; totalSize: any; filesToDelete?: undefined; count?: undefined; }' is not assignable to type 'CleanupResult'.
+      Types of property 'filesToDelete' are incompatible.
+        Type 'undefined' is not assignable to type 'MediaFile[]'.
+components/admin/MediaCleanupSection.tsx(383,23): error TS2322: Type '"image" | "video" | "music" | "insert-drive-file" | "picture-as-pdf"' is not assignable to type '"description" | "android" | "web" | "portrait" | "landscape" | "light" | "image" | "message" | "facebook" | "https" | "output" | "policy" | "fingerprint" | "sort" | "map" | "filter" | ... 2218 more ... | undefined'.
+  Type '"video"' is not assignable to type '"description" | "android" | "web" | "portrait" | "landscape" | "light" | "image" | "message" | "facebook" | "https" | "output" | "policy" | "fingerprint" | "sort" | "map" | "filter" | ... 2218 more ... | undefined'.
+components/admin/MediaLibrarySection.tsx(145,7): error TS2345: Argument of type '{ container: { flex: number; }; header: { flexDirection: "row"; justifyContent: "space-between"; alignItems: "center"; marginBottom: number; }; searchContainer: { flexDirection: "row"; alignItems: "center"; marginBottom: number; gap: number; }; ... 41 more ...; metadataContainer: { ...; }; }' is not assignable to parameter of type '{ container: { flex: number; }; header: { flexDirection: "row"; justifyContent: "space-between"; alignItems: "center"; marginBottom: number; }; searchContainer: { flexDirection: "row"; alignItems: "center"; marginBottom: number; gap: number; }; ... 41 more ...; metadataContainer: { ...; }; } & NamedStyles<...>'.
+  Property 'fileName' is incompatible with index signature.
+    Object literal may only specify known properties, and 'numberOfLines' does not exist in type 'ViewStyle | TextStyle | ImageStyle'.
+components/admin/MediaLibrarySection.tsx(451,13): error TS2322: Type '"image" | "video" | "music" | "insert-drive-file" | "picture-as-pdf"' is not assignable to type '"description" | "android" | "web" | "portrait" | "landscape" | "light" | "image" | "message" | "facebook" | "https" | "output" | "policy" | "fingerprint" | "sort" | "map" | "filter" | ... 2218 more ... | undefined'.
+  Type '"video"' is not assignable to type '"description" | "android" | "web" | "portrait" | "landscape" | "light" | "image" | "message" | "facebook" | "https" | "output" | "policy" | "fingerprint" | "sort" | "map" | "filter" | ... 2218 more ... | undefined'.
+components/admin/MediaLibrarySection.tsx(465,15): error TS2322: Type '{ fontSize: number; }' is not assignable to type 'false | "" | RegisteredStyle<ViewStyle> | WithAnimatedObject<ViewStyle> | Value | AnimatedInterpolation<string | number> | WithAnimatedArray<...> | null | undefined'.
+components/admin/MediaLibrarySection.tsx(494,13): error TS2322: Type '"image" | "video" | "music" | "insert-drive-file" | "picture-as-pdf"' is not assignable to type '"description" | "android" | "web" | "portrait" | "landscape" | "light" | "image" | "message" | "facebook" | "https" | "output" | "policy" | "fingerprint" | "sort" | "map" | "filter" | ... 2218 more ... | undefined'.
+  Type '"video"' is not assignable to type '"description" | "android" | "web" | "portrait" | "landscape" | "light" | "image" | "message" | "facebook" | "https" | "output" | "policy" | "fingerprint" | "sort" | "map" | "filter" | ... 2218 more ... | undefined'.
+components/admin/MediaLibrarySection.tsx(506,17): error TS2322: Type '{ fontSize: number; }' is not assignable to type 'false | "" | RegisteredStyle<ViewStyle> | WithAnimatedObject<ViewStyle> | Value | AnimatedInterpolation<string | number> | WithAnimatedArray<...> | null | undefined'.
+components/admin/MediaMetadataSection.tsx(189,37): error TS2339: Property 'description' does not exist on type '{ duration?: number | undefined; dimensions?: { width: number; height: number; } | undefined; }'.
+components/admin/MediaMetadataSection.tsx(190,30): error TS2339: Property 'tags' does not exist on type '{ duration?: number | undefined; dimensions?: { width: number; height: number; } | undefined; }'.
+components/admin/MediaMetadataSection.tsx(228,26): error TS2345: Argument of type '{ filename: string; isUsed: boolean; metadata: { description: string; tags: string[]; lastModified: string; }; id: string; originalName: string; mimeType: string; size: number; url: string; thumbnailUrl?: string; uploadedBy: string; uploadedAt: string; usageCount: number; }' is not assignable to parameter of type 'MediaFile'.
+  Types of property 'metadata' are incompatible.
+    Type '{ description: string; tags: string[]; lastModified: string; }' has no properties in common with type '{ duration?: number | undefined; dimensions?: { width: number; height: number; } | undefined; }'.
+components/admin/MediaMetadataSection.tsx(330,15): error TS2322: Type '"image" | "video" | "music" | "insert-drive-file" | "picture-as-pdf"' is not assignable to type '"description" | "android" | "web" | "portrait" | "landscape" | "light" | "image" | "message" | "facebook" | "https" | "output" | "policy" | "fingerprint" | "sort" | "map" | "filter" | ... 2218 more ... | undefined'.
+  Type '"video"' is not assignable to type '"description" | "android" | "web" | "portrait" | "landscape" | "light" | "image" | "message" | "facebook" | "https" | "output" | "policy" | "fingerprint" | "sort" | "map" | "filter" | ... 2218 more ... | undefined'.
+components/admin/MediaUploadSection.tsx(70,33): error TS2339: Property 'outline' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/admin/MediaUploadSection.tsx(180,37): error TS2339: Property 'errorContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/admin/MediaUploadSection.tsx(426,17): error TS2322: Type '"image" | "video" | "music" | "insert-drive-file" | "picture-as-pdf"' is not assignable to type '"description" | "android" | "web" | "portrait" | "landscape" | "light" | "image" | "message" | "facebook" | "https" | "output" | "policy" | "fingerprint" | "sort" | "map" | "filter" | ... 2218 more ... | undefined'.
+  Type '"video"' is not assignable to type '"description" | "android" | "web" | "portrait" | "landscape" | "light" | "image" | "message" | "facebook" | "https" | "output" | "policy" | "fingerprint" | "sort" | "map" | "filter" | ... 2218 more ... | undefined'.
+components/admin/MediaUploadSection.tsx(494,21): error TS2322: Type '"image" | "video" | "music" | "insert-drive-file" | "picture-as-pdf"' is not assignable to type '"description" | "android" | "web" | "portrait" | "landscape" | "light" | "image" | "message" | "facebook" | "https" | "output" | "policy" | "fingerprint" | "sort" | "map" | "filter" | ... 2218 more ... | undefined'.
+  Type '"video"' is not assignable to type '"description" | "android" | "web" | "portrait" | "landscape" | "light" | "image" | "message" | "facebook" | "https" | "output" | "policy" | "fingerprint" | "sort" | "map" | "filter" | ... 2218 more ... | undefined'.
+components/admin/RoleManagementSection.tsx(62,53): error TS2345: Argument of type '"member"' is not assignable to parameter of type 'AdminRole | (() => AdminRole)'.
+components/admin/RoleManagementSection.tsx(237,50): error TS2345: Argument of type 'AdminRole' is not assignable to parameter of type '"moderator" | "member" | "admin"'.
+  Type '"super_admin"' is not assignable to type '"moderator" | "member" | "admin"'.
+components/admin/RoleManagementSection.tsx(252,16): error TS2345: Argument of type '(prev: User[]) => (User | { role: AdminRole; id: string; email: string; first_name: string; last_name: string; is_email_verified: boolean; created_at: string; last_login_at?: string | undefined; profile_image_url?: string | undefined; })[]' is not assignable to parameter of type 'SetStateAction<User[]>'.
+  Type '(prev: User[]) => (User | { role: AdminRole; id: string; email: string; first_name: string; last_name: string; is_email_verified: boolean; created_at: string; last_login_at?: string | undefined; profile_image_url?: string | undefined; })[]' is not assignable to type '(prevState: User[]) => User[]'.
+    Type '(User | { role: AdminRole; id: string; email: string; first_name: string; last_name: string; is_email_verified: boolean; created_at: string; last_login_at?: string | undefined; profile_image_url?: string | undefined; })[]' is not assignable to type 'User[]'.
+      Type 'User | { role: AdminRole; id: string; email: string; first_name: string; last_name: string; is_email_verified: boolean; created_at: string; last_login_at?: string | undefined; profile_image_url?: string | undefined; }' is not assignable to type 'User'.
+        Type '{ role: AdminRole; id: string; email: string; first_name: string; last_name: string; is_email_verified: boolean; created_at: string; last_login_at?: string; profile_image_url?: string; }' is not assignable to type 'User'.
+          Types of property 'role' are incompatible.
+            Type 'AdminRole' is not assignable to type '"moderator" | "member" | "admin"'.
+              Type '"super_admin"' is not assignable to type '"moderator" | "member" | "admin"'.
+components/admin/RoleManagementSection.tsx(274,46): error TS2345: Argument of type '{ userId: string; role: AdminRole; }[]' is not assignable to parameter of type '{ userId: string; role: "moderator" | "member" | "admin"; }[]'.
+  Type '{ userId: string; role: AdminRole; }' is not assignable to type '{ userId: string; role: "moderator" | "member" | "admin"; }'.
+    Types of property 'role' are incompatible.
+      Type 'AdminRole' is not assignable to type '"moderator" | "member" | "admin"'.
+        Type '"super_admin"' is not assignable to type '"moderator" | "member" | "admin"'.
+components/admin/RoleManagementSection.tsx(293,16): error TS2345: Argument of type '(prev: User[]) => (User | { role: AdminRole; id: string; email: string; first_name: string; last_name: string; is_email_verified: boolean; created_at: string; last_login_at?: string | undefined; profile_image_url?: string | undefined; })[]' is not assignable to parameter of type 'SetStateAction<User[]>'.
+  Type '(prev: User[]) => (User | { role: AdminRole; id: string; email: string; first_name: string; last_name: string; is_email_verified: boolean; created_at: string; last_login_at?: string | undefined; profile_image_url?: string | undefined; })[]' is not assignable to type '(prevState: User[]) => User[]'.
+    Type '(User | { role: AdminRole; id: string; email: string; first_name: string; last_name: string; is_email_verified: boolean; created_at: string; last_login_at?: string | undefined; profile_image_url?: string | undefined; })[]' is not assignable to type 'User[]'.
+      Type 'User | { role: AdminRole; id: string; email: string; first_name: string; last_name: string; is_email_verified: boolean; created_at: string; last_login_at?: string | undefined; profile_image_url?: string | undefined; }' is not assignable to type 'User'.
+        Type '{ role: AdminRole; id: string; email: string; first_name: string; last_name: string; is_email_verified: boolean; created_at: string; last_login_at?: string; profile_image_url?: string; }' is not assignable to type 'User'.
+          Types of property 'role' are incompatible.
+            Type 'AdminRole' is not assignable to type '"moderator" | "member" | "admin"'.
+              Type '"super_admin"' is not assignable to type '"moderator" | "member" | "admin"'.
+components/admin/RoleManagementSection.tsx(597,21): error TS2367: This comparison appears to be unintentional because the types 'AdminRole | "all"' and '"member"' have no overlap.
+components/admin/RoleManagementSection.tsx(598,42): error TS2345: Argument of type '"member"' is not assignable to parameter of type 'SetStateAction<AdminRole | "all">'.
+components/admin/RoleManagementSection.tsx(624,53): error TS2345: Argument of type '"member"' is not assignable to parameter of type 'AdminRole'.
+components/admin/SeriesEditForm.tsx(40,35): error TS2345: Argument of type 'string[]' is not assignable to parameter of type 'string'.
+components/admin/SeriesEditForm.tsx(57,9): error TS2353: Object literal may only specify known properties, and 'color' does not exist in type 'Series'.
+components/admin/SeriesEditForm.tsx(68,27): error TS2339: Property 'color' does not exist on type 'Series'.
+components/admin/SeriesEditForm.tsx(69,26): error TS2339: Property 'icon' does not exist on type 'Series'.
+components/admin/SeriesEditForm.tsx(229,62): error TS2339: Property 'outline' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/admin/SeriesManagementSection.tsx(29,18): error TS2440: Import declaration conflicts with local declaration of 'Series'.
+components/admin/SeriesManagementSection.tsx(346,20): error TS2345: Argument of type '{ id: any; name: any; description: any; }[]' is not assignable to parameter of type 'SetStateAction<Series[]>'.
+  Type '{ id: any; name: any; description: any; }[]' is not assignable to type 'Series[]'.
+    Type '{ id: any; name: any; description: any; }' is missing the following properties from type 'Series': color, icon, created_at, updated_at
+components/admin/SermonEditForm.tsx(43,35): error TS2345: Argument of type 'string[]' is not assignable to parameter of type 'string'.
+components/admin/SermonEditForm.tsx(56,13): error TS2739: Type '{ id: string; title: string; description: string; preacher: string; audio_url: string; thumbnail_url: string; duration: number; date: string; is_published: true; created_at: string; updated_at: string; }' is missing the following properties from type 'Sermon': category_id, tags, downloads, views, is_featured
+components/admin/SermonEditForm.tsx(275,62): error TS2339: Property 'outline' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/admin/TopicEditForm.tsx(40,35): error TS2345: Argument of type 'string[]' is not assignable to parameter of type 'string'.
+components/admin/TopicEditForm.tsx(229,62): error TS2339: Property 'outline' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/admin/TopicManagementSection.tsx(29,26): error TS2440: Import declaration conflicts with local declaration of 'Topic'.
+components/admin/TopicManagementSection.tsx(345,20): error TS2345: Argument of type '{ id: any; name: any; description: any; color: any; icon: any; }[]' is not assignable to parameter of type 'SetStateAction<Topic[]>'.
+  Type '{ id: any; name: any; description: any; color: any; icon: any; }[]' is not assignable to type 'Topic[]'.
+    Type '{ id: any; name: any; description: any; color: any; icon: any; }' is missing the following properties from type 'Topic': created_at, updated_at
+components/admin/UserManagementSection.tsx(487,23): error TS2367: This comparison appears to be unintentional because the types 'AdminRole | undefined' and '"admin"' have no overlap.
+components/admin/UserManagementSection.tsx(488,39): error TS2345: Argument of type '(prev: UserManagementFilters) => { role: "admin"; search: string; isEmailVerified?: boolean | undefined; dateRange?: { start: string; end: string; } | undefined; }' is not assignable to parameter of type 'SetStateAction<UserManagementFilters>'.
+  Type '(prev: UserManagementFilters) => { role: "admin"; search: string; isEmailVerified?: boolean | undefined; dateRange?: { start: string; end: string; } | undefined; }' is not assignable to type '(prevState: UserManagementFilters) => UserManagementFilters'.
+    Call signature return types '{ role: "admin"; search: string; isEmailVerified?: boolean | undefined; dateRange?: { start: string; end: string; } | undefined; }' and 'UserManagementFilters' are incompatible.
+      The types of 'role' are incompatible between these types.
+        Type '"admin"' is not assignable to type 'AdminRole | undefined'.
+components/admin/UserManagementSection.tsx(503,23): error TS2367: This comparison appears to be unintentional because the types 'AdminRole | undefined' and '"member"' have no overlap.
+components/admin/UserManagementSection.tsx(504,39): error TS2345: Argument of type '(prev: UserManagementFilters) => { role: "member"; search: string; isEmailVerified?: boolean | undefined; dateRange?: { start: string; end: string; } | undefined; }' is not assignable to parameter of type 'SetStateAction<UserManagementFilters>'.
+  Type '(prev: UserManagementFilters) => { role: "member"; search: string; isEmailVerified?: boolean | undefined; dateRange?: { start: string; end: string; } | undefined; }' is not assignable to type '(prevState: UserManagementFilters) => UserManagementFilters'.
+    Call signature return types '{ role: "member"; search: string; isEmailVerified?: boolean | undefined; dateRange?: { start: string; end: string; } | undefined; }' and 'UserManagementFilters' are incompatible.
+      The types of 'role' are incompatible between these types.
+        Type '"member"' is not assignable to type 'AdminRole | undefined'.
+components/ui/AdvancedSharingModal.tsx(190,37): error TS2339: Property 'primaryContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/ui/ContentSharing.tsx(16,27): error TS2702: 'Share' only refers to a type, but is being used as a namespace here.
+components/ui/ContentSharing.tsx(171,13): error TS2322: Type '{ children: string; mode: "outlined"; onPress: () => Promise<void>; icon: string; style: { flex: number; }; textColor: string; outlineColor: string; }' is not assignable to type 'IntrinsicAttributes & Omit<Props, "ref"> & RefAttributes<View>'.
+  Property 'outlineColor' does not exist on type 'IntrinsicAttributes & Omit<Props, "ref"> & RefAttributes<View>'.
+components/ui/DeepLinkDemo.tsx(74,13): error TS2322: Type '{ children: string; key: number; mode: "outlined"; onPress: () => void; icon: string; style: { marginBottom: number; }; textColor: string; outlineColor: string; }' is not assignable to type 'IntrinsicAttributes & Omit<Props, "ref"> & RefAttributes<View>'.
+  Property 'outlineColor' does not exist on type 'IntrinsicAttributes & Omit<Props, "ref"> & RefAttributes<View>'.
+components/ui/InvitationLanding.tsx(123,37): error TS2339: Property 'primaryContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/ui/InvitationLanding.tsx(185,37): error TS2339: Property 'warningContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/ui/InvitationLanding.tsx(199,37): error TS2339: Property 'errorContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/ui/InvitationManager.tsx(143,37): error TS2339: Property 'primaryContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/ui/InvitationManager.tsx(145,40): error TS2339: Property 'xs' does not exist on type '{ sm: number; md: number; lg: number; }'.
+components/ui/NetworkErrorBoundary.tsx(160,11): error TS2339: Property 'theme' does not exist on type 'MD3Theme'.
+components/ui/NotificationAnalyticsDashboard.tsx(17,47): error TS2307: Cannot find module 'react-native-chart-kit' or its corresponding type declarations.
+components/ui/NotificationAnalyticsDashboard.tsx(482,68): error TS2339: Property 'primaryContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/ui/NotificationAnalyticsDashboard.tsx(512,66): error TS2339: Property 'successContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/ui/NotificationAnalyticsDashboard.tsx(578,46): error TS2339: Property 'successContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/ui/NotificationDetailsModal.tsx(377,60): error TS2339: Property 'primaryContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/ui/NotificationDetailsModal.tsx(385,23): error TS2322: Type '{ children: "high" | "low"; size: string; style: { backgroundColor: string; marginLeft: number; }; textStyle: { color: string; }; }' is not assignable to type 'IntrinsicAttributes & $Omit<Omit<Props, "ref"> & RefAttributes<View>, "mode"> & { mode?: "flat" | "outlined" | undefined; ... 27 more ...; maxFontSizeMultiplier?: number | undefined; }'.
+  Property 'size' does not exist on type 'IntrinsicAttributes & $Omit<Omit<Props, "ref"> & RefAttributes<View>, "mode"> & { mode?: "flat" | "outlined" | undefined; ... 27 more ...; maxFontSizeMultiplier?: number | undefined; }'.
+components/ui/NotificationDetailsModal.tsx(416,23): error TS2322: Type '{ children: string; size: string; style: { backgroundColor: any; }; textStyle: { color: string; }; }' is not assignable to type 'IntrinsicAttributes & $Omit<Omit<Props, "ref"> & RefAttributes<View>, "mode"> & { mode?: "flat" | "outlined" | undefined; ... 27 more ...; maxFontSizeMultiplier?: number | undefined; }'.
+  Property 'size' does not exist on type 'IntrinsicAttributes & $Omit<Omit<Props, "ref"> & RefAttributes<View>, "mode"> & { mode?: "flat" | "outlined" | undefined; ... 27 more ...; maxFontSizeMultiplier?: number | undefined; }'.
+components/ui/NotificationDetailsModal.tsx(419,42): error TS2339: Property 'successContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/ui/NotificationDetailsModal.tsx(420,42): error TS2339: Property 'warningContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/ui/NotificationHistoryManager.tsx(355,57): error TS2339: Property 'primaryContainer' does not exist on type '{ primary: string; secondary: string; background: string; surface: string; surfaceVariant: string; onBackground: string; onSurface: string; onSurfaceVariant: string; disabled: string; text: string; ... 20 more ...; category: string; }'.
+components/ui/NotificationHistoryManager.tsx(367,19): error TS2322: Type '{ status: "checked" | "unchecked"; onPress: () => void; style: { marginRight: number; }; }' is not assignable to type 'IntrinsicAttributes & Props'.
+  Property 'style' does not exist on type 'IntrinsicAttributes & Props'.
+components/ui/NotificationHistoryManager.tsx(386,19): error TS2322: Type '{ children: "high" | "low"; size: string; style: { backgroundColor: string; }; textStyle: { color: string; }; }' is not assignable to type 'IntrinsicAttributes & $Omit<Omit<Props, "ref"> & RefAttributes<View>, "mode"> & { mode?: "flat" | "outlined" | undefined; ... 27 more ...; maxFontSizeMultiplier?: number | undefined; }'.
+  Property 'size' does not exist on type 'IntrinsicAttributes & $Omit<Omit<Props, "ref"> & RefAttributes<View>, "mode"> & { mode?: "flat" | "outlined" | undefined; ... 27 more ...; maxFontSizeMultiplier?: number | undefined; }'.
+components/ui/NotificationHistoryManager.tsx(410,15): error TS2322: Type '{ children: string; size: string; icon: string; style: { backgroundColor: string; }; textStyle: { color: string; }; }' is not assignable to type 'IntrinsicAttributes & $Omit<Omit<Props, "ref"> & RefAttributes<View>, "mode"> & { mode?: "flat" | "outlined" | undefined; ... 27 more ...; maxFontSizeMultiplier?: number | undefined; }'.
+  Property 'size' does not exist on type 'IntrinsicAttributes & $Omit<Omit<Props, "ref"> & RefAttributes<View>, "mode"> & { mode?: "flat" | "outlined" | undefined; ... 27 more ...; maxFontSizeMultiplier?: number | undefined; }'.
+components/ui/NotificationHistoryManager.tsx(420,17): error TS2322: Type '{ children: string; size: string; style: { backgroundColor: string; marginLeft: number; }; textStyle: { color: string; }; }' is not assignable to type 'IntrinsicAttributes & $Omit<Omit<Props, "ref"> & RefAttributes<View>, "mode"> & { mode?: "flat" | "outlined" | undefined; ... 27 more ...; maxFontSizeMultiplier?: number | undefined; }'.
+  Property 'size' does not exist on type 'IntrinsicAttributes & $Omit<Omit<Props, "ref"> & RefAttributes<View>, "mode"> & { mode?: "flat" | "outlined" | undefined; ... 27 more ...; maxFontSizeMultiplier?: number | undefined; }'.
+components/ui/NotificationManager.tsx(184,42): error TS2345: Argument of type '{ id: string; title: string; description: string; preacher: string; date: string; audio_url: string; duration: number; category_id: string; series_id: null; series_name: null; tags: never[]; is_published: boolean; ... 4 more ...; updated_at: string; }' is not assignable to parameter of type 'Sermon'.
+  Types of property 'series_id' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+components/ui/ProfileModal.tsx(69,9): error TS2322: Type 'true | RegExpMatchArray | null' is not assignable to type 'boolean'.
+  Type 'null' is not assignable to type 'boolean'.
+components/ui/ProfileModal.tsx(582,13): error TS2322: Type '{ children: (false | Element)[]; style: ({ padding: number; paddingHorizontal: number; paddingVertical: number; margin: number; maxHeight: number; width: "100%"; borderTopWidth: number; borderBottomWidth: number; borderWidth: number; borderColor: string; } | { ...; })[]; scrollable: boolean; }' is not assignable to type 'IntrinsicAttributes & ViewProps & RefAttributes<View> & { children: ReactNode; style?: StyleProp<ViewStyle>; }'.
+  Property 'scrollable' does not exist on type 'IntrinsicAttributes & ViewProps & RefAttributes<View> & { children: ReactNode; style?: StyleProp<ViewStyle>; }'.
+components/ui/PushNotificationTest.tsx(61,51): error TS18046: 'error' is of type 'unknown'.
+components/ui/PushNotificationTest.tsx(91,47): error TS18046: 'error' is of type 'unknown'.
+components/ui/PushNotificationTest.tsx(106,53): error TS18046: 'error' is of type 'unknown'.
+components/ui/QuickShareButton.tsx(13,27): error TS2702: 'Share' only refers to a type, but is being used as a namespace here.
+components/ui/StorageAnalyticsDashboard.tsx(297,17): error TS2322: Type '"contained" | "outlined"' is not assignable to type '"flat" | "outlined" | undefined'.
+  Type '"contained"' is not assignable to type '"flat" | "outlined" | undefined'.
+components/ui/ThemeTestNotificationComponents.tsx(385,11): error TS2353: Object literal may only specify known properties, and 'url' does not exist in type 'ShareContent'.
+lib/audio/backgroundPlayback.ts(8,30): error TS2694: Namespace '"C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio"' has no exported member 'INTERRUPTION_MODE_IOS'.
+lib/audio/backgroundPlayback.ts(9,34): error TS2694: Namespace '"C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio"' has no exported member 'INTERRUPTION_MODE_ANDROID'.
+lib/audio/backgroundPlayback.ts(17,31): error TS2694: Namespace '"C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio"' has no exported member 'AudioSession'.
+lib/audio/backgroundPlayback.ts(36,36): error TS2339: Property 'INTERRUPTION_MODE_IOS' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'.
+lib/audio/backgroundPlayback.ts(37,40): error TS2339: Property 'INTERRUPTION_MODE_ANDROID' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'.
+lib/audio/backgroundPlayback.ts(56,9): error TS2561: Object literal may only specify known properties, but 'playThroughEarpounceAndroid' does not exist in type 'Partial<AudioMode>'. Did you mean to write 'playThroughEarpieceAndroid'?
+lib/audio/backgroundPlayback.ts(88,48): error TS2694: Namespace '"C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio"' has no exported member 'InterruptionStatus'.
+lib/audio/backgroundPlayback.ts(92,32): error TS2339: Property 'isPlaying' does not exist on type 'AudioPlayerService'.
+lib/audio/backgroundPlayback.ts(93,36): error TS2339: Property 'resume' does not exist on type 'AudioPlayerService'.
+lib/audio/backgroundPlayback.ts(97,32): error TS2339: Property 'isPlaying' does not exist on type 'AudioPlayerService'.
+lib/audio/backgroundPlayback.ts(109,51): error TS2694: Namespace '"C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio"' has no exported member 'AudioFocusChange'.
+lib/audio/backgroundPlayback.ts(112,20): error TS2339: Property 'AudioFocusChange' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'.
+lib/audio/backgroundPlayback.ts(114,34): error TS2339: Property 'isPlaying' does not exist on type 'AudioPlayerService'.
+lib/audio/backgroundPlayback.ts(115,38): error TS2339: Property 'resume' does not exist on type 'AudioPlayerService'.
+lib/audio/backgroundPlayback.ts(118,20): error TS2339: Property 'AudioFocusChange' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'.
+lib/audio/backgroundPlayback.ts(119,20): error TS2339: Property 'AudioFocusChange' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'.
+lib/audio/backgroundPlayback.ts(121,34): error TS2339: Property 'isPlaying' does not exist on type 'AudioPlayerService'.
+lib/audio/backgroundPlayback.ts(125,20): error TS2339: Property 'AudioFocusChange' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'.
+lib/audio/backgroundPlayback.ts(143,36): error TS2339: Property 'INTERRUPTION_MODE_IOS' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'.
+lib/audio/backgroundPlayback.ts(144,40): error TS2339: Property 'INTERRUPTION_MODE_ANDROID' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'.
+lib/audio/backgroundPlayback.ts(161,36): error TS2339: Property 'INTERRUPTION_MODE_IOS' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'.
+lib/audio/backgroundPlayback.ts(162,40): error TS2339: Property 'INTERRUPTION_MODE_ANDROID' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'.
+lib/audio/backgroundPlayback.ts(179,36): error TS2339: Property 'INTERRUPTION_MODE_IOS' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'.
+lib/audio/backgroundPlayback.ts(180,40): error TS2339: Property 'INTERRUPTION_MODE_ANDROID' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'.
+lib/audio/backgroundPlayback.ts(206,48): error TS2694: Namespace '"C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio"' has no exported member 'AudioMode'.
+lib/audio/backgroundPlayback.ts(208,26): error TS2551: Property 'getAudioModeAsync' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'. Did you mean 'setAudioModeAsync'?
+lib/audio/player.ts(384,48): error TS2694: Namespace '"C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio"' has no exported member 'InterruptionStatus'.
+lib/audio/player.ts(391,51): error TS2694: Namespace '"C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio"' has no exported member 'AudioFocusChange'.
+lib/audio/useBackgroundAudio.ts(10,44): error TS2694: Namespace '"C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio"' has no exported member 'InterruptionStatus'.
+lib/audio/useBackgroundAudio.ts(11,47): error TS2694: Namespace '"C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio"' has no exported member 'AudioFocusChange'.
+lib/audio/useBackgroundAudio.ts(13,46): error TS2694: Namespace '"C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio"' has no exported member 'AudioMode'.
+lib/audio/useBackgroundAudio.ts(31,69): error TS2694: Namespace '"C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio"' has no exported member 'InterruptionStatus'.
+lib/audio/useBackgroundAudio.ts(40,72): error TS2694: Namespace '"C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio"' has no exported member 'AudioFocusChange'.
+lib/audio/useBackgroundAudio.ts(82,63): error TS2339: Property 'isPlaying' does not exist on type 'AudioPlayerService'.
+lib/audio/useBackgroundAudio.ts(98,40): error TS2339: Property 'addListener' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'.
+lib/audio/useBackgroundAudio.ts(99,44): error TS2339: Property 'addListener' does not exist on type 'typeof import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/expo-av/build/Audio")'.
+lib/auth/AuthContext.tsx(220,13): error TS2322: Type '{ id: any; email: any; firstName: any; lastName: any; avatarUrl: any; role: string; isEmailVerified: boolean; lastSignInAt: any; createdAt: any; updatedAt: any; preferences: { theme: string; notifications: { ...; }; audioQuality: string; autoDownload: boolean; language: string; }; } | null' is not assignable to type 'User | null'.
+  Type '{ id: any; email: any; firstName: any; lastName: any; avatarUrl: any; role: string; isEmailVerified: boolean; lastSignInAt: any; createdAt: any; updatedAt: any; preferences: { theme: string; notifications: { ...; }; audioQuality: string; autoDownload: boolean; language: string; }; }' is not assignable to type 'User'.
+    The types of 'preferences.theme' are incompatible between these types.
+      Type 'string' is not assignable to type '"light" | "dark" | "auto"'.
+lib/auth/AuthContext.tsx(221,13): error TS2322: Type '{ accessToken: any; refreshToken: any; expiresAt: any; user: { id: any; email: any; firstName: any; lastName: any; avatarUrl: any; role: string; isEmailVerified: boolean; lastSignInAt: any; createdAt: any; updatedAt: any; preferences: { ...; }; }; } | null' is not assignable to type 'Session | null'.
+  Type '{ accessToken: any; refreshToken: any; expiresAt: any; user: { id: any; email: any; firstName: any; lastName: any; avatarUrl: any; role: string; isEmailVerified: boolean; lastSignInAt: any; createdAt: any; updatedAt: any; preferences: { ...; }; }; }' is not assignable to type 'Session'.
+    The types of 'user.preferences.theme' are incompatible between these types.
+      Type 'string' is not assignable to type '"light" | "dark" | "auto"'.
+lib/auth/AuthContext.tsx(339,24): error TS2345: Argument of type '(prev: AuthState) => { session: { accessToken: any; refreshToken: any; expiresAt: any; user: User | { id: any; email: any; firstName: any; lastName: any; avatarUrl: any; role: string; ... 4 more ...; preferences: { ...; }; }; } | null; ... 4 more ...; isInitialized: boolean; }' is not assignable to parameter of type 'SetStateAction<AuthState>'.
+  Type '(prev: AuthState) => { session: { accessToken: any; refreshToken: any; expiresAt: any; user: User | { id: any; email: any; firstName: any; lastName: any; avatarUrl: any; role: string; ... 4 more ...; preferences: { ...; }; }; } | null; ... 4 more ...; isInitialized: boolean; }' is not assignable to type '(prevState: AuthState) => AuthState'.
+    Call signature return types '{ session: { accessToken: any; refreshToken: any; expiresAt: any; user: User | { id: any; email: any; firstName: any; lastName: any; avatarUrl: any; role: string; isEmailVerified: boolean; lastSignInAt: any; createdAt: any; updatedAt: any; preferences: { ...; }; }; } | null; ... 4 more ...; isInitialized: boolean; }' and 'AuthState' are incompatible.
+      The types of 'user' are incompatible between these types.
+        Type 'User | { id: any; email: any; firstName: any; lastName: any; avatarUrl: any; role: string; isEmailVerified: boolean; lastSignInAt: any; createdAt: any; updatedAt: any; preferences: { theme: string; notifications: { ...; }; audioQuality: string; autoDownload: boolean; language: string; }; } | null' is not assignable to type 'User | null'.
+          Type '{ id: any; email: any; firstName: any; lastName: any; avatarUrl: any; role: string; isEmailVerified: boolean; lastSignInAt: any; createdAt: any; updatedAt: any; preferences: { theme: string; notifications: { ...; }; audioQuality: string; autoDownload: boolean; language: string; }; }' is not assignable to type 'User'.
+            The types of 'preferences.theme' are incompatible between these types.
+              Type 'string' is not assignable to type '"light" | "dark" | "auto"'.
+lib/auth/AuthContext.tsx(388,13): error TS2322: Type '{ id: any; email: any; firstName: any; lastName: any; avatarUrl: any; role: string; isEmailVerified: boolean; lastSignInAt: any; createdAt: any; updatedAt: any; preferences: { theme: string; notifications: { ...; }; audioQuality: string; autoDownload: boolean; language: string; }; } | null' is not assignable to type 'User | null'.
+  Type '{ id: any; email: any; firstName: any; lastName: any; avatarUrl: any; role: string; isEmailVerified: boolean; lastSignInAt: any; createdAt: any; updatedAt: any; preferences: { theme: string; notifications: { ...; }; audioQuality: string; autoDownload: boolean; language: string; }; }' is not assignable to type 'User'.
+    The types of 'preferences.theme' are incompatible between these types.
+      Type 'string' is not assignable to type '"light" | "dark" | "auto"'.
+lib/auth/AuthContext.tsx(389,13): error TS2322: Type '{ accessToken: any; refreshToken: any; expiresAt: any; user: { id: any; email: any; firstName: any; lastName: any; avatarUrl: any; role: string; isEmailVerified: boolean; lastSignInAt: any; createdAt: any; updatedAt: any; preferences: { ...; }; }; } | null' is not assignable to type 'Session | null'.
+  Type '{ accessToken: any; refreshToken: any; expiresAt: any; user: { id: any; email: any; firstName: any; lastName: any; avatarUrl: any; role: string; isEmailVerified: boolean; lastSignInAt: any; createdAt: any; updatedAt: any; preferences: { ...; }; }; }' is not assignable to type 'Session'.
+    The types of 'user.preferences.theme' are incompatible between these types.
+      Type 'string' is not assignable to type '"light" | "dark" | "auto"'.
+lib/auth/autoReauth.ts(120,32): error TS2339: Property 'user' does not exist on type '{ session: Session; }'.
+lib/auth/autoReauth.ts(122,42): error TS2345: Argument of type 'Session' is not assignable to parameter of type 'SupabaseSession'.
+  Types of property 'expires_at' are incompatible.
+    Type 'number | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+lib/auth/autoReauth.ts(122,61): error TS2339: Property 'user' does not exist on type '{ session: Session; }'.
+lib/auth/autoReauth.ts(122,69): error TS2304: Cannot find name 'User'.
+lib/auth/sessionManager.ts(250,11): error TS2322: Type 'Session' is not assignable to type 'SupabaseSession'.
+  Types of property 'expires_at' are incompatible.
+    Type 'number | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+lib/auth/sessionManager.ts(251,17): error TS2352: Conversion of type 'import("C:/Users/kosi/Desktop/main project/tvf-main/node_modules/@supabase/auth-js/dist/module/lib/types").User' to type 'import("C:/Users/kosi/Desktop/main project/tvf-main/types/user").User' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'User' is missing the following properties from type 'User': firstName, lastName, preferences, isEmailVerified, and 2 more.
+lib/auth/sessionManager.ts(384,32): error TS2339: Property 'user' does not exist on type '{ session: Session; }'.
+lib/auth/sessionManager.ts(385,32): error TS2345: Argument of type 'Session' is not assignable to parameter of type 'SupabaseSession'.
+  Types of property 'expires_at' are incompatible.
+    Type 'number | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+lib/auth/sessionManager.ts(385,51): error TS2339: Property 'user' does not exist on type '{ session: Session; }'.
+lib/hooks/useAsyncLoading.ts(167,5): error TS2322: Type '() => Promise<T>' is not assignable to type '<T>(asyncFn: () => Promise<T>) => Promise<T>'.
+  Type 'Promise<T>' is not assignable to type 'Promise<T>'. Two different types with this name exist, but they are unrelated.
+    Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+lib/hooks/useAsyncLoading.ts(168,5): error TS2322: Type '() => Promise<T>' is not assignable to type '<T>(asyncFn: () => Promise<T>, maxRetries?: number | undefined, retryDelay?: number | undefined) => Promise<T>'.
+  Type 'Promise<T>' is not assignable to type 'Promise<T>'. Two different types with this name exist, but they are unrelated.
+    Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+lib/notifications/analyticsService.ts(683,3): error TS2484: Export declaration conflicts with exported declaration of 'NotificationAnalytics'.
+lib/notifications/analyticsService.ts(684,3): error TS2484: Export declaration conflicts with exported declaration of 'NotificationEngagement'.
+lib/notifications/analyticsService.ts(685,3): error TS2484: Export declaration conflicts with exported declaration of 'NotificationCampaign'.
+lib/notifications/analyticsService.ts(686,3): error TS2484: Export declaration conflicts with exported declaration of 'NotificationPerformanceMetrics'.
+lib/notifications/analyticsService.ts(687,3): error TS2484: Export declaration conflicts with exported declaration of 'NotificationDeliveryStatus'.
+lib/notifications/contentNotifications.ts(231,31): error TS2339: Property 'series_name' does not exist on type 'Sermon'.
+lib/notifications/contentNotifications.ts(231,62): error TS2339: Property 'series_name' does not exist on type 'Sermon'.
+lib/notifications/contentNotifications.ts(455,15): error TS2484: Export declaration conflicts with exported declaration of 'ContentNotificationOptions'.
+lib/notifications/contentNotifications.ts(455,43): error TS2484: Export declaration conflicts with exported declaration of 'NotificationTemplate'.
+lib/notifications/historyService.ts(557,3): error TS2484: Export declaration conflicts with exported declaration of 'NotificationHistoryItem'.
+lib/notifications/historyService.ts(558,3): error TS2484: Export declaration conflicts with exported declaration of 'NotificationHistoryFilters'.
+lib/notifications/historyService.ts(559,3): error TS2484: Export declaration conflicts with exported declaration of 'NotificationHistoryStats'.
+lib/notifications/historyService.ts(560,3): error TS2484: Export declaration conflicts with exported declaration of 'NotificationManagementAction'.
+lib/notifications/preferencesService.ts(568,3): error TS2484: Export declaration conflicts with exported declaration of 'NotificationPreference'.
+lib/notifications/preferencesService.ts(569,3): error TS2484: Export declaration conflicts with exported declaration of 'NotificationSubPreference'.
+lib/notifications/preferencesService.ts(570,3): error TS2484: Export declaration conflicts with exported declaration of 'NotificationPreferenceGroup'.
+lib/notifications/preferencesService.ts(571,3): error TS2484: Export declaration conflicts with exported declaration of 'NotificationSchedule'.
+lib/notifications/preferencesService.ts(572,3): error TS2484: Export declaration conflicts with exported declaration of 'NotificationFrequency'.
+lib/notifications/push.ts(652,9): error TS2322: Type 'number | Date' is not assignable to type 'NotificationTriggerInput'.
+  Type 'number' is not assignable to type 'NotificationTriggerInput'.
+lib/notifications/push.ts(884,11): error TS2345: Argument of type '{}' is not assignable to parameter of type 'string'.
+lib/notifications/push.ts(913,11): error TS2345: Argument of type '{}' is not assignable to parameter of type 'string'.
+lib/notifications/push.ts(954,15): error TS2484: Export declaration conflicts with exported declaration of 'PushNotificationData'.
+lib/notifications/push.ts(954,37): error TS2484: Export declaration conflicts with exported declaration of 'NotificationCategory'.
+lib/notifications/push.ts(954,59): error TS2484: Export declaration conflicts with exported declaration of 'NotificationAction'.
+lib/notifications/push.ts(954,79): error TS2484: Export declaration conflicts with exported declaration of 'NotificationPreferences'.
+lib/notifications/push.ts(954,104): error TS2484: Export declaration conflicts with exported declaration of 'ScheduledNotification'.
+lib/notifications/reminderService.ts(523,15): error TS2484: Export declaration conflicts with exported declaration of 'Reminder'.
+lib/notifications/reminderService.ts(523,25): error TS2484: Export declaration conflicts with exported declaration of 'CreateReminderRequest'.
+lib/notifications/reminderService.ts(523,48): error TS2484: Export declaration conflicts with exported declaration of 'ReminderStats'.
+lib/services/categorization.ts(418,33): error TS18046: 'b' is of type 'unknown'.
+lib/services/categorization.ts(418,37): error TS18046: 'a' is of type 'unknown'.
+lib/services/categorization.ts(476,65): error TS7006: Parameter 'word' implicitly has an 'any' type.
+lib/services/categorization.ts(477,48): error TS7006: Parameter 'keyword' implicitly has an 'any' type.
+lib/services/invitationService.ts(525,15): error TS2484: Export declaration conflicts with exported declaration of 'AppInvitation'.
+lib/services/invitationService.ts(525,30): error TS2484: Export declaration conflicts with exported declaration of 'InvitationInput'.
+lib/services/invitationService.ts(525,47): error TS2484: Export declaration conflicts with exported declaration of 'InvitationStats'.
+lib/services/invitationService.ts(525,64): error TS2484: Export declaration conflicts with exported declaration of 'InvitationAnalytics'.
+lib/services/search.ts(405,61): error TS2367: This comparison appears to be unintentional because the types '"relevance"' and '"views"' have no overlap.
+lib/services/search.ts(405,83): error TS2367: This comparison appears to be unintentional because the types '"relevance"' and '"downloads"' have no overlap.
+lib/services/sharingService.ts(56,68): error TS2339: Property 'campaign' does not exist on type 'ShareOptions'.
+lib/services/sharingService.ts(511,15): error TS2484: Export declaration conflicts with exported declaration of 'ShareContent'.
+lib/services/sharingService.ts(511,29): error TS2484: Export declaration conflicts with exported declaration of 'ShareOptions'.
+lib/services/sharingService.ts(511,43): error TS2484: Export declaration conflicts with exported declaration of 'ShareResult'.
+lib/services/sharingService.ts(511,56): error TS2484: Export declaration conflicts with exported declaration of 'ShareAnalytics'.
+lib/supabase/content.ts(119,30): error TS2367: This comparison appears to be unintentional because the types 'ContentNotificationOptions | undefined' and 'boolean' have no overlap.
+lib/supabase/content.ts(151,52): error TS2367: This comparison appears to be unintentional because the types 'ContentNotificationOptions | undefined' and 'boolean' have no overlap.
+lib/supabase/content.ts(314,30): error TS2367: This comparison appears to be unintentional because the types 'ContentNotificationOptions | undefined' and 'boolean' have no overlap.
+lib/supabase/content.ts(346,52): error TS2367: This comparison appears to be unintentional because the types 'ContentNotificationOptions | undefined' and 'boolean' have no overlap.
+lib/supabase/content.ts(681,5): error TS2322: Type 'any[][]' is not assignable to type 'Sermon[]'.
+  Type 'any[]' is missing the following properties from type 'Sermon': id, title, preacher, date, and 11 more.
+lib/supabase/content.ts(681,44): error TS2339: Property 'is_published' does not exist on type 'any[]'.
+lib/supabase/content.ts(697,5): error TS2322: Type 'any[][]' is not assignable to type 'Topic[]'.
+  Type 'any[]' is missing the following properties from type 'Topic': id, name, color, icon, and 4 more.
+lib/supabase/content.ts(741,5): error TS2322: Type 'any[][]' is not assignable to type 'Article[]'.
+  Type 'any[]' is missing the following properties from type 'Article': id, title, author, content, and 9 more.
+lib/supabase/content.ts(741,47): error TS2339: Property 'is_published' does not exist on type 'any[]'.
+lib/supabase/content.ts(760,5): error TS2322: Type 'any[][]' is not assignable to type 'Article[]'.
+  Type 'any[]' is missing the following properties from type 'Article': id, title, author, content, and 9 more.
+lib/supabase/content.ts(760,47): error TS2339: Property 'is_published' does not exist on type 'any[]'.
+lib/supabase/content.ts(776,5): error TS2322: Type 'any[][]' is not assignable to type 'Topic[]'.
+  Type 'any[]' is missing the following properties from type 'Topic': id, name, color, icon, and 4 more.
+lib/supabase/content.ts(792,5): error TS2322: Type 'any[][]' is not assignable to type 'Series[]'.
+  Type 'any[]' is missing the following properties from type 'Series': id, name, is_active, created_at, updated_at

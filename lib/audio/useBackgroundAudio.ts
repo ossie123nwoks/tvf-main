@@ -1,16 +1,15 @@
 import { useEffect, useCallback, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import { Audio } from 'expo-av';
 import { backgroundAudioService } from './backgroundPlayback';
 import { audioPlayerService } from './player';
 
 export interface UseBackgroundAudioReturn {
   isBackgroundAudioConfigured: boolean;
   configureBackgroundAudio: () => Promise<void>;
-  handleInterruption: (interruption: Audio.InterruptionStatus) => Promise<void>;
-  handleAudioFocusChange: (focusChange: Audio.AudioFocusChange) => Promise<void>;
+  handleInterruption: (interruption: any) => Promise<void>;
+  handleAudioFocusChange: (focusChange: any) => Promise<void>;
   resetAudioSession: () => Promise<void>;
-  getAudioSessionStatus: () => Promise<Audio.AudioMode | null>;
+  getAudioSessionStatus: () => Promise<any | null>;
 }
 
 export const useBackgroundAudio = (): UseBackgroundAudioReturn => {
@@ -28,7 +27,7 @@ export const useBackgroundAudio = (): UseBackgroundAudioReturn => {
   }, []);
 
   // Handle audio interruptions
-  const handleInterruption = useCallback(async (interruption: Audio.InterruptionStatus) => {
+  const handleInterruption = useCallback(async (interruption: any) => {
     try {
       await backgroundAudioService.handleInterruption(interruption);
     } catch (error) {
@@ -37,7 +36,7 @@ export const useBackgroundAudio = (): UseBackgroundAudioReturn => {
   }, []);
 
   // Handle audio focus changes (Android)
-  const handleAudioFocusChange = useCallback(async (focusChange: Audio.AudioFocusChange) => {
+  const handleAudioFocusChange = useCallback(async (focusChange: any) => {
     try {
       await backgroundAudioService.handleAudioFocusChange(focusChange);
     } catch (error) {
@@ -79,7 +78,8 @@ export const useBackgroundAudio = (): UseBackgroundAudioReturn => {
         }
       } else if (nextAppState === 'background') {
         // App went to background, ensure audio can continue playing
-        if (isBackgroundAudioConfigured && audioPlayerService.isPlaying()) {
+        const status = await audioPlayerService.getStatus();
+        if (isBackgroundAudioConfigured && status?.isPlaying) {
           // Audio will continue playing in background
           console.log('Audio continuing in background');
         }
@@ -93,15 +93,11 @@ export const useBackgroundAudio = (): UseBackgroundAudioReturn => {
     };
   }, [isBackgroundAudioConfigured, configureBackgroundAudio]);
 
-  // Set up audio interruption listeners
+  // Set up audio interruption listeners (no-op in newer expo-av, event system was removed)
   useEffect(() => {
-    const interruptionListener = Audio.addListener('interruption', handleInterruption);
-    const audioFocusChangeListener = Audio.addListener('audioFocusChange', handleAudioFocusChange);
-
-    return () => {
-      interruptionListener?.remove();
-      audioFocusChangeListener?.remove();
-    };
+    // Audio interruption/focus listeners were removed in expo-av v15+
+    // Handle these via native modules or keep empty for forward compatibility
+    return () => { };
   }, [handleInterruption, handleAudioFocusChange]);
 
   // Initialize background audio on mount

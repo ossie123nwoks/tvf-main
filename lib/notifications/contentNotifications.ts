@@ -37,7 +37,7 @@ class ContentNotificationService {
 
       // Determine target audience
       const preferences = this.getSermonNotificationPreferences(options);
-      
+
       // Send notifications
       const result = await pushNotificationService.sendNotificationToAllUsers(
         notification,
@@ -72,7 +72,7 @@ class ContentNotificationService {
 
       // Determine target audience
       const preferences = this.getArticleNotificationPreferences(options);
-      
+
       // Send notifications
       const result = await pushNotificationService.sendNotificationToAllUsers(
         notification,
@@ -112,7 +112,7 @@ class ContentNotificationService {
 
       // For featured content, send to all users with content notifications enabled
       const preferences = { newContent: true };
-      
+
       const result = await pushNotificationService.sendNotificationToAllUsers(
         notification,
         preferences
@@ -163,7 +163,7 @@ class ContentNotificationService {
 
       // Send to users interested in content notifications
       const preferences = { newContent: true };
-      
+
       const result = await pushNotificationService.sendNotificationToAllUsers(
         notification,
         preferences
@@ -208,7 +208,7 @@ class ContentNotificationService {
 
       // Send to all users with update notifications enabled
       const preferences = { updates: true };
-      
+
       const result = await pushNotificationService.sendNotificationToAllUsers(
         notification,
         preferences
@@ -228,7 +228,7 @@ class ContentNotificationService {
    * Create notification template for new sermon
    */
   private createSermonNotificationTemplate(sermon: Sermon): NotificationTemplate {
-    const seriesText = sermon.series_name ? ` from "${sermon.series_name}"` : '';
+    const seriesText = sermon.series_id ? ` from a series` : '';
     const preacherText = sermon.preacher ? ` by ${sermon.preacher}` : '';
 
     return {
@@ -274,8 +274,8 @@ class ContentNotificationService {
   ): NotificationTemplate {
     const contentType = isSermon ? 'Sermon' : 'Article';
     const actionText = isSermon ? 'Listen' : 'Read';
-    const description = isSermon 
-      ? (content as Sermon).description 
+    const description = isSermon
+      ? (content as Sermon).description
       : (content as Article).excerpt || (content as Article).content;
 
     return {
@@ -451,5 +451,4 @@ class ContentNotificationService {
 // Export singleton instance
 export const contentNotificationService = new ContentNotificationService();
 
-// Export types
-export type { ContentNotificationOptions, NotificationTemplate };
+// Types are exported inline above

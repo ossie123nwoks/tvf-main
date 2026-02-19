@@ -339,7 +339,7 @@ export default function NotificationHistoryManager({
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     if (days < 7) return `${days}d ago`;
-    
+
     return date.toLocaleDateString();
   };
 
@@ -361,36 +361,37 @@ export default function NotificationHistoryManager({
           <View style={styles.notificationHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
               {showBulkActions && (
-                <Checkbox
-                  status={isSelected ? 'checked' : 'unchecked'}
-                  onPress={() => handleNotificationLongPress(item)}
-                  style={{ marginRight: theme.spacing.sm }}
-                />
+                <View style={{ marginRight: theme.spacing.sm }}>
+                  <Checkbox
+                    status={isSelected ? 'checked' : 'unchecked'}
+                    onPress={() => handleNotificationLongPress(item)}
+                  />
+                </View>
               )}
-              
+
               <MaterialIcons
                 name={getNotificationIcon(item.type) as any}
                 size={20}
                 color={getNotificationColor(item.type)}
                 style={{ marginRight: theme.spacing.sm }}
               />
-              
+
               <Text style={styles.notificationTitle} numberOfLines={1}>
                 {item.title}
               </Text>
             </View>
-            
+
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               {item.priority && item.priority !== 'normal' && (
                 <Chip
-                  size="small"
+                  compact
                   style={{ backgroundColor: getPriorityColor(item.priority) + '20' }}
                   textStyle={{ color: getPriorityColor(item.priority) }}
                 >
                   {item.priority}
                 </Chip>
               )}
-              
+
               {isUnread && (
                 <View
                   style={{
@@ -407,17 +408,17 @@ export default function NotificationHistoryManager({
 
           <View style={styles.notificationMeta}>
             <Chip
-              size="small"
+              compact
               icon={getNotificationIcon(item.type)}
               style={{ backgroundColor: theme.colors.surfaceVariant }}
               textStyle={{ color: theme.colors.text }}
             >
               {item.type}
             </Chip>
-            
+
             {item.source && item.source !== 'system' && (
               <Chip
-                size="small"
+                compact
                 style={{ backgroundColor: theme.colors.surfaceVariant, marginLeft: theme.spacing.sm }}
                 textStyle={{ color: theme.colors.text }}
               >
@@ -434,7 +435,7 @@ export default function NotificationHistoryManager({
             <Text style={styles.notificationDate}>
               {formatDate(item.sentAt)}
             </Text>
-            
+
             <View style={styles.notificationActions}>
               {onAnalyticsPress && (
                 <IconButton
@@ -444,14 +445,14 @@ export default function NotificationHistoryManager({
                   iconColor={theme.colors.primary}
                 />
               )}
-              
+
               <IconButton
                 icon={isUnread ? 'mark-email-read' : 'mark-email-unread'}
                 size={16}
                 onPress={() => isUnread ? markAsRead(item.id) : markAsUnread(item.id)}
                 iconColor={theme.colors.primary}
               />
-              
+
               <IconButton
                 icon="delete"
                 size={16}
@@ -553,7 +554,7 @@ export default function NotificationHistoryManager({
             />
           </View>
         )}
-        
+
         {showFilters && (
           <Menu
             visible={showFiltersMenu}
@@ -592,7 +593,7 @@ export default function NotificationHistoryManager({
             />
           </Menu>
         )}
-        
+
         <Button
           mode="outlined"
           onPress={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
@@ -609,7 +610,7 @@ export default function NotificationHistoryManager({
           <Text style={{ color: theme.colors.text, marginRight: theme.spacing.md }}>
             {selectedNotifications.length} selected
           </Text>
-          
+
           <Button
             mode="outlined"
             onPress={handleSelectAll}
@@ -619,7 +620,7 @@ export default function NotificationHistoryManager({
           >
             {selectedNotifications.length === notifications.length ? 'None' : 'All'}
           </Button>
-          
+
           <Button
             mode="outlined"
             onPress={handleBulkMarkAsRead}
@@ -629,7 +630,7 @@ export default function NotificationHistoryManager({
           >
             Mark Read
           </Button>
-          
+
           <Button
             mode="outlined"
             onPress={handleBulkMarkAsUnread}
@@ -639,7 +640,7 @@ export default function NotificationHistoryManager({
           >
             Mark Unread
           </Button>
-          
+
           <Button
             mode="outlined"
             onPress={handleBulkDelete}

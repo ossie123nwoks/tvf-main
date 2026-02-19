@@ -23,7 +23,7 @@ export default function AuthCallback() {
         if (params.error) {
           console.error('OAuth error:', params.error);
           // Redirect back to auth screen with error
-          router.replace('/auth?error=' + encodeURIComponent(params.error));
+          router.replace('/auth?error=' + encodeURIComponent(String(params.error)));
           return;
         }
 
@@ -32,7 +32,7 @@ export default function AuthCallback() {
           // Supabase should have already processed the callback
           // and the onAuthStateChange listener in AuthContext should handle the state update
           console.log('OAuth callback processed, waiting for auth state update...');
-          
+
           // Give Supabase a moment to process the callback
           setTimeout(() => {
             // Check if we're authenticated

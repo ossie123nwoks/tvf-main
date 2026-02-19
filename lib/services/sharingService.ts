@@ -12,6 +12,7 @@ export interface ShareContent {
   description?: string;
   author?: string;
   date?: string;
+  url?: string;
   imageUrl?: string;
   audioUrl?: string;
   duration?: number;
@@ -24,6 +25,7 @@ export interface ShareOptions {
   includeAudio?: boolean;
   recipientEmail?: string;
   recipientPhone?: string;
+  campaign?: string;
 }
 
 export interface ShareResult {
@@ -99,7 +101,7 @@ class SharingService {
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       // Log failed analytics
       await this.logShareAnalytics({
         contentId: content.id,
@@ -196,7 +198,7 @@ class SharingService {
     recipientPhone?: string
   ): Promise<ShareResult> {
     try {
-      const smsUrl = recipientPhone 
+      const smsUrl = recipientPhone
         ? `sms:${recipientPhone}?body=${encodeURIComponent(`${message}\n\n${url}`)}`
         : `sms:?body=${encodeURIComponent(`${message}\n\n${url}`)}`;
 
@@ -226,7 +228,7 @@ class SharingService {
   private async shareWhatsApp(message: string, url: string): Promise<ShareResult> {
     try {
       const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(`${message}\n\n${url}`)}`;
-      
+
       const canOpen = await Linking.canOpenURL(whatsappUrl);
       if (!canOpen) {
         // Fallback to web WhatsApp
@@ -255,7 +257,7 @@ class SharingService {
   private async shareTelegram(message: string, url: string): Promise<ShareResult> {
     try {
       const telegramUrl = `tg://msg?text=${encodeURIComponent(`${message}\n\n${url}`)}`;
-      
+
       const canOpen = await Linking.canOpenURL(telegramUrl);
       if (!canOpen) {
         // Fallback to web Telegram
@@ -286,7 +288,7 @@ class SharingService {
       // Twitter has character limits, so we need to be concise
       const twitterMessage = this.truncateForTwitter(message);
       const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterMessage)}&url=${encodeURIComponent(url)}`;
-      
+
       await Linking.openURL(twitterUrl);
 
       return {
@@ -308,7 +310,7 @@ class SharingService {
   private async shareFacebook(message: string, url: string): Promise<ShareResult> {
     try {
       const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(message)}`;
-      
+
       await Linking.openURL(facebookUrl);
 
       return {
@@ -355,15 +357,15 @@ class SharingService {
 
     const contentType = content.type === 'sermon' ? 'Sermon' : 'Article';
     let message = `Check out this ${contentType.toLowerCase()} from TRUEVINE FELLOWSHIP Church!\n\n"${content.title}"`;
-    
+
     if (content.author) {
       message += `\nby ${content.author}`;
     }
-    
+
     if (content.date) {
       message += `\n${content.date}`;
     }
-    
+
     if (content.description) {
       message += `\n\n${content.description}`;
     }
@@ -397,7 +399,7 @@ class SharingService {
     if (message.length <= maxLength) {
       return message;
     }
-    
+
     return message.substring(0, maxLength - 3) + '...';
   }
 
@@ -406,7 +408,7 @@ class SharingService {
    */
   async getAvailableSharingMethods(): Promise<string[]> {
     const methods = ['native', 'copy'];
-    
+
     try {
       // Check email availability
       const emailAvailable = await MailComposer.isAvailableAsync();
@@ -507,5 +509,4 @@ class SharingService {
 // Export singleton instance
 export const sharingService = new SharingService();
 
-// Export types
-export type { ShareContent, ShareOptions, ShareResult, ShareAnalytics };
+// Types are exported inline above

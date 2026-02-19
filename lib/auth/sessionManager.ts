@@ -6,7 +6,7 @@ import { User } from '@/types/user';
 interface SupabaseSession {
   access_token: string;
   refresh_token: string;
-  expires_at: string;
+  expires_at?: number | string; // Supabase returns UNIX timestamp (number), stored as string
   user: any;
 }
 
@@ -105,10 +105,15 @@ class SessionManager {
   }
 
   // Save session data
-  async saveSession(session: SupabaseSession, user: User): Promise<void> {
+  async saveSession(session: any, user: User): Promise<void> {
     try {
       const sessionData: SessionData = {
-        session,
+        session: {
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+          expires_at: session.expires_at != null ? String(session.expires_at) : String(Math.floor(Date.now() / 1000) + 3600),
+          user: session.user,
+        },
         user,
         refreshToken: session.refresh_token || null,
         lastActivity: Date.now(),
@@ -206,7 +211,10 @@ class SessionManager {
     if (!sessionData.session || !sessionData.user) return false;
 
     const now = Date.now();
-    const sessionExpiry = new Date(sessionData.session.expires_at).getTime();
+    const expiresAt = sessionData.session.expires_at;
+    const sessionExpiry = typeof expiresAt === 'number'
+      ? expiresAt * 1000  // UNIX timestamp in seconds
+      : new Date(expiresAt ?? 0).getTime();
 
     // Check if session is expired
     if (now >= sessionExpiry) return false;
@@ -225,7 +233,10 @@ class SessionManager {
     if (!sessionData.session) return false;
 
     const now = Date.now();
-    const sessionExpiry = new Date(sessionData.session.expires_at).getTime();
+    const expiresAt = sessionData.session.expires_at;
+    const sessionExpiry = typeof expiresAt === 'number'
+      ? expiresAt * 1000
+      : new Date(expiresAt ?? 0).getTime();
 
     return sessionExpiry - now <= SESSION_CONFIG.REFRESH_THRESHOLD;
   }
@@ -247,8 +258,13 @@ class SessionManager {
 
       if (data.session && data.user) {
         const sessionData: SessionData = {
-          session: data.session,
-          user: data.user as User,
+          session: {
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+            expires_at: data.session.expires_at != null ? String(data.session.expires_at) : String(Math.floor(Date.now() / 1000) + 3600),
+            user: data.session.user,
+          },
+          user: data.user as unknown as User,
           refreshToken: data.session.refresh_token || null,
           lastActivity: Date.now(),
           autoLoginEnabled: this.currentSession.autoLoginEnabled,
@@ -281,7 +297,10 @@ class SessionManager {
     if (!sessionData.session) return;
 
     const now = Date.now();
-    const sessionExpiry = new Date(sessionData.session.expires_at).getTime();
+    const expiresAt = sessionData.session.expires_at;
+    const sessionExpiry = expiresAt != null
+      ? (typeof expiresAt === 'number' ? expiresAt * 1000 : new Date(expiresAt).getTime())
+      : 0;
     const refreshTime = sessionExpiry - SESSION_CONFIG.REFRESH_THRESHOLD;
     const delay = Math.max(0, refreshTime - now);
 
@@ -381,8 +400,13 @@ class SessionManager {
       }
 
       // Update local session if server has newer data
-      if (data.session && data.user) {
-        await this.saveSession(data.session, data.user as User);
+      // Note: getSession() only returns { session }, not { session, user }.
+      // We use getUser() to get the current user separately.
+      if (data.session) {
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData?.user) {
+          await this.saveSession(data.session, userData.user as unknown as User);
+        }
         return true;
       }
 
@@ -397,8 +421,11 @@ class SessionManager {
   getSessionExpiryInfo(): { expiresAt: Date | null; timeUntilExpiry: number } | null {
     if (!this.currentSession?.session) return null;
 
-    const expiresAt = new Date(this.currentSession.session.expires_at);
-    const timeUntilExpiry = Math.max(0, expiresAt.getTime() - Date.now());
+    const rawExpiry = this.currentSession.session.expires_at;
+    const expiresAt = rawExpiry != null
+      ? new Date(typeof rawExpiry === 'number' ? rawExpiry * 1000 : rawExpiry)
+      : null;
+    const timeUntilExpiry = Math.max(0, (expiresAt?.getTime() ?? 0) - Date.now());
 
     return {
       expiresAt,

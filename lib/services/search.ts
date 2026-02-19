@@ -402,7 +402,7 @@ export class SearchService {
         searchParams.sortBy = 'date';
       } else if (sortBy === 'popularity') {
         searchParams.sortBy = 'downloads';
-      } else if (sortBy === 'date' || sortBy === 'title' || sortBy === 'views' || sortBy === 'downloads') {
+      } else if (sortBy === 'date' || sortBy === 'title') {
         searchParams.sortBy = sortBy;
       } else {
         searchParams.sortBy = 'date';
@@ -421,12 +421,12 @@ export class SearchService {
           tags: sermon.tags,
           relevance: query
             ? this.calculateRelevance(
-                query,
-                sermon.title,
-                sermon.description,
-                sermon.preacher,
-                sermon.tags
-              )
+              query,
+              sermon.title,
+              sermon.description,
+              sermon.preacher,
+              sermon.tags
+            )
             : 1,
           data: sermon,
         }));
@@ -444,12 +444,12 @@ export class SearchService {
           tags: article.tags,
           relevance: query
             ? this.calculateRelevance(
-                query,
-                article.title,
-                article.content,
-                article.author,
-                article.tags
-              )
+              query,
+              article.title,
+              article.content,
+              article.author,
+              article.tags
+            )
             : 1,
           data: article,
         }));

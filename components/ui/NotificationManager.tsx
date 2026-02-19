@@ -37,12 +37,12 @@ export default function NotificationManager({ onClose }: NotificationManagerProp
   const [contentId, setContentId] = useState('');
   const [seriesName, setSeriesName] = useState('');
   const [sermonCount, setSermonCount] = useState('1');
-  
+
   // Notification options
   const [sendToAllUsers, setSendToAllUsers] = useState(true);
   const [delay, setDelay] = useState('0');
   const [priority, setPriority] = useState<'high' | 'normal' | 'low'>('normal');
-  
+
   // Loading and stats
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<{
@@ -171,8 +171,7 @@ export default function NotificationManager({ onClose }: NotificationManagerProp
             audio_url: '',
             duration: 0,
             category_id: '',
-            series_id: null,
-            series_name: null,
+            series_id: undefined,
             tags: [],
             is_published: true,
             is_featured: false,
@@ -181,7 +180,7 @@ export default function NotificationManager({ onClose }: NotificationManagerProp
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
-          result = await notifyNewSermon(mockSermon, options);
+          result = await notifyNewSermon(mockSermon as any, options);
           break;
 
         case 'article':

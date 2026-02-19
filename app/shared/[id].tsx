@@ -345,31 +345,31 @@ export default function SharedContentPage({ id }: SharedContentPageProps) {
                 {getContentTypeLabel()}
               </Chip>
             </View>
-            
+
             <Text style={styles.contentTitle}>{content.title}</Text>
-            
+
             <View style={styles.contentMeta}>
               <Text style={styles.contentAuthor}>
                 {contentType === 'sermon' ? (content as Sermon).preacher : (content as Article).author}
               </Text>
               <Text style={styles.contentDate}>
-                {contentType === 'sermon' 
-                  ? formatDate((content as Sermon).date) 
+                {contentType === 'sermon'
+                  ? formatDate((content as Sermon).date)
                   : formatDate((content as Article).published_at)
                 }
               </Text>
             </View>
-            
-            {content.description && (
+
+            {contentType === 'sermon' && (content as Sermon).description && (
               <Text style={styles.contentDescription} numberOfLines={4}>
-                {content.description}
+                {(content as Sermon).description}
               </Text>
             )}
           </Card.Content>
 
           <Card.Content style={styles.actionSection}>
             <Text style={styles.actionTitle}>View Full Content</Text>
-            
+
             {user ? (
               <View style={styles.actionButtons}>
                 <Button
@@ -389,7 +389,7 @@ export default function SharedContentPage({ id }: SharedContentPageProps) {
                 <Text style={styles.authPromptText}>
                   Create a free account or sign in to access the complete {getContentTypeLabel().toLowerCase()} and more content from TRUEVINE FELLOWSHIP Church.
                 </Text>
-                
+
                 <View style={styles.actionButtons}>
                   <Button
                     mode="contained"
@@ -401,7 +401,7 @@ export default function SharedContentPage({ id }: SharedContentPageProps) {
                   >
                     Sign In
                   </Button>
-                  
+
                   <Button
                     mode="outlined"
                     onPress={handleSignUp}
@@ -421,7 +421,7 @@ export default function SharedContentPage({ id }: SharedContentPageProps) {
         <Card style={styles.contentCard}>
           <Card.Content style={styles.actionSection}>
             <Text style={styles.actionTitle}>Join TRUEVINE FELLOWSHIP</Text>
-            
+
             <View style={{ gap: theme.spacing.sm, marginBottom: theme.spacing.lg }}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <MaterialIcons
@@ -434,7 +434,7 @@ export default function SharedContentPage({ id }: SharedContentPageProps) {
                   Access to sermons and teachings
                 </Text>
               </View>
-              
+
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <MaterialIcons
                   name="article"
@@ -446,7 +446,7 @@ export default function SharedContentPage({ id }: SharedContentPageProps) {
                   Inspirational articles and devotionals
                 </Text>
               </View>
-              
+
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <MaterialIcons
                   name="notifications"
@@ -458,7 +458,7 @@ export default function SharedContentPage({ id }: SharedContentPageProps) {
                   Church updates and notifications
                 </Text>
               </View>
-              
+
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <MaterialIcons
                   name="people"
@@ -471,7 +471,7 @@ export default function SharedContentPage({ id }: SharedContentPageProps) {
                 </Text>
               </View>
             </View>
-            
+
             <Button
               mode="outlined"
               onPress={() => router.push('/(tabs)/dashboard')}

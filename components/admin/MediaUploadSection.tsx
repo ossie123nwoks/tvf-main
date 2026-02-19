@@ -46,7 +46,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
   maxFileSize = 50, // 50MB default
 }) => {
   const { theme } = useTheme();
-  
+
   // State management
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<MediaUploadProgress[]>([]);
@@ -207,8 +207,8 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
 
   const getFileIcon = (mimeType: string) => {
     if (mimeType.startsWith('image/')) return 'image';
-    if (mimeType.startsWith('video/')) return 'video';
-    if (mimeType.startsWith('audio/')) return 'music';
+    if (mimeType.startsWith('video/')) return 'videocam';
+    if (mimeType.startsWith('audio/')) return 'music-note';
     if (mimeType.includes('pdf')) return 'picture-as-pdf';
     return 'insert-drive-file';
   };
@@ -315,7 +315,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
 
       const uploadPromises = selectedFiles.map(async (file, index) => {
         const fileId = `file_${Date.now()}_${index}`;
-        
+
         // Initialize progress tracking
         setUploadProgress(prev => [...prev, {
           fileId,
@@ -327,10 +327,10 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
         try {
           // Simulate file upload with progress
           const uploadResult = await simulateFileUpload(file, fileId);
-          
+
           // Update progress to completed
-          setUploadProgress(prev => prev.map(p => 
-            p.fileId === fileId 
+          setUploadProgress(prev => prev.map(p =>
+            p.fileId === fileId
               ? { ...p, progress: 100, status: 'completed' }
               : p
           ));
@@ -338,8 +338,8 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
           return uploadResult;
         } catch (err) {
           // Update progress to error
-          setUploadProgress(prev => prev.map(p => 
-            p.fileId === fileId 
+          setUploadProgress(prev => prev.map(p =>
+            p.fileId === fileId
               ? { ...p, status: 'error', error: err instanceof Error ? err.message : 'Upload failed' }
               : p
           ));
@@ -355,7 +355,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
       setUploadProgress([]);
 
       Alert.alert('Success', `Successfully uploaded ${successfulUploads.length} files.`);
-      
+
       if (onUploadComplete) {
         onUploadComplete(successfulUploads);
       }
@@ -378,7 +378,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
         if (progress >= 100) {
           progress = 100;
           clearInterval(interval);
-          
+
           // Simulate successful upload
           const mediaFile: MediaFile = {
             id: fileId,
@@ -396,11 +396,11 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
               dimensions: file.type.startsWith('image/') ? { width: 1920, height: 1080 } : undefined,
             },
           };
-          
+
           resolve(mediaFile);
         } else {
-          setUploadProgress(prev => prev.map(p => 
-            p.fileId === fileId 
+          setUploadProgress(prev => prev.map(p =>
+            p.fileId === fileId
               ? { ...p, progress: Math.round(progress) }
               : p
           ));
@@ -416,7 +416,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
 
   const renderFileItem = (file: any, index: number) => {
     const progress = uploadProgress.find(p => p.filename === file.name);
-    
+
     return (
       <Card key={index} style={styles.fileItem}>
         <Card.Content>
@@ -446,7 +446,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
               />
             </View>
           </View>
-          
+
           {progress && (
             <View style={styles.fileProgress}>
               <Text style={styles.progressText}>
@@ -481,7 +481,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
               onPress={() => setShowPreview(false)}
             />
           </View>
-          
+
           {previewFile && (
             <>
               {previewFile.type.startsWith('image/') ? (
@@ -497,7 +497,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                   />
                 </View>
               )}
-              
+
               <View style={styles.previewInfo}>
                 <Text style={styles.fileName}>{previewFile.name}</Text>
                 <Text style={styles.fileSize}>{formatFileSize(previewFile.size)}</Text>
@@ -541,7 +541,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
         <Text style={styles.uploadSubtext}>
           Choose images, videos, audio files, or documents
         </Text>
-        
+
         {!uploading && (
           <View style={styles.uploadButtons}>
             <Button
@@ -604,7 +604,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
                     <ActivityIndicator size="small" color={theme.colors.primary} />
                   )}
                 </View>
-                
+
                 <View style={styles.fileProgress}>
                   <Text style={styles.progressText}>
                     {progress.status === 'uploading' && `${progress.progress}%`}

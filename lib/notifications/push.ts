@@ -152,7 +152,7 @@ class PushNotificationService {
 
       // Get the projectId from expo-constants as per Expo documentation
       const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
-      
+
       if (!projectId) {
         console.warn('Project ID not found in app config');
         return null;
@@ -167,7 +167,7 @@ class PushNotificationService {
       } catch (tokenError: any) {
         // Handle Firebase initialization errors gracefully
         const errorMessage = tokenError?.message || String(tokenError);
-        
+
         if (Platform.OS === 'android' && errorMessage.includes('FirebaseApp')) {
           console.warn(
             'Push notifications: Firebase not configured for Android.\n' +
@@ -180,7 +180,7 @@ class PushNotificationService {
           );
           return null;
         }
-        
+
         // Re-throw other errors
         throw tokenError;
       }
@@ -218,7 +218,7 @@ class PushNotificationService {
     } catch (error: any) {
       // Check if it's a Firebase-related error
       const errorMessage = error?.message || String(error);
-      
+
       if (Platform.OS === 'android' && errorMessage.includes('FirebaseApp')) {
         console.warn(
           'Push notifications unavailable: Firebase not configured.\n' +
@@ -227,7 +227,7 @@ class PushNotificationService {
       } else {
         console.error('Error registering for push notifications:', error);
       }
-      
+
       return null;
     }
   }
@@ -288,7 +288,7 @@ class PushNotificationService {
           isAuthenticationRequired: action.authenticationRequired || false,
         },
       }));
-      
+
       await Notifications.setNotificationCategoryAsync(category.id, expoActions);
     }
   }
@@ -336,7 +336,7 @@ class PushNotificationService {
     try {
       // Create a unique key for deduplication (userId + title + timestamp within last minute)
       const dedupeKey = `${userId}-${notification.title}-${Math.floor(Date.now() / 60000)}`;
-      
+
       // Check if we've sent this notification recently (within the last minute)
       const lastSent = this.recentNotifications.get(dedupeKey);
       if (lastSent && Date.now() - lastSent < 60000) {
@@ -367,7 +367,7 @@ class PushNotificationService {
 
       // Mark this notification as sent
       this.recentNotifications.set(dedupeKey, Date.now());
-      
+
       // Clean up old entries (older than 5 minutes)
       const fiveMinutesAgo = Date.now() - 300000;
       for (const [key, timestamp] of this.recentNotifications.entries()) {
@@ -398,11 +398,11 @@ class PushNotificationService {
       });
 
       const result = await response.json();
-      
+
       if (result.data && result.data.status === 'ok') {
         // Store notification in database
         const notificationRecord = await this.storeNotificationHistory(userId, notification);
-        
+
         // Track delivery status
         if (notificationRecord) {
           await notificationAnalyticsService.trackNotificationDelivery(
@@ -412,13 +412,13 @@ class PushNotificationService {
             { platform: Platform.OS, deviceId: Device.osInternalBuildId }
           );
         }
-        
+
         return true;
       } else {
         // Check if it's an FCM configuration error (Android)
         const isFCMError = result.data?.details?.error === 'InvalidCredentials' ||
-                          result.data?.message?.includes('FCM server key') ||
-                          result.data?.message?.includes('Firebase');
+          result.data?.message?.includes('FCM server key') ||
+          result.data?.message?.includes('Firebase');
 
         if (isFCMError && Platform.OS === 'android') {
           console.warn(
@@ -436,7 +436,7 @@ class PushNotificationService {
         }
 
         console.error('Failed to send notification:', result);
-        
+
         // Track failed delivery (except for FCM config issues)
         const notificationRecord = await this.storeNotificationHistory(userId, notification);
         if (notificationRecord) {
@@ -448,7 +448,7 @@ class PushNotificationService {
             result.data?.message || 'Unknown error'
           );
         }
-        
+
         return false;
       }
     } catch (error) {
@@ -640,6 +640,14 @@ class PushNotificationService {
     trigger: Date | number
   ): Promise<string | null> {
     try {
+      // Build a proper NotificationTriggerInput from Date or number
+      let triggerInput: any;
+      if (trigger instanceof Date) {
+        triggerInput = { date: trigger };
+      } else {
+        triggerInput = { seconds: Math.max(1, Math.floor(trigger / 1000)) };
+      }
+
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
           title: notification.title,
@@ -649,7 +657,7 @@ class PushNotificationService {
           badge: notification.badge,
           categoryIdentifier: notification.categoryId,
         },
-        trigger,
+        trigger: triggerInput,
       });
 
       return notificationId;
@@ -878,11 +886,11 @@ class PushNotificationService {
       // Track notification engagement
       const notificationId = response.notification.request.content.data?.notificationId;
       const userId = response.notification.request.content.data?.userId;
-      
+
       if (notificationId && userId) {
         await notificationAnalyticsService.trackNotificationEngagement(
-          notificationId,
-          userId,
+          String(notificationId),
+          String(userId),
           'clicked',
           {
             action: response.actionIdentifier,
@@ -891,7 +899,7 @@ class PushNotificationService {
           }
         );
       }
-      
+
       // Call the original callback
       callback(response);
     });
@@ -907,11 +915,11 @@ class PushNotificationService {
       // Track notification opened
       const notificationId = notification.request.content.data?.notificationId;
       const userId = notification.request.content.data?.userId;
-      
+
       if (notificationId && userId) {
         await notificationAnalyticsService.trackNotificationEngagement(
-          notificationId,
-          userId,
+          String(notificationId),
+          String(userId),
           'opened',
           {
             platform: Platform.OS,
@@ -919,7 +927,7 @@ class PushNotificationService {
           }
         );
       }
-      
+
       // Call the original callback
       callback(notification);
     });
@@ -950,5 +958,4 @@ class PushNotificationService {
 // Export singleton instance
 export const pushNotificationService = new PushNotificationService();
 
-// Export types
-export type { PushNotificationData, NotificationCategory, NotificationAction, NotificationPreferences, ScheduledNotification };
+// Types are exported inline above

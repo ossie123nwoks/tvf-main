@@ -45,7 +45,7 @@ export const ADMIN_PERMISSIONS: Record<string, AdminPermission> = {
     resource: 'articles',
     action: 'delete'
   },
-  
+
   // Topic & Series Management
   'topics.create': {
     id: 'topics.create',
@@ -75,7 +75,7 @@ export const ADMIN_PERMISSIONS: Record<string, AdminPermission> = {
     resource: 'series',
     action: 'manage'
   },
-  
+
   // User Management
   'users.view': {
     id: 'users.view',
@@ -105,7 +105,7 @@ export const ADMIN_PERMISSIONS: Record<string, AdminPermission> = {
     resource: 'notifications',
     action: 'manage'
   },
-  
+
   // Media Management
   'media.upload': {
     id: 'media.upload',
@@ -121,7 +121,7 @@ export const ADMIN_PERMISSIONS: Record<string, AdminPermission> = {
     resource: 'media',
     action: 'manage'
   },
-  
+
   // Analytics & Reports
   'analytics.view': {
     id: 'analytics.view',
@@ -178,6 +178,29 @@ export const ROLE_PERMISSIONS: Record<AdminRole, string[]> = {
     'users.send_notifications',
     'notifications.manage',
     'analytics.view'
+  ],
+  admin: [
+    // Same as super_admin
+    'content.sermons.create',
+    'content.sermons.edit',
+    'content.sermons.delete',
+    'content.articles.create',
+    'content.articles.edit',
+    'content.articles.delete',
+    'topics.create',
+    'topics.manage',
+    'series.create',
+    'series.manage',
+    'users.view',
+    'users.manage_roles',
+    'users.send_notifications',
+    'notifications.manage',
+    'media.upload',
+    'media.manage',
+    'analytics.view'
+  ],
+  member: [
+    // Regular users have no admin permissions
   ]
 };
 

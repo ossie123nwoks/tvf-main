@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase/client';
 import { sessionManager, SessionData } from './sessionManager';
-import { AuthError } from '@/types/user';
+import { AuthError, User } from '@/types/user';
 
 export interface ReauthOptions {
   silent?: boolean; // Don't show UI during re-auth
@@ -117,9 +117,12 @@ class AutoReauthService {
         };
       }
 
-      if (data.session && data.user) {
-        // Session is valid on server, update local session
-        await sessionManager.saveSession(data.session, data.user as User);
+      if (data.session) {
+        // getSession() doesn't return user — call getUser() separately
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData?.user) {
+          await sessionManager.saveSession(data.session, userData.user as unknown as User);
+        }
 
         return {
           success: true,

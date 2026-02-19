@@ -552,10 +552,4 @@ class NotificationHistoryService {
 // Export singleton instance
 export const notificationHistoryService = new NotificationHistoryService();
 
-// Export types
-export type {
-  NotificationHistoryItem,
-  NotificationHistoryFilters,
-  NotificationHistoryStats,
-  NotificationManagementAction,
-};
+// Types are exported inline above

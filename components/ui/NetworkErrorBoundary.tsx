@@ -1,8 +1,9 @@
 import React, { Component, ReactNode } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import { Text, Button, Card, useTheme } from 'react-native-paper';
+import { Text, Button, Card } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { errorHandler } from '@/lib/utils/errorHandling';
+import { useTheme } from '@/lib/theme/ThemeProvider';
 
 interface Props {
   children: ReactNode;

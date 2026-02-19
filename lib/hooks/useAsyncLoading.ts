@@ -164,7 +164,7 @@ export function useAsyncOperation<T>(
   return {
     ...loadingState,
     data,
-    executeAsync: executeWithHandlers,
-    executeAsyncWithRetry: executeWithRetryAndHandlers,
+    executeAsync: executeWithHandlers as AsyncLoadingActions['executeAsync'],
+    executeAsyncWithRetry: executeWithRetryAndHandlers as AsyncLoadingActions['executeAsyncWithRetry'],
   };
 }

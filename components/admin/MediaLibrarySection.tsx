@@ -47,7 +47,7 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
   onSelectionChange,
 }) => {
   const { theme } = useTheme();
-  
+
   // State management
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +56,7 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  
+
   // Filters and search
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -64,11 +64,11 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'size' | 'type'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showFilters, setShowFilters] = useState(false);
-  
+
   // Selection state
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [bulkActionMode, setBulkActionMode] = useState(false);
-  
+
   // Modal state
   const [selectedFile, setSelectedFile] = useState<MediaFile | null>(null);
   const [fileDetailsModal, setFileDetailsModal] = useState(false);
@@ -142,7 +142,6 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
       fontWeight: '600',
       color: theme.colors.text,
       marginBottom: theme.spacing.xs,
-      numberOfLines: 2,
     },
     fileMeta: {
       flexDirection: 'row',
@@ -154,7 +153,6 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
       color: theme.colors.textSecondary,
     },
     fileStatus: {
-      fontSize: 10,
     },
     selectedFile: {
       backgroundColor: theme.colors.primary + '10',
@@ -361,7 +359,7 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
       newSelection.add(fileId);
     }
     setSelectedFiles(newSelection);
-    
+
     if (onSelectionChange) {
       const selectedFilesList = files.filter(file => newSelection.has(file.id));
       onSelectionChange(selectedFilesList);
@@ -371,7 +369,7 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
   const selectAllFiles = () => {
     const newSelection = new Set(files.map(file => file.id));
     setSelectedFiles(newSelection);
-    
+
     if (onSelectionChange) {
       onSelectionChange(files);
     }
@@ -379,7 +377,7 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
 
   const clearSelection = () => {
     setSelectedFiles(new Set());
-    
+
     if (onSelectionChange) {
       onSelectionChange([]);
     }
@@ -397,14 +395,14 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
           onPress: async () => {
             try {
               await AdminService.deleteMediaFile(file.id);
-              
+
               // Update local state
               setFiles(prev => prev.filter(f => f.id !== file.id));
-              
+
               if (onFileDelete) {
                 onFileDelete(file);
               }
-              
+
               Alert.alert('Success', 'File deleted successfully');
             } catch (err) {
               const errorMessage = err instanceof Error ? err.message : 'Failed to delete file';
@@ -418,8 +416,8 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
 
   const getFileIcon = (mimeType: string) => {
     if (mimeType.startsWith('image/')) return 'image';
-    if (mimeType.startsWith('video/')) return 'video';
-    if (mimeType.startsWith('audio/')) return 'music';
+    if (mimeType.startsWith('video/')) return 'videocam';
+    if (mimeType.startsWith('audio/')) return 'music-note';
     if (mimeType.includes('pdf')) return 'picture-as-pdf';
     return 'insert-drive-file';
   };
@@ -439,7 +437,7 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
 
   const renderFileCard = (file: MediaFile) => {
     const isSelected = selectedFiles.has(file.id);
-    
+
     return (
       <Card
         key={file.id}
@@ -475,7 +473,7 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
 
   const renderFileListItem = (file: MediaFile) => {
     const isSelected = selectedFiles.has(file.id);
-    
+
     return (
       <Card
         key={file.id}
@@ -584,7 +582,7 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
         <Text style={{ marginBottom: theme.spacing.sm, fontWeight: '600' }}>
           Filters & Sorting
         </Text>
-        
+
         <View style={styles.filterChips}>
           <Text style={{ marginRight: theme.spacing.sm, alignSelf: 'center' }}>Type:</Text>
           {fileTypes.map((type) => (
@@ -598,7 +596,7 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
             </Chip>
           ))}
         </View>
-        
+
         <View style={styles.filterChips}>
           <Text style={{ marginRight: theme.spacing.sm, alignSelf: 'center' }}>Status:</Text>
           {statusOptions.map((status) => (
@@ -612,7 +610,7 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
             </Chip>
           ))}
         </View>
-        
+
         <View style={styles.filterChips}>
           <Text style={{ marginRight: theme.spacing.sm, alignSelf: 'center' }}>Sort by:</Text>
           {sortOptions.map((sort) => (
@@ -650,7 +648,7 @@ const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({
         >
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>File Details</Text>
-            
+
             <View style={styles.modalSection}>
               <Text style={styles.modalSectionTitle}>Basic Information</Text>
               <Text style={styles.modalText}>Name: {selectedFile.filename}</Text>

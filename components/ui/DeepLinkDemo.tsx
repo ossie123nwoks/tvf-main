@@ -71,7 +71,6 @@ export const DeepLinkDemo: React.FC = () => {
             icon={link.icon}
             style={{ marginBottom: 8 }}
             textColor={theme.colors.primary}
-            outlineColor={theme.colors.primary}
           >
             {link.label}
           </Button>

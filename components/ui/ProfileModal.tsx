@@ -43,57 +43,57 @@ export default function ProfileModal({
   const { user, signOut, updateProfile, changePassword, deleteAccount } = useAuth();
   const insets = useSafeAreaInsets();
   const { height: screenHeight, width: screenWidth } = useWindowDimensions();
-  
+
   // Helper function to detect if a Google avatar URL is a default avatar (has logo overlay)
   const isGoogleDefaultAvatar = (url?: string): boolean => {
     if (!url) return false;
-    
+
     try {
       // Check if it's a Google avatar URL
       if (url.includes('googleusercontent.com') || url.includes('google.com')) {
         const urlObj = new URL(url);
         const pathname = urlObj.pathname.toLowerCase();
-        
+
         // Google default avatars have these patterns that include logo overlay:
         // - Contains '/default' in path
         // - Contains '/photo.jpg' (generic default)
         // - Has query parameters like '=s96-c' where 'c' indicates default
         // - Path contains hash-like segments that indicate default avatar
-        const isDefault = 
-          pathname.includes('/default') || 
+        const isDefault: boolean =
+          pathname.includes('/default') ||
           pathname.includes('/photo.jpg') ||
-          pathname.match(/\/a\/default-/i) ||
-          url.match(/=s\d+-c\b/i) || // Pattern like =s96-c indicates default
-          url.match(/\/photo\/default/);
-        
+          pathname.match(/\/a\/default-/i) != null ||
+          url.match(/=s\d+-c\b/i) != null || // Pattern like =s96-c indicates default
+          url.match(/\/photo\/default/) != null;
+
         return isDefault;
       }
-      
+
       return false;
     } catch (error) {
       // If URL parsing fails, check for default patterns directly in the URL string
       const lowerUrl = url.toLowerCase();
-      return lowerUrl.includes('/default') || 
-             lowerUrl.includes('/photo.jpg') ||
-             lowerUrl.match(/=s\d+-c\b/i) !== null ||
-             lowerUrl.match(/\/photo\/default/) !== null;
+      return lowerUrl.includes('/default') ||
+        lowerUrl.includes('/photo.jpg') ||
+        lowerUrl.match(/=s\d+-c\b/i) !== null ||
+        lowerUrl.match(/\/photo\/default/) !== null;
     }
   };
-  
+
   // Helper function to get the avatar source (either cleaned URL or undefined for fallback)
   const getAvatarSource = (url?: string): string | undefined => {
     if (!url) return undefined;
-    
+
     // Only replace default Google avatars with initials to avoid Google logo overlay conflicts
     // Custom Google avatars should display normally
     if (isGoogleDefaultAvatar(url)) {
       return undefined; // Return undefined to use initials fallback for default avatars
     }
-    
+
     // For all other avatars (including custom Google avatars), return the URL as-is
     return url;
   };
-  
+
   // Get theme context with fallback
   let theme, paperTheme;
   try {
@@ -534,13 +534,13 @@ export default function ProfileModal({
           try {
             // Close the modal first
             onDismiss();
-            
+
             // Small delay to ensure modal is closed
             await new Promise(resolve => setTimeout(resolve, 100));
-            
+
             // Then sign out
             await signOut();
-            
+
             // Call the onSignOut callback if provided
             if (onSignOut) {
               onSignOut();
@@ -561,25 +561,24 @@ export default function ProfileModal({
   try {
     return (
       <Portal>
-        <Dialog 
-          visible={visible} 
-          onDismiss={onDismiss} 
+        <Dialog
+          visible={visible}
+          onDismiss={onDismiss}
           style={[styles.container, { borderWidth: 0 }]}
           dismissable={true}
           dismissableBackButton={true}
         >
-          <Dialog.Content 
+          <Dialog.Content
             style={[
-              styles.content, 
-              { 
-                borderWidth: 0, 
-                borderBottomWidth: 0, 
+              styles.content,
+              {
+                borderWidth: 0,
+                borderBottomWidth: 0,
                 borderTopWidth: 0,
                 borderColor: 'transparent',
-                overflow: 'hidden' 
+                overflow: 'hidden'
               }
             ]}
-            scrollable={false}
           >
             {/* Custom Header Section - Fixed at top */}
             <View style={styles.header}>
@@ -607,7 +606,7 @@ export default function ProfileModal({
             </View>
 
             {/* Scrollable Content Sections */}
-            <ScrollView 
+            <ScrollView
               style={styles.scrollView}
               showsVerticalScrollIndicator={true}
               bounces={Platform.select({
@@ -615,339 +614,339 @@ export default function ProfileModal({
                 android: false,
                 default: false,
               })}
-              contentContainerStyle={{ 
+              contentContainerStyle={{
                 padding: theme.spacing.lg,
                 paddingTop: theme.spacing.md,
                 paddingBottom: theme.spacing.md,
               }}
             >
-            <View style={styles.section}>
-              <View style={styles.sectionTitle}>
-                <MaterialIcons
-                  name="person"
-                  size={20}
-                  color={theme.colors.primary}
-                  style={styles.sectionIcon}
-                />
-                <Text style={styles.sectionTitleText}>Personal Information</Text>
+              <View style={styles.section}>
+                <View style={styles.sectionTitle}>
+                  <MaterialIcons
+                    name="person"
+                    size={20}
+                    color={theme.colors.primary}
+                    style={styles.sectionIcon}
+                  />
+                  <Text style={styles.sectionTitleText}>Personal Information</Text>
+                </View>
+
+                <Card style={styles.infoCard}>
+                  <Card.Content style={styles.infoContent}>
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>First Name</Text>
+                      <Text style={styles.infoValue}>{user?.firstName || 'Not set'}</Text>
+                    </View>
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>Last Name</Text>
+                      <Text style={styles.infoValue}>{user?.lastName || 'Not set'}</Text>
+                    </View>
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>Email</Text>
+                      <Text style={styles.infoValue}>{user?.email || 'Not set'}</Text>
+                    </View>
+                    <View style={styles.infoRowLast}>
+                      <Text style={styles.infoLabel}>Member Since</Text>
+                      <Text style={styles.infoValue}>
+                        {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                      </Text>
+                    </View>
+                  </Card.Content>
+                </Card>
               </View>
 
-              <Card style={styles.infoCard}>
-                <Card.Content style={styles.infoContent}>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>First Name</Text>
-                    <Text style={styles.infoValue}>{user?.firstName || 'Not set'}</Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Last Name</Text>
-                    <Text style={styles.infoValue}>{user?.lastName || 'Not set'}</Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Email</Text>
-                    <Text style={styles.infoValue}>{user?.email || 'Not set'}</Text>
-                  </View>
-                  <View style={styles.infoRowLast}>
-                    <Text style={styles.infoLabel}>Member Since</Text>
-                    <Text style={styles.infoValue}>
-                      {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
-                    </Text>
-                  </View>
-                </Card.Content>
-              </Card>
-            </View>
+              <View style={styles.section}>
+                <View style={styles.sectionTitle}>
+                  <MaterialIcons
+                    name="settings"
+                    size={20}
+                    color={theme.colors.primary}
+                    style={styles.sectionIcon}
+                  />
+                  <Text style={styles.sectionTitleText}>App Preferences</Text>
+                </View>
 
-            <View style={styles.section}>
-              <View style={styles.sectionTitle}>
-                <MaterialIcons
-                  name="settings"
-                  size={20}
-                  color={theme.colors.primary}
-                  style={styles.sectionIcon}
-                />
-                <Text style={styles.sectionTitleText}>App Preferences</Text>
+                <Card style={styles.infoCard}>
+                  <Card.Content style={styles.infoContent}>
+                    <View style={styles.preferenceRow}>
+                      <Text style={styles.preferenceLabel}>Theme</Text>
+                      <Text style={styles.preferenceValue}>
+                        {user?.preferences?.theme ? user.preferences.theme.charAt(0).toUpperCase() + user.preferences.theme.slice(1) : 'Auto'}
+                      </Text>
+                    </View>
+                    <View style={styles.preferenceRow}>
+                      <Text style={styles.preferenceLabel}>Audio Quality</Text>
+                      <Text style={styles.preferenceValue}>
+                        {user?.preferences?.audioQuality ? user.preferences.audioQuality.charAt(0).toUpperCase() + user.preferences.audioQuality.slice(1) : 'Medium'}
+                      </Text>
+                    </View>
+                    <View style={styles.preferenceRow}>
+                      <Text style={styles.preferenceLabel}>Auto Download</Text>
+                      <Text style={styles.preferenceValue}>
+                        {user?.preferences?.autoDownload ? 'Enabled' : 'Disabled'}
+                      </Text>
+                    </View>
+                    <View style={styles.preferenceRowLast}>
+                      <Text style={styles.preferenceLabel}>Language</Text>
+                      <Text style={styles.preferenceValue}>
+                        {user?.preferences?.language === 'en' ? 'English' : user?.preferences?.language || 'English'}
+                      </Text>
+                    </View>
+                  </Card.Content>
+                </Card>
               </View>
 
-              <Card style={styles.infoCard}>
-                <Card.Content style={styles.infoContent}>
-                  <View style={styles.preferenceRow}>
-                    <Text style={styles.preferenceLabel}>Theme</Text>
-                    <Text style={styles.preferenceValue}>
-                      {user?.preferences?.theme ? user.preferences.theme.charAt(0).toUpperCase() + user.preferences.theme.slice(1) : 'Auto'}
-                    </Text>
-                  </View>
-                  <View style={styles.preferenceRow}>
-                    <Text style={styles.preferenceLabel}>Audio Quality</Text>
-                    <Text style={styles.preferenceValue}>
-                      {user?.preferences?.audioQuality ? user.preferences.audioQuality.charAt(0).toUpperCase() + user.preferences.audioQuality.slice(1) : 'Medium'}
-                    </Text>
-                  </View>
-                  <View style={styles.preferenceRow}>
-                    <Text style={styles.preferenceLabel}>Auto Download</Text>
-                    <Text style={styles.preferenceValue}>
-                      {user?.preferences?.autoDownload ? 'Enabled' : 'Disabled'}
-                    </Text>
-                  </View>
-                  <View style={styles.preferenceRowLast}>
-                    <Text style={styles.preferenceLabel}>Language</Text>
-                    <Text style={styles.preferenceValue}>
-                      {user?.preferences?.language === 'en' ? 'English' : user?.preferences?.language || 'English'}
-                    </Text>
-                  </View>
-                </Card.Content>
-              </Card>
-            </View>
+              <View style={styles.section}>
+                <View style={styles.sectionTitle}>
+                  <MaterialIcons
+                    name="notifications"
+                    size={20}
+                    color={theme.colors.primary}
+                    style={styles.sectionIcon}
+                  />
+                  <Text style={styles.sectionTitleText}>Notification Preferences</Text>
+                </View>
 
-            <View style={styles.section}>
-              <View style={styles.sectionTitle}>
-                <MaterialIcons
-                  name="notifications"
-                  size={20}
-                  color={theme.colors.primary}
-                  style={styles.sectionIcon}
-                />
-                <Text style={styles.sectionTitleText}>Notification Preferences</Text>
+                <Card style={styles.infoCard}>
+                  <Card.Content style={styles.infoContent}>
+                    <View style={styles.preferenceRow}>
+                      <Text style={styles.preferenceLabel}>New Content</Text>
+                      <Text style={styles.preferenceValue}>
+                        {user?.preferences?.notifications?.newContent ? 'Enabled' : 'Disabled'}
+                      </Text>
+                    </View>
+                    <View style={styles.preferenceRow}>
+                      <Text style={styles.preferenceLabel}>Reminders</Text>
+                      <Text style={styles.preferenceValue}>
+                        {user?.preferences?.notifications?.reminders ? 'Enabled' : 'Disabled'}
+                      </Text>
+                    </View>
+                    <View style={styles.preferenceRow}>
+                      <Text style={styles.preferenceLabel}>Updates</Text>
+                      <Text style={styles.preferenceValue}>
+                        {user?.preferences?.notifications?.updates ? 'Enabled' : 'Disabled'}
+                      </Text>
+                    </View>
+                    <View style={styles.preferenceRowLast}>
+                      <Text style={styles.preferenceLabel}>Marketing</Text>
+                      <Text style={styles.preferenceValue}>
+                        {user?.preferences?.notifications?.marketing ? 'Enabled' : 'Disabled'}
+                      </Text>
+                    </View>
+                  </Card.Content>
+                </Card>
               </View>
+            </ScrollView>
 
-              <Card style={styles.infoCard}>
-                <Card.Content style={styles.infoContent}>
-                  <View style={styles.preferenceRow}>
-                    <Text style={styles.preferenceLabel}>New Content</Text>
-                    <Text style={styles.preferenceValue}>
-                      {user?.preferences?.notifications?.newContent ? 'Enabled' : 'Disabled'}
-                    </Text>
-                  </View>
-                  <View style={styles.preferenceRow}>
-                    <Text style={styles.preferenceLabel}>Reminders</Text>
-                    <Text style={styles.preferenceValue}>
-                      {user?.preferences?.notifications?.reminders ? 'Enabled' : 'Disabled'}
-                    </Text>
-                  </View>
-                  <View style={styles.preferenceRow}>
-                    <Text style={styles.preferenceLabel}>Updates</Text>
-                    <Text style={styles.preferenceValue}>
-                      {user?.preferences?.notifications?.updates ? 'Enabled' : 'Disabled'}
-                    </Text>
-                  </View>
-                  <View style={styles.preferenceRowLast}>
-                    <Text style={styles.preferenceLabel}>Marketing</Text>
-                    <Text style={styles.preferenceValue}>
-                      {user?.preferences?.notifications?.marketing ? 'Enabled' : 'Disabled'}
-                    </Text>
-                  </View>
-                </Card.Content>
-              </Card>
+            {/* Action Buttons - Fixed at bottom */}
+            <View style={styles.actions}>
+              {showEditButton && (
+                <Button
+                  mode="contained"
+                  onPress={() => setIsEditing(true)}
+                  style={styles.primaryButton}
+                  labelStyle={styles.buttonText}
+                >
+                  Edit Profile
+                </Button>
+              )}
+              {showSignOutButton && (
+                <Button
+                  mode="outlined"
+                  onPress={handleSignOut}
+                  style={styles.secondaryButton}
+                  labelStyle={styles.secondaryButtonText}
+                >
+                  Sign Out
+                </Button>
+              )}
             </View>
-          </ScrollView>
 
-          {/* Action Buttons - Fixed at bottom */}
-          <View style={styles.actions}>
-            {showEditButton && (
+            {showDeleteButton && (
               <Button
                 mode="contained"
-                onPress={() => setIsEditing(true)}
-                style={styles.primaryButton}
+                onPress={() => setShowDeleteDialog(true)}
+                style={styles.dangerButton}
                 labelStyle={styles.buttonText}
+                icon="delete"
               >
-                Edit Profile
+                Delete Account
               </Button>
             )}
-            {showSignOutButton && (
+
+            {/* Close Button - Fixed at bottom */}
+            <View style={styles.closeButtonContainer}>
               <Button
-                mode="outlined"
-                onPress={handleSignOut}
-                style={styles.secondaryButton}
-                labelStyle={styles.secondaryButtonText}
+                mode="text"
+                onPress={onDismiss}
+                style={styles.closeButton}
+                labelStyle={{
+                  color: theme.colors.textSecondary,
+                  fontSize: 16,
+                  fontWeight: '500',
+                }}
               >
-                Sign Out
+                Close
               </Button>
-            )}
-          </View>
-
-          {showDeleteButton && (
-            <Button
-              mode="contained"
-              onPress={() => setShowDeleteDialog(true)}
-              style={styles.dangerButton}
-              labelStyle={styles.buttonText}
-              icon="delete"
-            >
-              Delete Account
-            </Button>
-          )}
-
-          {/* Close Button - Fixed at bottom */}
-          <View style={styles.closeButtonContainer}>
-            <Button 
-              mode="text"
-              onPress={onDismiss}
-              style={styles.closeButton}
-              labelStyle={{ 
-                color: theme.colors.textSecondary,
-                fontSize: 16,
-                fontWeight: '500',
-              }}
-            >
-              Close
-            </Button>
-          </View>
-        </Dialog.Content>
-      </Dialog>
-
-      {/* Edit Profile Dialog */}
-      <Portal>
-        <Dialog visible={isEditing} onDismiss={() => setIsEditing(false)}>
-          <Dialog.Title style={styles.dialogTitle}>Edit Profile</Dialog.Title>
-          <Dialog.Content style={styles.dialogContent}>
-            <TextInput
-              label="First Name"
-              value={editData.firstName}
-              onChangeText={text => setEditData({ ...editData, firstName: text })}
-              style={styles.dialogInput}
-              theme={{
-                ...paperTheme,
-                colors: {
-                  ...paperTheme.colors,
-                  primary: theme.colors.primary,
-                  surface: theme.colors.surface,
-                  onSurface: theme.colors.text,
-                },
-              }}
-            />
-            <TextInput
-              label="Last Name"
-              value={editData.lastName}
-              onChangeText={text => setEditData({ ...editData, lastName: text })}
-              style={styles.dialogInput}
-              theme={{
-                ...paperTheme,
-                colors: {
-                  ...paperTheme.colors,
-                  primary: theme.colors.primary,
-                  surface: theme.colors.surface,
-                  onSurface: theme.colors.text,
-                },
-              }}
-            />
-            <TextInput
-              label="Avatar URL"
-              value={editData.avatarUrl}
-              onChangeText={text => setEditData({ ...editData, avatarUrl: text })}
-              style={styles.dialogInput}
-              theme={{
-                ...paperTheme,
-                colors: {
-                  ...paperTheme.colors,
-                  primary: theme.colors.primary,
-                  surface: theme.colors.surface,
-                  onSurface: theme.colors.text,
-                },
-              }}
-            />
+            </View>
           </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setIsEditing(false)}>Cancel</Button>
-            <Button onPress={handleSaveProfile}>Save</Button>
-          </Dialog.Actions>
         </Dialog>
-      </Portal>
 
-      {/* Change Password Dialog */}
-      <Portal>
-        <Dialog visible={showPasswordDialog} onDismiss={() => setShowPasswordDialog(false)}>
-          <Dialog.Title style={styles.dialogTitle}>Change Password</Dialog.Title>
-          <Dialog.Content style={styles.dialogContent}>
-            <TextInput
-              label="Current Password"
-              value={passwordData.currentPassword}
-              onChangeText={text => setPasswordData({ ...passwordData, currentPassword: text })}
-              secureTextEntry
-              style={styles.dialogInput}
-              theme={{
-                ...paperTheme,
-                colors: {
-                  ...paperTheme.colors,
-                  primary: theme.colors.primary,
-                  surface: theme.colors.surface,
-                  onSurface: theme.colors.text,
-                },
-              }}
-            />
-            <TextInput
-              label="New Password"
-              value={passwordData.newPassword}
-              onChangeText={text => setPasswordData({ ...passwordData, newPassword: text })}
-              secureTextEntry
-              style={styles.dialogInput}
-              theme={{
-                ...paperTheme,
-                colors: {
-                  ...paperTheme.colors,
-                  primary: theme.colors.primary,
-                  surface: theme.colors.surface,
-                  onSurface: theme.colors.text,
-                },
-              }}
-            />
-            <TextInput
-              label="Confirm New Password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              style={styles.dialogInput}
-              theme={{
-                ...paperTheme,
-                colors: {
-                  ...paperTheme.colors,
-                  primary: theme.colors.primary,
-                  surface: theme.colors.surface,
-                  onSurface: theme.colors.text,
-                },
-              }}
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setShowPasswordDialog(false)}>Cancel</Button>
-            <Button onPress={handleChangePassword}>Change Password</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+        {/* Edit Profile Dialog */}
+        <Portal>
+          <Dialog visible={isEditing} onDismiss={() => setIsEditing(false)}>
+            <Dialog.Title style={styles.dialogTitle}>Edit Profile</Dialog.Title>
+            <Dialog.Content style={styles.dialogContent}>
+              <TextInput
+                label="First Name"
+                value={editData.firstName}
+                onChangeText={text => setEditData({ ...editData, firstName: text })}
+                style={styles.dialogInput}
+                theme={{
+                  ...paperTheme,
+                  colors: {
+                    ...paperTheme.colors,
+                    primary: theme.colors.primary,
+                    surface: theme.colors.surface,
+                    onSurface: theme.colors.text,
+                  },
+                }}
+              />
+              <TextInput
+                label="Last Name"
+                value={editData.lastName}
+                onChangeText={text => setEditData({ ...editData, lastName: text })}
+                style={styles.dialogInput}
+                theme={{
+                  ...paperTheme,
+                  colors: {
+                    ...paperTheme.colors,
+                    primary: theme.colors.primary,
+                    surface: theme.colors.surface,
+                    onSurface: theme.colors.text,
+                  },
+                }}
+              />
+              <TextInput
+                label="Avatar URL"
+                value={editData.avatarUrl}
+                onChangeText={text => setEditData({ ...editData, avatarUrl: text })}
+                style={styles.dialogInput}
+                theme={{
+                  ...paperTheme,
+                  colors: {
+                    ...paperTheme.colors,
+                    primary: theme.colors.primary,
+                    surface: theme.colors.surface,
+                    onSurface: theme.colors.text,
+                  },
+                }}
+              />
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={() => setIsEditing(false)}>Cancel</Button>
+              <Button onPress={handleSaveProfile}>Save</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
 
-      {/* Delete Account Dialog */}
-      <Portal>
-        <Dialog visible={showDeleteDialog} onDismiss={() => setShowDeleteDialog(false)}>
-          <Dialog.Title style={styles.dialogTitle}>Delete Account</Dialog.Title>
-          <Dialog.Content style={styles.dialogContent}>
-            <Text style={{ color: theme.colors.error, marginBottom: theme.spacing.md }}>
-              This action cannot be undone. All your data will be permanently deleted.
-            </Text>
-            <TextInput
-              label="Reason for deletion"
-              value={deleteReason}
-              onChangeText={setDeleteReason}
-              multiline
-              numberOfLines={3}
-              style={styles.dialogInput}
-              theme={{
-                ...paperTheme,
-                colors: {
-                  ...paperTheme.colors,
-                  primary: theme.colors.primary,
-                  surface: theme.colors.surface,
-                  onSurface: theme.colors.text,
-                },
-              }}
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setShowDeleteDialog(false)}>Cancel</Button>
-            <Button onPress={handleDeleteAccount} textColor={theme.colors.error}>
-              Delete Account
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
+        {/* Change Password Dialog */}
+        <Portal>
+          <Dialog visible={showPasswordDialog} onDismiss={() => setShowPasswordDialog(false)}>
+            <Dialog.Title style={styles.dialogTitle}>Change Password</Dialog.Title>
+            <Dialog.Content style={styles.dialogContent}>
+              <TextInput
+                label="Current Password"
+                value={passwordData.currentPassword}
+                onChangeText={text => setPasswordData({ ...passwordData, currentPassword: text })}
+                secureTextEntry
+                style={styles.dialogInput}
+                theme={{
+                  ...paperTheme,
+                  colors: {
+                    ...paperTheme.colors,
+                    primary: theme.colors.primary,
+                    surface: theme.colors.surface,
+                    onSurface: theme.colors.text,
+                  },
+                }}
+              />
+              <TextInput
+                label="New Password"
+                value={passwordData.newPassword}
+                onChangeText={text => setPasswordData({ ...passwordData, newPassword: text })}
+                secureTextEntry
+                style={styles.dialogInput}
+                theme={{
+                  ...paperTheme,
+                  colors: {
+                    ...paperTheme.colors,
+                    primary: theme.colors.primary,
+                    surface: theme.colors.surface,
+                    onSurface: theme.colors.text,
+                  },
+                }}
+              />
+              <TextInput
+                label="Confirm New Password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+                style={styles.dialogInput}
+                theme={{
+                  ...paperTheme,
+                  colors: {
+                    ...paperTheme.colors,
+                    primary: theme.colors.primary,
+                    surface: theme.colors.surface,
+                    onSurface: theme.colors.text,
+                  },
+                }}
+              />
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={() => setShowPasswordDialog(false)}>Cancel</Button>
+              <Button onPress={handleChangePassword}>Change Password</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+
+        {/* Delete Account Dialog */}
+        <Portal>
+          <Dialog visible={showDeleteDialog} onDismiss={() => setShowDeleteDialog(false)}>
+            <Dialog.Title style={styles.dialogTitle}>Delete Account</Dialog.Title>
+            <Dialog.Content style={styles.dialogContent}>
+              <Text style={{ color: theme.colors.error, marginBottom: theme.spacing.md }}>
+                This action cannot be undone. All your data will be permanently deleted.
+              </Text>
+              <TextInput
+                label="Reason for deletion"
+                value={deleteReason}
+                onChangeText={setDeleteReason}
+                multiline
+                numberOfLines={3}
+                style={styles.dialogInput}
+                theme={{
+                  ...paperTheme,
+                  colors: {
+                    ...paperTheme.colors,
+                    primary: theme.colors.primary,
+                    surface: theme.colors.surface,
+                    onSurface: theme.colors.text,
+                  },
+                }}
+              />
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={() => setShowDeleteDialog(false)}>Cancel</Button>
+              <Button onPress={handleDeleteAccount} textColor={theme.colors.error}>
+                Delete Account
+              </Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
       </Portal>
-    </Portal>
-  );
+    );
   } catch (error) {
     console.error('Error rendering ProfileModal:', error);
     // Return a simple fallback modal if there's a rendering error
@@ -958,7 +957,7 @@ export default function ProfileModal({
           <Dialog.Content>
             <Text>Unable to load profile. Please try again.</Text>
             <View style={styles.closeButtonContainer}>
-              <Button 
+              <Button
                 mode="text"
                 onPress={onDismiss}
                 style={styles.closeButton}

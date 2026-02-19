@@ -678,11 +678,4 @@ class NotificationAnalyticsService {
 // Export singleton instance
 export const notificationAnalyticsService = new NotificationAnalyticsService();
 
-// Export types
-export type {
-  NotificationAnalytics,
-  NotificationEngagement,
-  NotificationCampaign,
-  NotificationPerformanceMetrics,
-  NotificationDeliveryStatus,
-};
+// Types are exported inline above

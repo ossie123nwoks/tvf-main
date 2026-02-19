@@ -381,14 +381,14 @@ export class AudioPlayerService {
   /**
    * Handle audio interruptions
    */
-  async handleInterruption(interruption: Audio.InterruptionStatus): Promise<void> {
+  async handleInterruption(interruption: any): Promise<void> {
     await backgroundAudioService.handleInterruption(interruption);
   }
 
   /**
    * Handle audio focus changes (Android)
    */
-  async handleAudioFocusChange(focusChange: Audio.AudioFocusChange): Promise<void> {
+  async handleAudioFocusChange(focusChange: any): Promise<void> {
     await backgroundAudioService.handleAudioFocusChange(focusChange);
   }
 

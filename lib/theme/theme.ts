@@ -8,16 +8,23 @@ export interface AppTheme {
     onBackground: string;
     onSurface: string;
     onSurfaceVariant: string;
+    onPrimary: string;
     disabled: string;
     text: string;
     textSecondary: string;
     textTertiary: string;
     border: string;
     borderLight: string;
+    outline: string;
     error: string;
     success: string;
     warning: string;
     info: string;
+    // Container colors
+    primaryContainer: string;
+    errorContainer: string;
+    warningContainer: string;
+    successContainer: string;
     // Content-specific colors
     cardBackground: string;
     cardBorder: string;
@@ -84,16 +91,23 @@ export const lightTheme: AppTheme = {
     onBackground: '#1E293B', // Text primary
     onSurface: '#1E293B', // Text primary
     onSurfaceVariant: '#64748B', // Text secondary
+    onPrimary: '#FFFFFF', // Text on primary color
     disabled: '#94A3B8', // Text muted
     text: '#1E293B', // Text primary
     textSecondary: '#64748B', // Text secondary
     textTertiary: '#94A3B8', // Text muted
     border: '#E2E8F0', // Border from design system
     borderLight: '#F1F5F9', // Light border
+    outline: '#CBD5E1', // Outline color
     error: '#EF4444', // Red for errors
     success: '#10B981', // Green for success
     warning: '#F59E0B', // Amber for warnings
     info: '#1d3557', // Dark blue for info
+    // Container colors
+    primaryContainer: '#DBEAFE', // Light blue container
+    errorContainer: '#FEE2E2', // Light red container
+    warningContainer: '#FEF3C7', // Light amber container
+    successContainer: '#D1FAE5', // Light green container
     // Content-specific colors
     cardBackground: '#FFFFFF', // Card background
     cardBorder: '#E2E8F0', // Card border
@@ -160,16 +174,23 @@ export const darkTheme: AppTheme = {
     onBackground: '#F8FAFC', // Light text on dark background
     onSurface: '#F8FAFC', // Light text on dark surface
     onSurfaceVariant: '#CBD5E1', // Light text on dark surface variant
+    onPrimary: '#0F172A', // Dark text on primary color
     disabled: '#64748B', // Muted text
     text: '#F8FAFC', // Primary text
     textSecondary: '#CBD5E1', // Secondary text
     textTertiary: '#94A3B8', // Tertiary text
     border: '#334155', // Dark border
     borderLight: '#475569', // Light dark border
+    outline: '#475569', // Outline color
     error: '#F87171', // Red for errors
     success: '#34D399', // Green for success
     warning: '#FBBF24', // Amber for warnings
     info: '#60A5FA', // Bright sky blue for info
+    // Container colors
+    primaryContainer: '#1E3A5F', // Dark blue container
+    errorContainer: '#7F1D1D', // Dark red container
+    warningContainer: '#78350F', // Dark amber container
+    successContainer: '#064E3B', // Dark green container
     // Content-specific colors
     cardBackground: '#1E293B', // Dark card background
     cardBorder: '#334155', // Dark card border

@@ -415,7 +415,7 @@ export class CategorizationService {
       );
 
       const popularTags = Object.entries(tagCounts)
-        .sort(([, a], [, b]) => b - a)
+        .sort(([, a], [, b]) => (b as number) - (a as number))
         .slice(0, 10)
         .map(([tag]) => tag);
 
@@ -473,8 +473,8 @@ export class CategorizationService {
         score += (matchingTags.length / tags.length) * 0.3;
 
         // Check for keyword matches
-        const keywords = category.description.split(' ').filter(word => word.length > 3);
-        const keywordMatches = keywords.filter(keyword =>
+        const keywords = category.description.split(' ').filter((word: string) => word.length > 3);
+        const keywordMatches = keywords.filter((keyword: string) =>
           searchText.includes(keyword.toLowerCase())
         );
         score += (keywordMatches.length / keywords.length) * 0.3;

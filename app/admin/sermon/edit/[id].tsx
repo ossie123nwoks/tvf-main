@@ -49,7 +49,7 @@ export default function EditSermonPage() {
         // Clean the ID - remove any URL encoding or extra characters
         const cleanId = decodeURIComponent(id).trim();
         console.log('Loading sermon with ID:', cleanId);
-        
+
         // Get sermon data
         const sermonData = await AdminService.getSermonById(cleanId);
         console.log('Loaded sermon data:', sermonData);
@@ -132,7 +132,7 @@ export default function EditSermonPage() {
               categoryId: sermon.category_id,
               seriesId: sermon.series_id,
               isPublished: sermon.is_published,
-              scheduledAt: sermon.scheduled_at,
+              scheduledAt: (sermon as any).scheduled_at,
             }}
           />
         </ScrollView>

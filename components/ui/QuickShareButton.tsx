@@ -1,5 +1,5 @@
 import React from 'react';
-import { Share, Alert } from 'react-native';
+import { Share, Alert, ShareAction } from 'react-native';
 import { IconButton, useTheme } from 'react-native-paper';
 import { generateDeepLink } from '@/lib/utils/deepLinking';
 
@@ -10,7 +10,7 @@ export interface QuickShareButtonProps {
   author?: string;
   date?: string;
   size?: number;
-  onShare?: (shareResult: Share.ShareResult) => void;
+  onShare?: (shareResult: ShareAction) => void;
 }
 
 export const QuickShareButton: React.FC<QuickShareButtonProps> = ({

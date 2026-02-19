@@ -49,7 +49,7 @@ export default function EditArticlePage() {
         // Clean the ID - remove any URL encoding or extra characters
         const cleanId = decodeURIComponent(id).trim();
         console.log('Loading article with ID:', cleanId);
-        
+
         // Get article data
         const articleData = await AdminService.getArticleById(cleanId);
         console.log('Loaded article data:', articleData);
@@ -124,12 +124,12 @@ export default function EditArticlePage() {
             initialData={{
               title: article.title,
               content: article.content,
-              description: article.description,
+              description: (article as any).description,
               author: article.author,
               thumbnailUrl: article.thumbnail_url,
               categoryId: article.category_id,
               isPublished: article.is_published,
-              scheduledAt: article.scheduled_at,
+              scheduledAt: (article as any).scheduled_at,
             }}
           />
         </ScrollView>

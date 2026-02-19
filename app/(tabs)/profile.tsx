@@ -38,49 +38,49 @@ export default function Profile() {
   // Helper function to check if avatar URL is a default Google avatar (to avoid logo conflicts)
   const isGoogleDefaultAvatar = (url?: string): boolean => {
     if (!url) return false;
-    
+
     try {
       // Check if it's a Google avatar URL
       if (url.includes('googleusercontent.com') || url.includes('google.com')) {
         const urlObj = new URL(url);
         const pathname = urlObj.pathname.toLowerCase();
-        
+
         // Google default avatars have these patterns that include logo overlay:
         // - Contains '/default' in path
         // - Contains '/photo.jpg' (generic default)
         // - Has query parameters like '=s96-c' where 'c' indicates default
         // - Path contains hash-like segments that indicate default avatar
-        const isDefault = 
-          pathname.includes('/default') || 
+        const isDefault =
+          pathname.includes('/default') ||
           pathname.includes('/photo.jpg') ||
           pathname.match(/\/a\/default-/i) ||
           url.match(/=s\d+-c\b/i) || // Pattern like =s96-c indicates default
           url.match(/\/photo\/default/);
-        
-        return isDefault;
+
+        return !!isDefault;
       }
-      
+
       return false;
     } catch (error) {
       // If URL parsing fails, check for default patterns directly in the URL string
       const lowerUrl = url.toLowerCase();
-      return lowerUrl.includes('/default') || 
-             lowerUrl.includes('/photo.jpg') ||
-             lowerUrl.match(/=s\d+-c\b/i) !== null ||
-             lowerUrl.match(/\/photo\/default/) !== null;
+      return lowerUrl.includes('/default') ||
+        lowerUrl.includes('/photo.jpg') ||
+        lowerUrl.match(/=s\d+-c\b/i) !== null ||
+        lowerUrl.match(/\/photo\/default/) !== null;
     }
   };
 
   // Helper function to get the avatar source (either cleaned URL or undefined for fallback)
   const getAvatarSource = (url?: string): string | undefined => {
     if (!url) return undefined;
-    
+
     // Only replace default Google avatars with initials to avoid Google logo overlay conflicts
     // Custom Google avatars should display normally
     if (isGoogleDefaultAvatar(url)) {
       return undefined; // Return undefined to use initials fallback for default avatars
     }
-    
+
     // For all other avatars (including custom Google avatars), return the URL as-is
     return url;
   };
@@ -540,9 +540,9 @@ export default function Profile() {
                     >
                       Save
                     </Button>
-                    <Button 
-                      mode="outlined" 
-                      onPress={handleCancelEdit} 
+                    <Button
+                      mode="outlined"
+                      onPress={handleCancelEdit}
                       style={[styles.actionButton, styles.secondaryButton]}
                       textColor={theme.colors.primary}
                     >
@@ -573,9 +573,9 @@ export default function Profile() {
                     <Text style={styles.rowSubtext}>{user.isEmailVerified ? 'Yes' : 'No'}</Text>
                   </View>
 
-                  <Button 
-                    mode="contained" 
-                    onPress={() => setIsEditing(true)} 
+                  <Button
+                    mode="contained"
+                    onPress={() => setIsEditing(true)}
                     style={styles.primaryButton}
                     buttonColor={theme.colors.primary}
                     textColor="#FFFFFF"
@@ -854,10 +854,10 @@ export default function Profile() {
                   Change Password
                 </Button>
 
-                <Button 
-                  mode="outlined" 
-                  onPress={handleSignOut} 
-                  style={[styles.actionButton, styles.secondaryButton]} 
+                <Button
+                  mode="outlined"
+                  onPress={handleSignOut}
+                  style={[styles.actionButton, styles.secondaryButton]}
                   icon="logout"
                   textColor={theme.colors.primary}
                 >

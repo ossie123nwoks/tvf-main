@@ -563,11 +563,4 @@ class NotificationPreferencesService {
 // Export singleton instance
 export const notificationPreferencesService = new NotificationPreferencesService();
 
-// Export types
-export type {
-  NotificationPreference,
-  NotificationSubPreference,
-  NotificationPreferenceGroup,
-  NotificationSchedule,
-  NotificationFrequency,
-};
+// Types are exported inline above

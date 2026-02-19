@@ -280,19 +280,19 @@ export default function ArticlesScreen() {
       // Handle series and topics filtering
       if (selectedSeries || selectedTopics.length > 0) {
         let filteredArticles: Article[] = [];
-        
+
         // Get articles by series or topics
         if (selectedSeries && selectedTopics.length > 0) {
           // Both series and topics selected
           // Get articles from the series
           const seriesArticles = await ContentService.getArticlesBySeries(selectedSeries);
-          
+
           // Get articles with any of the selected topics
           const topicArticles = await ContentService.getArticlesByTopics(selectedTopics);
-          
+
           // Create a Set of article IDs that have at least one of the selected topics
           const topicArticleIds = new Set(topicArticles.map(a => a.id));
-          
+
           // Filter articles: must be in series AND have at least one of the selected topics
           filteredArticles = seriesArticles.filter(article => topicArticleIds.has(article.id));
         } else if (selectedSeries) {
@@ -301,7 +301,7 @@ export default function ArticlesScreen() {
         } else {
           // Only topics selected - articles with ANY of the selected topics
           const topicArticles = await ContentService.getArticlesByTopics(selectedTopics);
-          
+
           // Remove duplicates (an article can have multiple of the selected topics)
           const uniqueArticleIds = new Set<string>();
           filteredArticles = topicArticles.filter(article => {
@@ -316,7 +316,7 @@ export default function ArticlesScreen() {
         // Apply search query filter
         if (searchQuery) {
           const query = searchQuery.toLowerCase();
-          filteredArticles = filteredArticles.filter(article => 
+          filteredArticles = filteredArticles.filter(article =>
             article.title.toLowerCase().includes(query) ||
             article.author.toLowerCase().includes(query) ||
             article.excerpt?.toLowerCase().includes(query) ||
@@ -327,7 +327,7 @@ export default function ArticlesScreen() {
         // Apply sorting
         filteredArticles.sort((a, b) => {
           let compareResult = 0;
-          
+
           switch (sortBy) {
             case 'title':
               compareResult = a.title.localeCompare(b.title);
@@ -340,7 +340,7 @@ export default function ArticlesScreen() {
               compareResult = new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
               break;
           }
-          
+
           return sortOrder === 'asc' ? -compareResult : compareResult;
         });
 
@@ -375,7 +375,7 @@ export default function ArticlesScreen() {
       setCurrentPage(page + 1);
     } catch (error) {
       console.error('Failed to load articles:', error);
-      
+
       // Show user-friendly error message
       if (reset) {
         setError('Failed to load articles. Please try again.');
@@ -389,12 +389,12 @@ export default function ArticlesScreen() {
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
-    
+
     // Clear existing timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-    
+
     if (query.length >= 2) {
       // Debounce search
       searchTimeoutRef.current = setTimeout(() => {
@@ -527,10 +527,10 @@ export default function ArticlesScreen() {
               }}
               activeOpacity={0.7}
             >
-              <MaterialIcons 
-                name="share" 
-                size={32} 
-                color={theme.colors.primary} 
+              <MaterialIcons
+                name="share"
+                size={32}
+                color={theme.colors.primary}
               />
             </TouchableOpacity>
             <TouchableOpacity
@@ -542,10 +542,10 @@ export default function ArticlesScreen() {
               }}
               activeOpacity={0.7}
             >
-              <MaterialIcons 
-                name="bookmark" 
-                size={32} 
-                color={theme.colors.primary} 
+              <MaterialIcons
+                name="bookmark"
+                size={32}
+                color={theme.colors.primary}
               />
             </TouchableOpacity>
           </View>
@@ -556,7 +556,7 @@ export default function ArticlesScreen() {
 
   const keyExtractor = (item: Article) => item.id;
 
-  const getItemLayout = (data: Article[] | null | undefined, index: number) => {
+  const getItemLayout = (data: ArrayLike<Article> | null | undefined, index: number) => {
     if (!data) return { length: 0, offset: 0, index };
     const itemHeight = 450; // Approximate height for article card
     return {
@@ -571,22 +571,22 @@ export default function ArticlesScreen() {
     <>
       <View style={styles.header}>
         <Text style={styles.title}>Articles</Text>
-        
+
         {/* Sort Button */}
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: theme.spacing.sm }}>
           <TouchableOpacity
             onPress={() => setSortModalVisible(true)}
-            style={{ 
+            style={{
               padding: theme.spacing.sm,
               borderRadius: theme.borderRadius.sm,
               backgroundColor: theme.colors.surface,
             }}
             activeOpacity={0.7}
           >
-            <MaterialIcons 
-              name="sort" 
-              size={24} 
-              color={theme.colors.primary} 
+            <MaterialIcons
+              name="sort"
+              size={24}
+              color={theme.colors.primary}
             />
           </TouchableOpacity>
         </View>
@@ -617,11 +617,11 @@ export default function ArticlesScreen() {
           placeholder="All Series"
           variant="light"
         />
-        
+
         <CustomDropdown
           options={topics.map(t => ({ id: t.id, label: t.name, value: t.id }))}
           selectedValues={selectedTopics}
-          onSelect={() => {}}
+          onSelect={() => { }}
           onMultiSelect={(values) => setSelectedTopics(values)}
           placeholder="All Topics"
           variant="dark"
@@ -630,7 +630,7 @@ export default function ArticlesScreen() {
 
         <TouchableOpacity
           onPress={clearFilters}
-          style={{ 
+          style={{
             marginBottom: theme.spacing.sm,
             marginLeft: theme.spacing.sm,
             height: 48,
@@ -640,10 +640,10 @@ export default function ArticlesScreen() {
           }}
           activeOpacity={0.7}
         >
-          <MaterialIcons 
-            name="delete" 
-            size={24} 
-            color={theme.colors.error} 
+          <MaterialIcons
+            name="delete"
+            size={24}
+            color={theme.colors.error}
           />
         </TouchableOpacity>
       </View>
@@ -737,7 +737,7 @@ export default function ArticlesScreen() {
         animationType="fade"
         onRequestClose={() => setSortModalVisible(false)}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           style={{
             flex: 1,
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -747,7 +747,7 @@ export default function ArticlesScreen() {
           activeOpacity={1}
           onPress={() => setSortModalVisible(false)}
         >
-          <TouchableOpacity 
+          <TouchableOpacity
             style={{
               backgroundColor: theme.colors.surface,
               borderRadius: 12,
@@ -766,7 +766,7 @@ export default function ArticlesScreen() {
             }}>
               Sort By
             </Text>
-            
+
             <TouchableOpacity
               style={{
                 padding: theme.spacing.md,

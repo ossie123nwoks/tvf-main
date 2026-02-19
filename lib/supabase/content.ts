@@ -116,7 +116,7 @@ export class ContentService {
     }
 
     // Send notification for new sermon if it's published
-    if (data.is_published && notificationOptions !== false) {
+    if (data.is_published && notificationOptions !== null) {
       try {
         await contentNotificationService.notifyNewSermon(data, notificationOptions);
       } catch (notificationError) {
@@ -148,7 +148,7 @@ export class ContentService {
     }
 
     // Send notification if sermon is being featured
-    if (updates.is_featured && data.is_featured && notificationOptions !== false) {
+    if (updates.is_featured && data.is_featured && notificationOptions !== null) {
       try {
         await contentNotificationService.notifyFeaturedContent(data, notificationOptions);
       } catch (notificationError) {
@@ -311,7 +311,7 @@ export class ContentService {
     }
 
     // Send notification for new article if it's published
-    if (data.is_published && notificationOptions !== false) {
+    if (data.is_published && notificationOptions !== null) {
       try {
         await contentNotificationService.notifyNewArticle(data, notificationOptions);
       } catch (notificationError) {
@@ -343,7 +343,7 @@ export class ContentService {
     }
 
     // Send notification if article is being featured
-    if (updates.is_featured && data.is_featured && notificationOptions !== false) {
+    if (updates.is_featured && data.is_featured && notificationOptions !== null) {
       try {
         await contentNotificationService.notifyFeaturedContent(data, notificationOptions);
       } catch (notificationError) {
@@ -675,10 +675,10 @@ export class ContentService {
     }
 
     // Extract sermons from the junction table results
-    const sermons = data?.map(item => item.sermons).filter(Boolean) || [];
-    
+    const sermons = (data?.map((item: any) => item.sermons).filter(Boolean) || []) as Sermon[];
+
     // Filter only published sermons
-    return sermons.filter(sermon => sermon.is_published);
+    return sermons.filter((sermon: Sermon) => sermon.is_published);
   }
 
   static async getTopicsForSermon(sermonId: string): Promise<Topic[]> {
@@ -694,7 +694,7 @@ export class ContentService {
     }
 
     // Extract topics from the junction table results
-    return data?.map(item => item.topics).filter(Boolean) || [];
+    return (data?.map(item => item.topics).filter(Boolean) || []) as unknown as Topic[];
   }
 
   static async assignTopicsToSermon(sermonId: string, topicIds: string[]): Promise<void> {
@@ -735,10 +735,10 @@ export class ContentService {
     }
 
     // Extract articles from the junction table results
-    const articles = data?.map(item => item.articles).filter(Boolean) || [];
-    
+    const articles = (data?.map((item: any) => item.articles).filter(Boolean) || []) as Article[];
+
     // Filter only published articles
-    return articles.filter(article => article.is_published);
+    return articles.filter((article: Article) => article.is_published);
   }
 
   static async getArticlesByTopics(topicIds: string[]): Promise<Article[]> {
@@ -754,10 +754,10 @@ export class ContentService {
     }
 
     // Extract articles from the junction table results
-    const articles = data?.map(item => item.articles).filter(Boolean) || [];
-    
+    const articlesByTopics = (data?.map((item: any) => item.articles).filter(Boolean) || []) as Article[];
+
     // Filter only published articles
-    return articles.filter(article => article.is_published);
+    return articlesByTopics.filter((article: Article) => article.is_published);
   }
 
   static async getTopicsForArticle(articleId: string): Promise<Topic[]> {
@@ -773,7 +773,7 @@ export class ContentService {
     }
 
     // Extract topics from the junction table results
-    return data?.map(item => item.topics).filter(Boolean) || [];
+    return (data?.map((item: any) => item.topics).filter(Boolean) || []) as Topic[];
   }
 
   static async getSeriesForArticle(articleId: string): Promise<Series[]> {
@@ -789,7 +789,7 @@ export class ContentService {
     }
 
     // Extract series from the junction table results
-    return data?.map(item => item.series).filter(Boolean) || [];
+    return (data?.map((item: any) => item.series).filter(Boolean) || []) as Series[];
   }
 
   static async assignTopicsToArticle(articleId: string, topicIds: string[]): Promise<void> {

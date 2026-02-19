@@ -26,7 +26,7 @@ import { AdminService } from '@/lib/supabase/admin';
 import { useAdminAuth } from './AdminAuthGuard';
 import { useRouter } from 'expo-router';
 import CustomDropdown from '@/components/ui/CustomDropdown';
-import { Sermon, Series, Topic } from '@/types/content';
+import { Sermon, Topic } from '@/types/content';
 
 interface Series {
   id: string;
@@ -49,16 +49,16 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
   const { theme } = useTheme();
   const { checkPermission } = useAdminAuth();
   const router = useRouter();
-  
+
   // Series state
   const [series, setSeries] = useState<Series[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  
+
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
@@ -271,11 +271,11 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
       ];
 
       // Filter by search query
-      const filteredSeries = search 
-        ? mockSeries.filter(series => 
-            series.name.toLowerCase().includes(search.toLowerCase()) ||
-            series.description?.toLowerCase().includes(search.toLowerCase())
-          )
+      const filteredSeries = search
+        ? mockSeries.filter(series =>
+          series.name.toLowerCase().includes(search.toLowerCase()) ||
+          series.description?.toLowerCase().includes(search.toLowerCase())
+        )
         : mockSeries;
 
       setSeries(filteredSeries);
@@ -292,7 +292,7 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     setSearchLoading(true);
-    
+
     try {
       await loadSeries(1, query);
     } finally {
@@ -343,7 +343,7 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
   const loadAllSeries = async () => {
     try {
       const seriesData = await AdminService.getAllSeries();
-      setAllSeries(seriesData);
+      setAllSeries(seriesData as unknown as Series[]);
     } catch (err) {
       console.error('Failed to load series:', err);
     }
@@ -354,10 +354,10 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
     try {
       setSavingSermonId(sermonId);
       await AdminService.assignSermonToSeries(sermonId, seriesId);
-      
+
       // Update local state
-      setSermons(prev => prev.map(sermon => 
-        sermon.id === sermonId 
+      setSermons(prev => prev.map(sermon =>
+        sermon.id === sermonId
           ? { ...sermon, series_id: seriesId || undefined, series: seriesId ? allSeries.find(s => s.id === seriesId) : undefined }
           : sermon
       ));
@@ -413,8 +413,8 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
             <Text style={{ color: theme.colors.error, textAlign: 'center' }}>
               {sermonsError}
             </Text>
-            <Button 
-              mode="outlined" 
+            <Button
+              mode="outlined"
               onPress={loadSermons}
               style={{ marginTop: theme.spacing.md }}
             >
@@ -424,10 +424,10 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
         </Card>
       ) : sermons.length === 0 ? (
         <View style={styles.emptyState}>
-          <MaterialIcons 
-            name="music-note" 
-            size={48} 
-            color={theme.colors.textSecondary} 
+          <MaterialIcons
+            name="music-note"
+            size={48}
+            color={theme.colors.textSecondary}
           />
           <Text style={styles.emptyText}>
             No sermons found.
@@ -526,119 +526,119 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
             />
           </View>
 
-      {/* Series List */}
-      <ScrollView 
-        style={styles.seriesList} 
-        contentContainerStyle={styles.seriesListContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {loading && series.length === 0 ? (
-          <View style={styles.emptyState}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={styles.emptyText}>Loading series...</Text>
-          </View>
-        ) : error ? (
-          <Card style={styles.errorCard} elevation={1}>
-            <View style={styles.errorContent}>
-              <Text style={{ color: theme.colors.error, textAlign: 'center', marginBottom: theme.spacing.md }}>
-                {error}
-              </Text>
-              <Button 
-                mode="outlined" 
-                onPress={() => loadSeries(currentPage, searchQuery)}
-                style={{ alignSelf: 'center' }}
-              >
-                Retry
-              </Button>
-            </View>
-          </Card>
-        ) : series.length === 0 ? (
-          <View style={styles.emptyState}>
-            <MaterialIcons 
-              name="book" 
-              size={48} 
-              color={theme.colors.textSecondary} 
-            />
-            <Text style={styles.emptyText}>
-              No series found. {canCreate && 'Create your first one!'}
-            </Text>
-          </View>
-        ) : (
-          series.map((seriesItem) => (
-            <Card key={seriesItem.id} style={styles.seriesCard} elevation={2}>
-              <Card.Content style={{ padding: theme.spacing.md }}>
-                <View style={styles.seriesHeader}>
-                  <View style={styles.seriesInfo}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <MaterialIcons 
-                        name={seriesItem.icon as any} 
-                        size={20} 
-                        color={seriesItem.color}
-                        style={styles.seriesIcon}
-                      />
-                      <Text style={styles.seriesName}>{seriesItem.name}</Text>
-                    </View>
-                    {seriesItem.description && (
-                      <Text style={styles.seriesDescription}>{seriesItem.description}</Text>
-                    )}
-                    <Text style={styles.seriesMeta}>
-                      {seriesItem.sermon_count || 0} sermons • Created {new Date(seriesItem.created_at).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <View style={styles.actionButtons}>
-                    <Chip
-                      style={{ backgroundColor: seriesItem.color + '20' }}
-                      textStyle={{ color: seriesItem.color }}
-                    >
-                      {seriesItem.sermon_count || 0} sermons
-                    </Chip>
-                    {canEdit && (
-                      <IconButton
-                        icon="pencil"
-                        size={20}
-                        onPress={() => router.push(`/admin/series-edit/${seriesItem.id}`)}
-                      />
-                    )}
-                    {canDelete && (
-                      <IconButton
-                        icon="delete"
-                        size={20}
-                        iconColor={theme.colors.error}
-                        onPress={() => handleDelete(seriesItem.id, seriesItem.name)}
-                      />
-                    )}
-                  </View>
+          {/* Series List */}
+          <ScrollView
+            style={styles.seriesList}
+            contentContainerStyle={styles.seriesListContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {loading && series.length === 0 ? (
+              <View style={styles.emptyState}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <Text style={styles.emptyText}>Loading series...</Text>
+              </View>
+            ) : error ? (
+              <Card style={styles.errorCard} elevation={1}>
+                <View style={styles.errorContent}>
+                  <Text style={{ color: theme.colors.error, textAlign: 'center', marginBottom: theme.spacing.md }}>
+                    {error}
+                  </Text>
+                  <Button
+                    mode="outlined"
+                    onPress={() => loadSeries(currentPage, searchQuery)}
+                    style={{ alignSelf: 'center' }}
+                  >
+                    Retry
+                  </Button>
                 </View>
-              </Card.Content>
-            </Card>
-          ))
-        )}
+              </Card>
+            ) : series.length === 0 ? (
+              <View style={styles.emptyState}>
+                <MaterialIcons
+                  name="book"
+                  size={48}
+                  color={theme.colors.textSecondary}
+                />
+                <Text style={styles.emptyText}>
+                  No series found. {canCreate && 'Create your first one!'}
+                </Text>
+              </View>
+            ) : (
+              series.map((seriesItem) => (
+                <Card key={seriesItem.id} style={styles.seriesCard} elevation={2}>
+                  <Card.Content style={{ padding: theme.spacing.md }}>
+                    <View style={styles.seriesHeader}>
+                      <View style={styles.seriesInfo}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <MaterialIcons
+                            name={seriesItem.icon as any}
+                            size={20}
+                            color={seriesItem.color}
+                            style={styles.seriesIcon}
+                          />
+                          <Text style={styles.seriesName}>{seriesItem.name}</Text>
+                        </View>
+                        {seriesItem.description && (
+                          <Text style={styles.seriesDescription}>{seriesItem.description}</Text>
+                        )}
+                        <Text style={styles.seriesMeta}>
+                          {seriesItem.sermon_count || 0} sermons • Created {new Date(seriesItem.created_at).toLocaleDateString()}
+                        </Text>
+                      </View>
+                      <View style={styles.actionButtons}>
+                        <Chip
+                          style={{ backgroundColor: seriesItem.color + '20' }}
+                          textStyle={{ color: seriesItem.color }}
+                        >
+                          {seriesItem.sermon_count || 0} sermons
+                        </Chip>
+                        {canEdit && (
+                          <IconButton
+                            icon="pencil"
+                            size={20}
+                            onPress={() => router.push(`/admin/series-edit/${seriesItem.id}`)}
+                          />
+                        )}
+                        {canDelete && (
+                          <IconButton
+                            icon="delete"
+                            size={20}
+                            iconColor={theme.colors.error}
+                            onPress={() => handleDelete(seriesItem.id, seriesItem.name)}
+                          />
+                        )}
+                      </View>
+                    </View>
+                  </Card.Content>
+                </Card>
+              ))
+            )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <View style={styles.paginationContainer}>
-            <Button
-              mode="outlined"
-              onPress={() => loadSeries(currentPage - 1, searchQuery)}
-              disabled={currentPage === 1}
-              style={styles.paginationButton}
-            >
-              Previous
-            </Button>
-            <Text style={{ marginHorizontal: theme.spacing.md }}>
-              {currentPage} of {totalPages}
-            </Text>
-            <Button
-              mode="outlined"
-              onPress={() => loadSeries(currentPage + 1, searchQuery)}
-              disabled={currentPage === totalPages}
-              style={styles.paginationButton}
-            >
-              Next
-            </Button>
-          </View>
-        )}
-      </ScrollView>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <View style={styles.paginationContainer}>
+                <Button
+                  mode="outlined"
+                  onPress={() => loadSeries(currentPage - 1, searchQuery)}
+                  disabled={currentPage === 1}
+                  style={styles.paginationButton}
+                >
+                  Previous
+                </Button>
+                <Text style={{ marginHorizontal: theme.spacing.md }}>
+                  {currentPage} of {totalPages}
+                </Text>
+                <Button
+                  mode="outlined"
+                  onPress={() => loadSeries(currentPage + 1, searchQuery)}
+                  disabled={currentPage === totalPages}
+                  style={styles.paginationButton}
+                >
+                  Next
+                </Button>
+              </View>
+            )}
+          </ScrollView>
 
           {/* Create FAB */}
           {canCreate && (

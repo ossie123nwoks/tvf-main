@@ -25,7 +25,7 @@ export default function ArticleEditForm() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { checkPermission } = useAdminAuth();
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [article, setArticle] = useState<Article | null>(null);
@@ -37,7 +37,7 @@ export default function ArticleEditForm() {
     is_published: true,
   });
 
-  const canEdit = checkPermission(['content.articles.edit']);
+  const canEdit = checkPermission('content.articles.edit');
 
   useEffect(() => {
     if (id) {
@@ -54,9 +54,15 @@ export default function ArticleEditForm() {
         id: id!,
         title: 'Sample Article',
         content: 'This is a sample article content with detailed information about the topic.',
+        excerpt: 'This is a sample article excerpt.',
         author: 'John Doe',
         thumbnail_url: 'https://example.com/thumbnail.jpg',
+        category_id: 'general',
+        tags: [],
+        views: 0,
+        is_featured: false,
         is_published: true,
+        published_at: new Date().toISOString(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -181,7 +187,7 @@ export default function ArticleEditForm() {
             <Text style={[styles.title, { color: theme.colors.onSurface }]}>
               Edit Article
             </Text>
-            
+
             <TextInput
               label="Article Title *"
               value={formData.title}
@@ -189,7 +195,7 @@ export default function ArticleEditForm() {
               style={styles.input}
               mode="outlined"
             />
-            
+
             <TextInput
               label="Author *"
               value={formData.author}
@@ -197,7 +203,7 @@ export default function ArticleEditForm() {
               style={styles.input}
               mode="outlined"
             />
-            
+
             <TextInput
               label="Content *"
               value={formData.content}
@@ -207,7 +213,7 @@ export default function ArticleEditForm() {
               multiline
               numberOfLines={8}
             />
-            
+
             <TextInput
               label="Thumbnail URL"
               value={formData.thumbnail_url}
@@ -216,7 +222,7 @@ export default function ArticleEditForm() {
               mode="outlined"
               placeholder="https://example.com/thumbnail.jpg"
             />
-            
+
             <View style={styles.switchContainer}>
               <Text style={[styles.switchLabel, { color: theme.colors.onSurface }]}>
                 Published
@@ -229,7 +235,7 @@ export default function ArticleEditForm() {
           </Card.Content>
         </Card>
       </ScrollView>
-      
+
       <View style={styles.buttonContainer}>
         <Button
           mode="outlined"
@@ -249,7 +255,7 @@ export default function ArticleEditForm() {
           Save Changes
         </Button>
       </View>
-      
+
       {canEdit && (
         <Button
           mode="outlined"

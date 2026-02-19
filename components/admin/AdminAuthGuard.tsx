@@ -92,10 +92,10 @@ export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({
     return (
       <View style={styles.container}>
         <Card style={styles.card}>
-          <MaterialIcons 
-            name="lock" 
-            size={60} 
-            color={theme.colors.error} 
+          <MaterialIcons
+            name="lock"
+            size={60}
+            color={theme.colors.error}
             style={styles.icon}
           />
           <Text style={styles.title}>Authentication Required</Text>
@@ -103,9 +103,9 @@ export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({
             {fallbackMessage || 'Please sign in to access the admin dashboard'}
           </Text>
           {showSignInButton && (
-            <Button 
-              mode="contained" 
-              onPress={() => router.push('/auth')} 
+            <Button
+              mode="contained"
+              onPress={() => router.push('/auth')}
               style={styles.button}
               buttonColor={theme.colors.primary}
               textColor={theme.colors.onPrimary}
@@ -123,10 +123,10 @@ export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({
     return (
       <View style={styles.container}>
         <Card style={styles.card}>
-          <MaterialIcons 
-            name="admin-panel-settings" 
-            size={60} 
-            color={theme.colors.error} 
+          <MaterialIcons
+            name="admin-panel-settings"
+            size={60}
+            color={theme.colors.error}
             style={styles.icon}
           />
           <Text style={styles.title}>Access Denied</Text>
@@ -138,9 +138,9 @@ export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({
               Current role: {user.role || 'None'}
             </Text>
           </View>
-          <Button 
-            mode="outlined" 
-            onPress={() => router.back()} 
+          <Button
+            mode="outlined"
+            onPress={() => router.back()}
             style={styles.button}
           >
             Go Back
@@ -156,32 +156,32 @@ export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({
     const mappedRole = user.role === 'admin' ? 'super_admin' : user.role;
     if (mappedRole !== requiredRole) {
       return (
-      <View style={styles.container}>
-        <Card style={styles.card}>
-          <MaterialIcons 
-            name="shield-account" 
-            size={60} 
-            color={theme.colors.error} 
-            style={styles.icon}
-          />
-          <Text style={styles.title}>Insufficient Permissions</Text>
-          <Text style={styles.message}>
-            This section requires {requiredRole} role or higher.
-          </Text>
-          <View style={styles.roleInfo}>
-            <Text style={styles.roleText}>
-              Current role: {user.role}
+        <View style={styles.container}>
+          <Card style={styles.card}>
+            <MaterialIcons
+              name="shield"
+              size={60}
+              color={theme.colors.error}
+              style={styles.icon}
+            />
+            <Text style={styles.title}>Insufficient Permissions</Text>
+            <Text style={styles.message}>
+              This section requires {requiredRole} role or higher.
             </Text>
-          </View>
-          <Button 
-            mode="outlined" 
-            onPress={() => router.back()} 
-            style={styles.button}
-          >
-            Go Back
-          </Button>
-        </Card>
-      </View>
+            <View style={styles.roleInfo}>
+              <Text style={styles.roleText}>
+                Current role: {user.role}
+              </Text>
+            </View>
+            <Button
+              mode="outlined"
+              onPress={() => router.back()}
+              style={styles.button}
+            >
+              Go Back
+            </Button>
+          </Card>
+        </View>
       );
     }
   }
@@ -190,7 +190,7 @@ export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({
   if (requiredPermissions.length > 0) {
     // Map 'admin' role to 'super_admin' for compatibility
     const mappedRole = user.role === 'admin' ? 'super_admin' : user.role;
-    const hasAllPermissions = requiredPermissions.every(permission => 
+    const hasAllPermissions = requiredPermissions.every(permission =>
       hasPermission(mappedRole as AdminRole, permission)
     );
 
@@ -198,10 +198,10 @@ export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({
       return (
         <View style={styles.container}>
           <Card style={styles.card}>
-            <MaterialIcons 
-              name="security" 
-              size={60} 
-              color={theme.colors.error} 
+            <MaterialIcons
+              name="security"
+              size={60}
+              color={theme.colors.error}
               style={styles.icon}
             />
             <Text style={styles.title}>Permission Denied</Text>
@@ -213,9 +213,9 @@ export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({
                 Required permissions: {requiredPermissions.join(', ')}
               </Text>
             </View>
-            <Button 
-              mode="outlined" 
-              onPress={() => router.back()} 
+            <Button
+              mode="outlined"
+              onPress={() => router.back()}
               style={styles.button}
             >
               Go Back

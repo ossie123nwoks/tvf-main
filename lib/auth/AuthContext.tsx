@@ -90,7 +90,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const session = {
             accessToken: sessionData.session.access_token,
             refreshToken: sessionData.session.refresh_token,
-            expiresAt: new Date(sessionData.session.expires_at).getTime(),
+            expiresAt: (() => {
+              const exp = sessionData.session.expires_at;
+              if (exp == null) return Date.now() + 3600000;
+              const ms = typeof exp === 'number' ? exp * 1000 : new Date(exp).getTime();
+              return ms;
+            })(),
             user: sessionData.user,
           };
 
@@ -114,12 +119,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               const session = {
                 accessToken: reauthResult.session.session!.access_token,
                 refreshToken: reauthResult.session.session!.refresh_token,
-                expiresAt: new Date(reauthResult.session.session!.expires_at).getTime(),
-                user: reauthResult.session.user!,
+                expiresAt: (() => {
+                  const exp = reauthResult.session!.session!.expires_at;
+                  if (exp == null) return Date.now() + 3600000;
+                  const ms = typeof exp === 'number' ? exp * 1000 : new Date(exp).getTime();
+                  return ms;
+                })(),
+                user: reauthResult.session.user as unknown as User,
               };
 
               setAuthState({
-                user: reauthResult.session.user,
+                user: reauthResult.session.user as unknown as User,
                 session,
                 loading: false,
                 error: null,
@@ -175,7 +185,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         if (event === 'SIGNED_IN' && session) {
           console.log('✅ SIGNED_IN event received, processing...');
-          
+
           // Create user immediately from session.user to avoid blocking on network
           const createUserFromSession = (sessionUser: any) => {
             if (!sessionUser) return null;
@@ -204,27 +214,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               },
             };
           };
-          
+
           // Create user immediately from session to unblock authentication
           let user = createUserFromSession(session.user);
           console.log('✅ User created from session:', user ? `${user.email}` : 'null');
-          
+
           // Convert expires_at to milliseconds if it's in seconds (Supabase returns seconds)
-          const expiresAt = session.expires_at 
+          const expiresAt = session.expires_at
             ? (session.expires_at > 10000000000 ? session.expires_at : session.expires_at * 1000)
             : Date.now() + 3600000; // Default to 1 hour if missing
-          
+
           // Set auth state immediately to unblock the UI
           console.log('🔄 Setting auth state immediately...');
           setAuthState({
-            user,
+            user: user as unknown as User,
             session: session
               ? {
-                  accessToken: session.access_token,
-                  refreshToken: session.refresh_token,
-                  expiresAt,
-                  user: user!,
-                }
+                accessToken: session.access_token,
+                refreshToken: session.refresh_token,
+                expiresAt,
+                user: (user as unknown as User)!,
+              }
               : null,
             loading: false,
             error: null,
@@ -232,13 +242,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             isInitialized: true,
           });
           console.log('✅ Auth state set, user can now proceed');
-          
+
           // Try to fetch complete user data in the background (with timeout)
           // This will update the user with role and other data if available
           const fetchCompleteUserData = async () => {
             try {
               console.log('📋 Fetching complete user data in background...');
-              
+
               // Create a timeout promise
               const timeoutPromise = new Promise<null>((resolve) => {
                 setTimeout(() => {
@@ -246,13 +256,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   resolve(null);
                 }, 15000); // 15 second timeout
               });
-              
+
               // Race between getCurrentUser and timeout
               const fetchedUser = await Promise.race([
                 AuthService.getCurrentUser(),
                 timeoutPromise,
               ]);
-              
+
               if (fetchedUser) {
                 console.log('✅ Complete user data fetched:', fetchedUser.email);
                 // Update state with complete user data
@@ -272,10 +282,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               // Continue with session-based user - already set above
             }
           };
-          
+
           // Fetch complete user data in background (non-blocking)
           fetchCompleteUserData();
-          
+
           // Handle Google profile creation/update (don't block on errors)
           if (session.user?.app_metadata?.provider === 'google') {
             // Run in background, don't await
@@ -330,23 +340,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               user = null;
             }
           }
-          
+
           // Convert expires_at to milliseconds if it's in seconds
-          const expiresAt = session.expires_at 
+          const expiresAt = session.expires_at
             ? (session.expires_at > 10000000000 ? session.expires_at : session.expires_at * 1000)
             : Date.now() + 3600000;
-          
+
           setAuthState(prev => ({
             ...prev,
             session: session
               ? {
-                  accessToken: session.access_token,
-                  refreshToken: session.refresh_token,
-                  expiresAt,
-                  user: user!,
-                }
+                accessToken: session.access_token,
+                refreshToken: session.refresh_token,
+                expiresAt,
+                user: (user as unknown as User)!,
+              }
               : prev.session,
-            user,
+            user: user as unknown as User,
           }));
         }
       } catch (error) {
@@ -379,20 +389,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               language: 'en',
             },
           } : null;
-          
-          const expiresAt = session.expires_at 
+
+          const expiresAt = session.expires_at
             ? (session.expires_at > 10000000000 ? session.expires_at : session.expires_at * 1000)
             : Date.now() + 3600000;
-          
+
           setAuthState({
-            user,
+            user: user as unknown as User,
             session: session
               ? {
-                  accessToken: session.access_token,
-                  refreshToken: session.refresh_token,
-                  expiresAt,
-                  user: user!,
-                }
+                accessToken: session.access_token,
+                refreshToken: session.refresh_token,
+                expiresAt,
+                user: (user as unknown as User)!,
+              }
               : null,
             loading: false,
             error: null,
@@ -747,12 +757,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             ...prev,
             user: prev.user
               ? {
-                  ...prev.user,
-                  preferences: {
-                    ...prev.user.preferences,
-                    ...onboardingData.preferences,
-                  },
-                }
+                ...prev.user,
+                preferences: {
+                  ...prev.user.preferences,
+                  ...onboardingData.preferences,
+                },
+              }
               : null,
           }));
         }

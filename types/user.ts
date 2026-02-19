@@ -12,7 +12,7 @@ export interface User {
   updatedAt: string;
 }
 
-export type UserRole = 'member' | 'admin' | 'moderator';
+export type UserRole = 'member' | 'admin' | 'moderator' | 'super_admin' | 'content_manager';
 
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'auto';

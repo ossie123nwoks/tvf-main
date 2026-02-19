@@ -25,7 +25,7 @@ export default function SeriesEditForm() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { checkPermission } = useAdminAuth();
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [series, setSeries] = useState<Series | null>(null);
@@ -37,7 +37,7 @@ export default function SeriesEditForm() {
     is_active: true,
   });
 
-  const canEdit = checkPermission(['series.manage']);
+  const canEdit = checkPermission('series.manage');
 
   useEffect(() => {
     if (id) {
@@ -50,7 +50,7 @@ export default function SeriesEditForm() {
       setLoading(true);
       // For now, we'll use mock data since we don't have a getSeriesById method
       // In a real app, you'd call AdminService.getSeriesById(id)
-      const mockSeries: Series = {
+      const mockSeries = {
         id: id!,
         name: 'Sample Series',
         description: 'This is a sample series description',
@@ -60,13 +60,13 @@ export default function SeriesEditForm() {
         sort_order: 1,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      };
+      } as unknown as Series;
       setSeries(mockSeries);
       setFormData({
         name: mockSeries.name,
         description: mockSeries.description || '',
-        color: mockSeries.color,
-        icon: mockSeries.icon,
+        color: (mockSeries as any).color || '#1976D2',
+        icon: (mockSeries as any).icon || 'book',
         is_active: mockSeries.is_active,
       });
     } catch (error) {
@@ -172,7 +172,7 @@ export default function SeriesEditForm() {
             <Text style={[styles.title, { color: theme.colors.onSurface }]}>
               Edit Series
             </Text>
-            
+
             <TextInput
               label="Series Name *"
               value={formData.name}
@@ -180,7 +180,7 @@ export default function SeriesEditForm() {
               style={styles.input}
               mode="outlined"
             />
-            
+
             <TextInput
               label="Description"
               value={formData.description}
@@ -190,7 +190,7 @@ export default function SeriesEditForm() {
               multiline
               numberOfLines={3}
             />
-            
+
             <TextInput
               label="Color (Hex Code)"
               value={formData.color}
@@ -199,7 +199,7 @@ export default function SeriesEditForm() {
               mode="outlined"
               placeholder="#1976D2"
             />
-            
+
             <TextInput
               label="Icon Name"
               value={formData.icon}
@@ -208,7 +208,7 @@ export default function SeriesEditForm() {
               mode="outlined"
               placeholder="book"
             />
-            
+
             <View style={styles.switchContainer}>
               <Text style={[styles.switchLabel, { color: theme.colors.onSurface }]}>
                 Active
@@ -221,7 +221,7 @@ export default function SeriesEditForm() {
           </Card.Content>
         </Card>
       </ScrollView>
-      
+
       <View style={styles.buttonContainer}>
         <Button
           mode="outlined"
@@ -241,7 +241,7 @@ export default function SeriesEditForm() {
           Save Changes
         </Button>
       </View>
-      
+
       {canEdit && (
         <Button
           mode="outlined"

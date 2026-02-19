@@ -141,8 +141,8 @@ export default function InvitationManager({ onClose }: InvitationManagerProps) {
       color: theme.colors.primary,
       fontFamily: 'monospace',
       backgroundColor: theme.colors.primaryContainer,
-      padding: theme.spacing.xs,
-      borderRadius: theme.borderRadius.xs,
+      padding: theme.spacing.sm,
+      borderRadius: theme.borderRadius.sm,
       marginBottom: theme.spacing.sm,
     },
     invitationActions: {
@@ -351,7 +351,7 @@ export default function InvitationManager({ onClose }: InvitationManagerProps) {
 
         {/* Invitations List */}
         <Text style={styles.sectionTitle}>Your Invitations</Text>
-        
+
         {invitations.length === 0 ? (
           <View style={styles.emptyState}>
             <MaterialIcons
@@ -383,21 +383,21 @@ export default function InvitationManager({ onClose }: InvitationManagerProps) {
                     {invitation.status.charAt(0).toUpperCase() + invitation.status.slice(1)}
                   </Chip>
                 </View>
-                
+
                 <Text style={styles.invitationMeta}>
                   Platform: {invitation.platform} • Expires: {formatDate(invitation.expiresAt)}
                 </Text>
-                
+
                 <Text style={styles.invitationCode}>
                   Code: {invitation.invitationCode}
                 </Text>
-                
+
                 {invitation.message && (
                   <Text style={styles.invitationMeta}>
                     Message: {invitation.message}
                   </Text>
                 )}
-                
+
                 <View style={styles.invitationActions}>
                   <Button
                     mode="outlined"
@@ -409,7 +409,7 @@ export default function InvitationManager({ onClose }: InvitationManagerProps) {
                   >
                     Copy Code
                   </Button>
-                  
+
                   {invitation.status === 'pending' && (
                     <Button
                       mode="contained"
@@ -463,7 +463,7 @@ export default function InvitationManager({ onClose }: InvitationManagerProps) {
           contentContainerStyle={styles.modalContent}
         >
           <Text style={styles.modalTitle}>Create New Invitation</Text>
-          
+
           <TextInput
             label="Recipient Name (optional)"
             value={newInvitation.recipientName}
@@ -579,17 +579,17 @@ export default function InvitationManager({ onClose }: InvitationManagerProps) {
           contentContainerStyle={styles.modalContent}
         >
           <Text style={styles.modalTitle}>Send Invitation</Text>
-          
+
           {selectedInvitation && (
             <>
               <Text style={styles.invitationMeta}>
                 To: {selectedInvitation.recipientName || selectedInvitation.recipientEmail || selectedInvitation.recipientPhone}
               </Text>
-              
+
               <Text style={[styles.sectionTitle, { fontSize: 16, marginBottom: theme.spacing.sm }]}>
                 Choose how to send
               </Text>
-              
+
               <View style={{ gap: theme.spacing.sm }}>
                 {selectedInvitation.recipientEmail && (
                   <Button
@@ -601,7 +601,7 @@ export default function InvitationManager({ onClose }: InvitationManagerProps) {
                     Send via Email
                   </Button>
                 )}
-                
+
                 {selectedInvitation.recipientPhone && (
                   <Button
                     mode="outlined"
@@ -612,7 +612,7 @@ export default function InvitationManager({ onClose }: InvitationManagerProps) {
                     Send via SMS
                   </Button>
                 )}
-                
+
                 <Button
                   mode="outlined"
                   onPress={() => handleSendInvitation(selectedInvitation, 'whatsapp')}
@@ -621,7 +621,7 @@ export default function InvitationManager({ onClose }: InvitationManagerProps) {
                 >
                   Send via WhatsApp
                 </Button>
-                
+
                 <Button
                   mode="outlined"
                   onPress={() => handleSendInvitation(selectedInvitation, 'telegram')}
@@ -631,7 +631,7 @@ export default function InvitationManager({ onClose }: InvitationManagerProps) {
                   Send via Telegram
                 </Button>
               </View>
-              
+
               <Button
                 mode="outlined"
                 onPress={() => setShowSendModal(false)}

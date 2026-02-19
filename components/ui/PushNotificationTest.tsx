@@ -58,7 +58,7 @@ export default function PushNotificationTest() {
       }
     } catch (error) {
       console.error('Registration error:', error);
-      Alert.alert('Error', `Failed to register: ${error.message}`);
+      Alert.alert('Error', `Failed to register: ${(error as any).message}`);
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +88,7 @@ export default function PushNotificationTest() {
       }
     } catch (error) {
       console.error('Send notification error:', error);
-      Alert.alert('Error', `Failed to send: ${error.message}`);
+      Alert.alert('Error', `Failed to send: ${(error as any).message}`);
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +103,7 @@ export default function PushNotificationTest() {
       Alert.alert('Success', 'Push notifications unregistered');
     } catch (error) {
       console.error('Unregistration error:', error);
-      Alert.alert('Error', `Failed to unregister: ${error.message}`);
+      Alert.alert('Error', `Failed to unregister: ${(error as any).message}`);
     } finally {
       setIsLoading(false);
     }
@@ -116,7 +116,7 @@ export default function PushNotificationTest() {
           <Text variant="titleMedium" style={{ marginBottom: theme.spacing.md }}>
             Push Notifications Test
           </Text>
-          
+
           <View style={styles.status}>
             <Text variant="bodyMedium">
               Status: {isRegistered ? '✅ Registered' : '❌ Not Registered'}
@@ -153,7 +153,7 @@ export default function PushNotificationTest() {
               >
                 Send Test Notification
               </Button>
-              
+
               <Button
                 mode="outlined"
                 onPress={unregisterFromPushNotifications}

@@ -296,10 +296,10 @@ class ReminderService {
       const now = new Date();
       const totalReminders = data?.length || 0;
       const activeReminders = data?.filter(r => r.is_active).length || 0;
-      const upcomingReminders = data?.filter(r => 
+      const upcomingReminders = data?.filter(r =>
         r.is_active && new Date(r.reminder_time) > now
       ).length || 0;
-      const completedReminders = data?.filter(r => 
+      const completedReminders = data?.filter(r =>
         !r.is_active || new Date(r.reminder_time) <= now
       ).length || 0;
 
@@ -519,5 +519,4 @@ class ReminderService {
 // Export singleton instance
 export const reminderService = new ReminderService();
 
-// Export types
-export type { Reminder, CreateReminderRequest, ReminderStats };
+// Types are exported inline above

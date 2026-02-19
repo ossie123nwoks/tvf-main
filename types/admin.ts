@@ -1,5 +1,5 @@
 // Admin Dashboard Types
-export type AdminRole = 'super_admin' | 'content_manager' | 'moderator';
+export type AdminRole = 'super_admin' | 'content_manager' | 'moderator' | 'admin' | 'member';
 
 export interface AdminPermission {
   id: string;
@@ -112,6 +112,10 @@ export interface MediaFile {
       width: number;
       height: number;
     };
+    description?: string;
+    tags?: string[];
+    lastModified?: string;
+    [key: string]: any;
   };
 }
 

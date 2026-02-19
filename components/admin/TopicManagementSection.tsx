@@ -26,7 +26,7 @@ import { AdminService } from '@/lib/supabase/admin';
 import { useAdminAuth } from './AdminAuthGuard';
 import { useRouter } from 'expo-router';
 import CustomDropdown from '@/components/ui/CustomDropdown';
-import { Sermon, Series, Topic } from '@/types/content';
+import { Sermon, Series } from '@/types/content';
 
 interface Topic {
   id: string;
@@ -48,16 +48,16 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
   const { theme } = useTheme();
   const { checkPermission } = useAdminAuth();
   const router = useRouter();
-  
+
   // Topics state
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  
+
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
@@ -270,11 +270,11 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
       ];
 
       // Filter by search query
-      const filteredTopics = search 
-        ? mockTopics.filter(topic => 
-            topic.name.toLowerCase().includes(search.toLowerCase()) ||
-            topic.description?.toLowerCase().includes(search.toLowerCase())
-          )
+      const filteredTopics = search
+        ? mockTopics.filter(topic =>
+          topic.name.toLowerCase().includes(search.toLowerCase()) ||
+          topic.description?.toLowerCase().includes(search.toLowerCase())
+        )
         : mockTopics;
 
       setTopics(filteredTopics);
@@ -291,7 +291,7 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     setSearchLoading(true);
-    
+
     try {
       await loadTopics(1, query);
     } finally {
@@ -342,7 +342,7 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
   const loadAllTopics = async () => {
     try {
       const topicsData = await AdminService.getAllTopics();
-      setAllTopics(topicsData);
+      setAllTopics(topicsData as unknown as Topic[]);
     } catch (err) {
       console.error('Failed to load topics:', err);
     }
@@ -353,14 +353,14 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
     try {
       setSavingSermonId(sermonId);
       await AdminService.assignSermonToTopics(sermonId, topicIds);
-      
+
       // Update local state
-      setSermons(prev => prev.map(sermon => 
-        sermon.id === sermonId 
-          ? { 
-              ...sermon, 
-              topics: allTopics.filter(t => topicIds.includes(t.id))
-            }
+      setSermons(prev => prev.map(sermon =>
+        sermon.id === sermonId
+          ? {
+            ...sermon,
+            topics: allTopics.filter(t => topicIds.includes(t.id))
+          }
           : sermon
       ));
     } catch (err) {
@@ -415,8 +415,8 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
             <Text style={{ color: theme.colors.error, textAlign: 'center' }}>
               {sermonsError}
             </Text>
-            <Button 
-              mode="outlined" 
+            <Button
+              mode="outlined"
               onPress={loadSermons}
               style={{ marginTop: theme.spacing.md }}
             >
@@ -426,10 +426,10 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
         </Card>
       ) : sermons.length === 0 ? (
         <View style={styles.emptyState}>
-          <MaterialIcons 
-            name="music-note" 
-            size={48} 
-            color={theme.colors.textSecondary} 
+          <MaterialIcons
+            name="music-note"
+            size={48}
+            color={theme.colors.textSecondary}
           />
           <Text style={styles.emptyText}>
             No sermons found.
@@ -466,8 +466,8 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
                       </Text>
                       {currentTopicIds.length > 0 && (
                         <View style={styles.topicsBadge}>
-                          <Chip 
-                            icon="label" 
+                          <Chip
+                            icon="label"
                             compact
                             style={{ alignSelf: 'flex-start' }}
                           >
@@ -540,119 +540,119 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
             />
           </View>
 
-      {/* Topics List */}
-      <ScrollView 
-        style={styles.topicsList} 
-        contentContainerStyle={styles.topicsListContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {loading && topics.length === 0 ? (
-          <View style={styles.emptyState}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={styles.emptyText}>Loading topics...</Text>
-          </View>
-        ) : error ? (
-          <Card style={styles.errorCard} elevation={1}>
-            <View style={styles.errorContent}>
-              <Text style={{ color: theme.colors.error, textAlign: 'center', marginBottom: theme.spacing.md }}>
-                {error}
-              </Text>
-              <Button 
-                mode="outlined" 
-                onPress={() => loadTopics(currentPage, searchQuery)}
-                style={{ alignSelf: 'center' }}
-              >
-                Retry
-              </Button>
-            </View>
-          </Card>
-        ) : topics.length === 0 ? (
-          <View style={styles.emptyState}>
-            <MaterialIcons 
-              name="label-outline" 
-              size={48} 
-              color={theme.colors.textSecondary} 
-            />
-            <Text style={styles.emptyText}>
-              No topics found. {canCreate && 'Create your first one!'}
-            </Text>
-          </View>
-        ) : (
-          topics.map((topic) => (
-            <Card key={topic.id} style={styles.topicCard} elevation={2}>
-              <Card.Content style={{ padding: theme.spacing.md }}>
-                <View style={styles.topicHeader}>
-                  <View style={styles.topicInfo}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <MaterialIcons 
-                        name={topic.icon as any} 
-                        size={20} 
-                        color={topic.color}
-                        style={styles.topicIcon}
-                      />
-                      <Text style={styles.topicName}>{topic.name}</Text>
-                    </View>
-                    {topic.description && (
-                      <Text style={styles.topicDescription}>{topic.description}</Text>
-                    )}
-                    <Text style={styles.topicMeta}>
-                      Created {new Date(topic.created_at).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <View style={styles.actionButtons}>
-                    <Chip
-                      style={{ backgroundColor: topic.color + '20' }}
-                      textStyle={{ color: topic.color }}
-                    >
-                      {topic.name}
-                    </Chip>
-                    {canEdit && (
-                      <IconButton
-                        icon="pencil"
-                        size={20}
-                        onPress={() => router.push(`/admin/topic-edit/${topic.id}`)}
-                      />
-                    )}
-                    {canDelete && (
-                      <IconButton
-                        icon="delete"
-                        size={20}
-                        iconColor={theme.colors.error}
-                        onPress={() => handleDelete(topic.id, topic.name)}
-                      />
-                    )}
-                  </View>
+          {/* Topics List */}
+          <ScrollView
+            style={styles.topicsList}
+            contentContainerStyle={styles.topicsListContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {loading && topics.length === 0 ? (
+              <View style={styles.emptyState}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <Text style={styles.emptyText}>Loading topics...</Text>
+              </View>
+            ) : error ? (
+              <Card style={styles.errorCard} elevation={1}>
+                <View style={styles.errorContent}>
+                  <Text style={{ color: theme.colors.error, textAlign: 'center', marginBottom: theme.spacing.md }}>
+                    {error}
+                  </Text>
+                  <Button
+                    mode="outlined"
+                    onPress={() => loadTopics(currentPage, searchQuery)}
+                    style={{ alignSelf: 'center' }}
+                  >
+                    Retry
+                  </Button>
                 </View>
-              </Card.Content>
-            </Card>
-          ))
-        )}
+              </Card>
+            ) : topics.length === 0 ? (
+              <View style={styles.emptyState}>
+                <MaterialIcons
+                  name="label-outline"
+                  size={48}
+                  color={theme.colors.textSecondary}
+                />
+                <Text style={styles.emptyText}>
+                  No topics found. {canCreate && 'Create your first one!'}
+                </Text>
+              </View>
+            ) : (
+              topics.map((topic) => (
+                <Card key={topic.id} style={styles.topicCard} elevation={2}>
+                  <Card.Content style={{ padding: theme.spacing.md }}>
+                    <View style={styles.topicHeader}>
+                      <View style={styles.topicInfo}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <MaterialIcons
+                            name={topic.icon as any}
+                            size={20}
+                            color={topic.color}
+                            style={styles.topicIcon}
+                          />
+                          <Text style={styles.topicName}>{topic.name}</Text>
+                        </View>
+                        {topic.description && (
+                          <Text style={styles.topicDescription}>{topic.description}</Text>
+                        )}
+                        <Text style={styles.topicMeta}>
+                          Created {new Date(topic.created_at).toLocaleDateString()}
+                        </Text>
+                      </View>
+                      <View style={styles.actionButtons}>
+                        <Chip
+                          style={{ backgroundColor: topic.color + '20' }}
+                          textStyle={{ color: topic.color }}
+                        >
+                          {topic.name}
+                        </Chip>
+                        {canEdit && (
+                          <IconButton
+                            icon="pencil"
+                            size={20}
+                            onPress={() => router.push(`/admin/topic-edit/${topic.id}`)}
+                          />
+                        )}
+                        {canDelete && (
+                          <IconButton
+                            icon="delete"
+                            size={20}
+                            iconColor={theme.colors.error}
+                            onPress={() => handleDelete(topic.id, topic.name)}
+                          />
+                        )}
+                      </View>
+                    </View>
+                  </Card.Content>
+                </Card>
+              ))
+            )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <View style={styles.paginationContainer}>
-            <Button
-              mode="outlined"
-              onPress={() => loadTopics(currentPage - 1, searchQuery)}
-              disabled={currentPage === 1}
-              style={styles.paginationButton}
-            >
-              Previous
-            </Button>
-            <Text style={{ marginHorizontal: theme.spacing.md }}>
-              {currentPage} of {totalPages}
-            </Text>
-            <Button
-              mode="outlined"
-              onPress={() => loadTopics(currentPage + 1, searchQuery)}
-              disabled={currentPage === totalPages}
-              style={styles.paginationButton}
-            >
-              Next
-            </Button>
-          </View>
-        )}
-      </ScrollView>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <View style={styles.paginationContainer}>
+                <Button
+                  mode="outlined"
+                  onPress={() => loadTopics(currentPage - 1, searchQuery)}
+                  disabled={currentPage === 1}
+                  style={styles.paginationButton}
+                >
+                  Previous
+                </Button>
+                <Text style={{ marginHorizontal: theme.spacing.md }}>
+                  {currentPage} of {totalPages}
+                </Text>
+                <Button
+                  mode="outlined"
+                  onPress={() => loadTopics(currentPage + 1, searchQuery)}
+                  disabled={currentPage === totalPages}
+                  style={styles.paginationButton}
+                >
+                  Next
+                </Button>
+              </View>
+            )}
+          </ScrollView>
 
           {/* Create FAB */}
           {canCreate && (

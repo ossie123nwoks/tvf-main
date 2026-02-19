@@ -294,7 +294,7 @@ export const StorageAnalyticsDashboard: React.FC<StorageAnalyticsDashboardProps>
           <>
             <View style={styles.recommendationHeader}>
               <Chip
-                mode={storageRecommendations.shouldCleanup ? 'contained' : 'outlined'}
+                mode={storageRecommendations.shouldCleanup ? 'flat' : 'outlined'}
                 icon={storageRecommendations.shouldCleanup ? 'alert' : 'check-circle'}
                 style={{
                   backgroundColor: storageRecommendations.shouldCleanup
