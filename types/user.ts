@@ -67,6 +67,12 @@ export interface PasswordResetConfirm {
   newPassword: string;
 }
 
+export interface PasswordResetConfirmOtp {
+  email: string;
+  token: string;
+  newPassword: string;
+}
+
 export interface EmailVerificationRequest {
   email: string;
 }

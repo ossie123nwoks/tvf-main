@@ -10,6 +10,7 @@ import {
   AuthSuccess,
   PasswordResetRequest,
   PasswordResetConfirm,
+  PasswordResetConfirmOtp,
   EmailVerificationRequest,
   EmailVerificationConfirm,
   UserProfileUpdate,
@@ -245,6 +246,60 @@ export class AuthService {
   }
 
   /**
+   * Confirm password reset with OTP
+   */
+  static async confirmPasswordResetOtp(
+    confirm: PasswordResetConfirmOtp
+  ): Promise<AuthSuccess | AuthError> {
+    try {
+      // 1. Verify the OTP
+      const { data: sessionData, error: verifyError } = await supabase.auth.verifyOtp({
+        email: confirm.email,
+        token: confirm.token,
+        type: 'recovery',
+      });
+
+      if (verifyError) {
+        return {
+          code: verifyError.message,
+          message: this.getErrorMessage(verifyError.message),
+        };
+      }
+
+      if (!sessionData.session || !sessionData.user) {
+        return {
+          code: 'OTP_VERIFICATION_FAILED',
+          message: 'Failed to verify code',
+        };
+      }
+
+      // 2. Update the password
+      const { data, error } = await supabase.auth.updateUser({
+        password: confirm.newPassword,
+      });
+
+      if (error) {
+        return {
+          code: error.message,
+          message: this.getErrorMessage(error.message),
+        };
+      }
+
+      return {
+        message: 'Password reset successfully',
+        user: this.transformSupabaseUser(data.user || sessionData.user),
+        session: this.transformSupabaseSession(sessionData.session),
+      };
+    } catch (error) {
+      console.error('Password reset OTP confirmation error:', error);
+      return {
+        code: 'UNKNOWN_ERROR',
+        message: 'An unexpected error occurred during password reset',
+      };
+    }
+  }
+
+  /**
    * Request email verification
    */
   static async requestEmailVerification(
@@ -275,10 +330,10 @@ export class AuthService {
       // Supabase handles email verification automatically when the user clicks the link
       // The token is processed via the redirect URL. We need to check if the session
       // has been updated with email_confirmed_at.
-      
+
       // First, try to get the current session to see if verification happened
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
+
       if (sessionError) {
         return { success: false, error: sessionError.message };
       }
@@ -287,7 +342,7 @@ export class AuthService {
       if (session?.user) {
         // Refresh the user to get latest verification status
         const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
+
         if (userError) {
           return { success: false, error: userError.message };
         }
@@ -523,7 +578,7 @@ export class AuthService {
       try {
         const googleSignInModule = require('@react-native-google-signin/google-signin');
         GoogleSignin = googleSignInModule.GoogleSignin;
-        
+
         // Check if GoogleSignin is actually available (not undefined)
         if (!GoogleSignin) {
           throw new Error('GoogleSignin module not available');
@@ -535,7 +590,7 @@ export class AuthService {
           message: 'Google Sign-In native module is not available. Please rebuild the app using "npx expo run:android" or "npx expo run:ios" after installing the package. Google Sign-In requires a development build and cannot run in Expo Go.',
         };
       }
-      
+
       // Get Google Client ID from environment
       const googleClientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
       if (!googleClientId) {
@@ -548,7 +603,7 @@ export class AuthService {
       let iosClientId: string | undefined;
       if (Platform.OS === 'ios') {
         // Try to get from Constants first, fallback to known value from app.config.ts
-        const iosUrlScheme = 
+        const iosUrlScheme =
           Constants.expoConfig?.plugins?.find(
             (plugin: any) => Array.isArray(plugin) && plugin[0] === '@react-native-google-signin/google-signin'
           )?.[1]?.iosUrlScheme ||
@@ -568,7 +623,7 @@ export class AuthService {
       const config: any = {
         webClientId: googleClientId,
       };
-      
+
       if (Platform.OS === 'ios' && iosClientId) {
         config.iosClientId = iosClientId;
       }
@@ -673,7 +728,7 @@ export class AuthService {
       };
     } catch (error: any) {
       console.error('Sign in with Google error:', error);
-      
+
       // Handle cancellation errors first (user cancelled the sign-in)
       // This should be checked before other errors
       if (
@@ -690,7 +745,7 @@ export class AuthService {
           message: 'Google sign-in was cancelled',
         };
       }
-      
+
       // Handle module not found errors
       if (
         error.message?.includes('RNGoogleSignin') ||
@@ -757,7 +812,7 @@ export class AuthService {
   static async createOrUpdateGoogleProfile(user: any): Promise<void> {
     try {
       const profileData = this.handleGoogleProfileData(user);
-      
+
       // Note: The handle_new_user() trigger already created the basic profile.
       // We just need to update it with Google-specific data.
       // Wait briefly to ensure the trigger has completed.

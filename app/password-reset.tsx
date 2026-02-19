@@ -8,11 +8,11 @@ import { PasswordResetRequest, PasswordResetConfirm } from '@/types/user';
 import { ErrorDisplay, InlineError } from '@/components/auth/ErrorDisplay';
 import { UserFeedback } from '@/components/auth/UserFeedback';
 
-type ResetMode = 'request' | 'confirm';
+type ResetMode = 'request' | 'confirm' | 'otp';
 
 export default function PasswordReset() {
   const { theme } = useTheme();
-  const { requestPasswordReset, confirmPasswordReset, loading, error, clearError } = useAuth();
+  const { requestPasswordReset, confirmPasswordReset, confirmPasswordResetOtp, loading, error, clearError } = useAuth();
   const router = useRouter();
   const params = useLocalSearchParams();
 
@@ -28,6 +28,10 @@ export default function PasswordReset() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
+
+  // OTP mode state
+  const [otp, setOtp] = useState('');
+  const [otpError, setOtpError] = useState('');
 
   // Success state
   const [isSuccess, setIsSuccess] = useState(false);
@@ -144,6 +148,15 @@ export default function PasswordReset() {
     return isValid;
   };
 
+  const validateOtp = (): boolean => {
+    if (!otp.trim()) {
+      setOtpError('OTP is required');
+      return false;
+    }
+    setOtpError('');
+    return true;
+  };
+
   const handleRequestReset = async () => {
     if (!validateEmail()) return;
 
@@ -151,10 +164,7 @@ export default function PasswordReset() {
     const result = await requestPasswordReset({ email: email.trim() });
 
     if (result.success) {
-      setIsSuccess(true);
-      setSuccessMessage(
-        'Password reset email sent! Please check your inbox and follow the instructions.'
-      );
+      setMode('otp');
     }
   };
 
@@ -183,6 +193,30 @@ export default function PasswordReset() {
     }
   };
 
+  const handleOtpReset = async () => {
+    if (!validatePassword() || !validateOtp()) return;
+
+    clearError();
+    const result = await confirmPasswordResetOtp({
+      email: email.trim(),
+      token: otp.trim(),
+      newPassword: password,
+    });
+
+    if ('code' in result) {
+      // Error case
+      if (result.code === 'otp_expired' || result.code === 'Token expired') {
+        setOtpError('This code has expired. Please request a new one.');
+      } else {
+        setOtpError(result.message);
+      }
+    } else {
+      // Success case
+      setIsSuccess(true);
+      setSuccessMessage('Password successfully reset! You have been signed in automatically.');
+    }
+  };
+
   const handleBackToSignIn = () => {
     router.replace('/auth');
   };
@@ -197,6 +231,7 @@ export default function PasswordReset() {
     if (field === 'email') setEmail(value);
     if (field === 'password') setPassword(value);
     if (field === 'confirmPassword') setConfirmPassword(value);
+    if (field === 'otp') setOtp(value);
   };
 
   if (isSuccess) {
@@ -247,7 +282,7 @@ export default function PasswordReset() {
                     { marginBottom: theme.spacing.lg, textAlign: 'center' },
                   ]}
                 >
-                  Enter your email address and we'll send you a link to reset your password.
+                  Enter your email address and we'll send you a code to reset your password.
                 </Text>
 
                 <TextInput
@@ -274,12 +309,88 @@ export default function PasswordReset() {
                   disabled={loading}
                   style={styles.button}
                 >
-                  Send Reset Email
+                  Send Reset Code
+                </Button>
+              </Card.Content>
+            </Card>
+          ) : mode === 'otp' ? (
+            /* Confirm Password Reset with OTP */
+            <Card style={styles.card}>
+              <Card.Content>
+                <Text style={styles.title}>Enter Code & New Password</Text>
+                <Text
+                  style={[
+                    styles.footerText,
+                    { marginBottom: theme.spacing.lg, textAlign: 'center' },
+                  ]}
+                >
+                  We've sent a code to {email}. Enter it below along with your new password.
+                </Text>
+
+                <TextInput
+                  label="Verification Code (OTP)"
+                  value={otp}
+                  onChangeText={value => handleInputChange('otp', value)}
+                  style={styles.input}
+                  mode="outlined"
+                  keyboardType="number-pad"
+                  autoComplete="sms-otp"
+                  error={!!otpError}
+                />
+                {otpError && <Text style={styles.errorText}>{otpError}</Text>}
+
+                <TextInput
+                  label="New Password"
+                  value={password}
+                  onChangeText={value => handleInputChange('password', value)}
+                  style={styles.input}
+                  mode="outlined"
+                  secureTextEntry
+                  autoComplete="new-password"
+                  error={!!passwordError}
+                />
+                {passwordError && <Text style={styles.errorText}>{passwordError}</Text>}
+
+                <TextInput
+                  label="Confirm New Password"
+                  value={confirmPassword}
+                  onChangeText={value => handleInputChange('confirmPassword', value)}
+                  style={styles.input}
+                  mode="outlined"
+                  secureTextEntry
+                  autoComplete="new-password"
+                  error={!!confirmPasswordError}
+                />
+                {confirmPasswordError && (
+                  <Text style={styles.errorText}>{confirmPasswordError}</Text>
+                )}
+
+                {error && (
+                  <ErrorDisplay error={error} onDismiss={() => clearError()} compact={true} />
+                )}
+
+                <Button
+                  mode="contained"
+                  onPress={handleOtpReset}
+                  loading={loading}
+                  disabled={loading}
+                  style={styles.button}
+                >
+                  Reset Password
+                </Button>
+
+                <Button
+                  mode="text"
+                  onPress={() => setMode('request')}
+                  disabled={loading}
+                  style={{ marginTop: theme.spacing.xs }}
+                >
+                  Resend Code
                 </Button>
               </Card.Content>
             </Card>
           ) : (
-            /* Confirm Password Reset */
+            /* Confirm Password Reset (Link) */
             <Card style={styles.card}>
               <Card.Content>
                 <Text style={styles.title}>Set New Password</Text>

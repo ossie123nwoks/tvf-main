@@ -19,6 +19,7 @@ import {
   AuthSuccess,
   PasswordResetRequest,
   PasswordResetConfirm,
+  PasswordResetConfirmOtp,
   EmailVerificationRequest,
   UserProfileUpdate,
   ChangePasswordRequest,
@@ -38,6 +39,7 @@ interface AuthContextType extends AuthState {
     request: PasswordResetRequest
   ) => Promise<{ success: boolean; error?: string }>;
   confirmPasswordReset: (confirm: PasswordResetConfirm) => Promise<AuthSuccess | AuthError>;
+  confirmPasswordResetOtp: (confirm: PasswordResetConfirmOtp) => Promise<AuthSuccess | AuthError>;
 
   // Email verification
   requestEmailVerification: (
@@ -623,6 +625,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     []
   );
 
+  // Confirm password reset with OTP
+  const confirmPasswordResetOtp = useCallback(
+    async (confirm: PasswordResetConfirmOtp): Promise<AuthSuccess | AuthError> => {
+      try {
+        setAuthState(prev => ({ ...prev, loading: true, error: null }));
+
+        const result = await AuthService.confirmPasswordResetOtp(confirm);
+
+        if ('code' in result) {
+          // Error case
+          setAuthState(prev => ({ ...prev, loading: false, error: result.message }));
+          return result;
+        } else {
+          // Success case - Supabase automatically signs in after password reset
+          setAuthState({
+            user: result.user,
+            session: result.session || null,
+            loading: false,
+            error: null,
+            isAuthenticated: !!result.session,
+            isInitialized: true,
+          });
+          return result;
+        }
+      } catch (error) {
+        console.error('Password reset OTP confirmation error in context:', error);
+        const errorMessage = 'An unexpected error occurred during password reset';
+        setAuthState(prev => ({ ...prev, loading: false, error: errorMessage }));
+        return {
+          code: 'UNKNOWN_ERROR',
+          message: errorMessage,
+        };
+      }
+    },
+    []
+  );
+
   // Request email verification
   const requestEmailVerification = useCallback(async (request: EmailVerificationRequest) => {
     try {
@@ -806,6 +845,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signOut,
     requestPasswordReset,
     confirmPasswordReset,
+    confirmPasswordResetOtp,
     requestEmailVerification,
     updateProfile,
     changePassword,
