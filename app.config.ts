@@ -2,16 +2,16 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'TRUEVINE FELLOWSHIP',
+  name: process.env.EXPO_PUBLIC_APP_NAME || 'TRUEVINE FELLOWSHIP',
   slug: 'tvf-app',
-  version: '1.0.0',
+  version: process.env.EXPO_PUBLIC_APP_VERSION || '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
   splash: {
-    image: './assets/splash.png',
+    image: './assets/splash-image.png',
     resizeMode: 'contain',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#1d3557',
   },
   assetBundlePatterns: ['**/*'],
   ios: {
@@ -46,6 +46,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'RECEIVE_BOOT_COMPLETED',
       'SCHEDULE_EXACT_ALARM',
     ],
+     googleServicesFile: './google-services.json',
     intentFilters: [
       {
         action: 'VIEW',
@@ -76,6 +77,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-av',
     'expo-notifications',
     'expo-file-system',
+    'expo-dev-client',
+    'expo-secure-store',
     [
       'expo-media-library',
       {
@@ -84,23 +87,28 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         isAccessMediaLocationEnabled: true,
       },
     ],
+    [
+      '@react-native-google-signin/google-signin',
+      {
+        iosUrlScheme: 'com.googleusercontent.apps.611655344607-brc26j79oqujh50g9q1fejeomu9uurf1',
+        webClientId: '611655344607-oa8gqe3edlev9023hssd2t64nd97gme6.apps.googleusercontent.com',
+      },
+    ],
   ],
   scheme: 'tvf-app',
   extra: {
     eas: {
-      projectId: 'tvf-fellowship-app',
+      projectId: '8bfd3384-3d72-45dd-bc91-757f4df9375f',
     },
-    appName: 'TRUEVINE FELLOWSHIP',
-    appVersion: '1.0.0',
+    appName: process.env.EXPO_PUBLIC_APP_NAME || 'TRUEVINE FELLOWSHIP',
+    appVersion: process.env.EXPO_PUBLIC_APP_VERSION || '1.0.0',
     appDescription: 'Mobile app for TRUEVINE FELLOWSHIP Church with sermons, articles, and offline functionality',
     appWebsite: 'https://tvffellowship.org',
     appEmail: 'support@tvffellowship.org',
     appPrivacyPolicy: 'https://tvffellowship.org/privacy',
     appTermsOfService: 'https://tvffellowship.org/terms',
-  },
-  updates: {
-    fallbackToCacheTimeout: 0,
-    url: 'https://u.expo.dev/tvf-fellowship-app',
+    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
+    supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
   },
   runtimeVersion: {
     policy: 'sdkVersion',

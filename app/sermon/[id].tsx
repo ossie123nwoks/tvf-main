@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, ScrollView, StyleSheet, Alert, Dimensions } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, Dimensions, Pressable } from 'react-native';
 import {
   Text,
   Card,
@@ -21,6 +21,7 @@ import { ContentService } from '@/lib/supabase/content';
 import { Sermon, Category } from '@/types/content';
 import { Audio } from 'expo-av';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import { useOfflineDownloads } from '@/lib/storage/useOfflineDownloads';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -42,11 +43,22 @@ export default function SermonDetailScreen() {
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isBuffering, setIsBuffering] = useState(false);
+  const [isAudioValid, setIsAudioValid] = useState(true);
+  const [audioError, setAudioError] = useState<string | null>(null);
 
   // UI states
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [downloadStatus, setDownloadStatus] = useState<'idle' | 'checking' | 'downloading' | 'downloaded' | 'error'>('idle');
+
+  // Offline downloads functionality
+  const { 
+    addDownload, 
+    isAvailableOffline, 
+    getOfflinePath,
+    downloads 
+  } = useOfflineDownloads();
 
   const styles = StyleSheet.create({
     container: {
@@ -59,12 +71,13 @@ export default function SermonDetailScreen() {
     header: {
       backgroundColor: theme.colors.surface,
       padding: theme.spacing.lg,
-      paddingTop: theme.spacing.xl,
+      paddingTop: theme.spacing.xl + 60, // Add extra padding to account for back button
     },
     thumbnail: {
       width: '100%',
       height: 200,
       borderRadius: theme.spacing.md,
+      marginTop: theme.spacing.lg, // Add top margin to create space from back button
       marginBottom: theme.spacing.md,
     },
     title: {
@@ -174,6 +187,11 @@ export default function SermonDetailScreen() {
     progressContainer: {
       marginBottom: theme.spacing.md,
     },
+    progressBarWrapper: {
+      height: 40,
+      justifyContent: 'center',
+      paddingVertical: theme.spacing.sm,
+    },
     progressBar: {
       height: 6,
       borderRadius: 3,
@@ -229,6 +247,36 @@ export default function SermonDetailScreen() {
     }
   }, [id]);
 
+  // Check download status when sermon loads
+  useEffect(() => {
+    if (sermon?.audio_url) {
+      checkDownloadStatus();
+    }
+  }, [sermon]);
+
+  // Monitor download progress
+  useEffect(() => {
+    if (sermon?.id) {
+      const downloadItem = downloads.find(d => d.metadata?.contentId === sermon.id);
+      if (downloadItem) {
+        switch (downloadItem.status) {
+          case 'downloading':
+            setDownloadStatus('downloading');
+            break;
+          case 'completed':
+            setDownloadStatus('downloaded');
+            break;
+          case 'failed':
+            setDownloadStatus('error');
+            break;
+          case 'paused':
+            setDownloadStatus('downloading');
+            break;
+        }
+      }
+    }
+  }, [downloads, sermon]);
+
   // Cleanup audio on unmount
   useEffect(() => {
     return () => {
@@ -242,6 +290,8 @@ export default function SermonDetailScreen() {
     try {
       setLoading(true);
       setError(null);
+      setIsAudioValid(true);
+      setAudioError(null);
 
       const sermonData = await ContentService.getSermonById(id);
       setSermon(sermonData);
@@ -256,8 +306,8 @@ export default function SermonDetailScreen() {
         }
       }
 
-      // Initialize audio
-      await initializeAudio();
+      // Initialize audio with the loaded sermon data
+      await initializeAudioWithSermon(sermonData);
     } catch (error) {
       console.error('Failed to load sermon:', error);
       setError('Failed to load sermon. Please try again.');
@@ -266,8 +316,47 @@ export default function SermonDetailScreen() {
     }
   };
 
-  const initializeAudio = async () => {
+  const initializeAudioWithSermon = async (sermonData: Sermon) => {
     try {
+      setIsLoading(true);
+      
+      // Validate audio URL
+      if (!sermonData?.audio_url || sermonData.audio_url.trim() === '') {
+        console.warn('No audio URL provided for sermon');
+        setIsLoading(false);
+        setIsAudioValid(false);
+        setAudioError('No audio file is available for this sermon.');
+        return;
+      }
+
+      // Check for placeholder audio URL
+      if (sermonData.audio_url.includes('placeholder') || sermonData.audio_url.includes('demo') || sermonData.audio_url.includes('sample')) {
+        console.warn('Placeholder audio URL detected:', sermonData.audio_url);
+        setIsLoading(false);
+        setIsAudioValid(false);
+        setAudioError('Audio file is not available. Please upload a real audio file.');
+        return;
+      }
+
+      // Check if URL is valid
+      let audioUrlObj;
+      try {
+        audioUrlObj = new URL(sermonData.audio_url);
+      } catch (urlError) {
+        console.error('Invalid audio URL:', sermonData.audio_url);
+        setIsLoading(false);
+        Alert.alert('Invalid Audio URL', 'The audio file URL is invalid.');
+        return;
+      }
+
+      // Check if the URL is accessible (basic check)
+      if (!audioUrlObj.protocol.startsWith('http')) {
+        console.error('Unsupported protocol for audio URL:', audioUrlObj.protocol);
+        setIsLoading(false);
+        Alert.alert('Unsupported Protocol', 'Audio must be served over HTTP or HTTPS.');
+        return;
+      }
+
       // Request audio permissions
       const permissionStatus = await Audio.requestPermissionsAsync();
       if (permissionStatus.status !== 'granted') {
@@ -287,10 +376,30 @@ export default function SermonDetailScreen() {
         playThroughEarpieceAndroid: false,
       });
 
-      // Load audio
+      // Check if audio is available offline first
+      let audioUri = sermonData.audio_url;
+      const isOfflineAvailable = await isAvailableOffline(sermonData.audio_url);
+      if (isOfflineAvailable) {
+        const offlinePath = await getOfflinePath(sermonData.audio_url);
+        if (offlinePath) {
+          audioUri = offlinePath;
+          console.log('Using offline audio:', offlinePath);
+        }
+      }
+
+      // Load audio with better error handling
+      console.log('Loading audio from:', audioUri);
+      
       const { sound: audioSound } = await Audio.Sound.createAsync(
-        { uri: sermon?.audio_url || '' },
-        { shouldPlay: false },
+        { uri: audioUri },
+        { 
+          shouldPlay: false,
+          isLooping: false,
+          isMuted: false,
+          volume: 1.0,
+          rate: 1.0,
+          shouldCorrectPitch: true,
+        },
         onPlaybackStatusUpdate
       );
 
@@ -298,12 +407,38 @@ export default function SermonDetailScreen() {
 
       // Get duration
       const audioStatus = await audioSound.getStatusAsync();
-      if (audioStatus.isLoaded) {
+      if (audioStatus.isLoaded && 'durationMillis' in audioStatus) {
         setDuration(audioStatus.durationMillis || 0);
+        console.log('Audio loaded successfully. Duration:', audioStatus.durationMillis);
       }
+      setIsLoading(false);
     } catch (error) {
       console.error('Failed to initialize audio:', error);
-      Alert.alert('Audio Error', 'Failed to initialize audio player.');
+      setIsLoading(false);
+      setIsAudioValid(false);
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to initialize audio player.';
+      
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        
+        if (error.message.includes('Network') || error.message.includes('timeout') || error.message.includes('-1008')) {
+          errorMessage = 'Network timeout. The audio file could not be loaded. Please check your internet connection and try again.';
+        } else if (error.message.includes('format') || error.message.includes('codec')) {
+          errorMessage = 'Audio format not supported. Please contact support.';
+        } else if (error.message.includes('permission')) {
+          errorMessage = 'Audio permission denied. Please enable audio permissions in settings.';
+        } else if (error.message.includes('not found') || error.message.includes('404')) {
+          errorMessage = 'Audio file not found. It may have been removed or moved.';
+        } else {
+          errorMessage = `Unable to load audio: ${error.message}`;
+        }
+      }
+      
+      setAudioError(errorMessage);
+      setError(errorMessage);
     }
   };
 
@@ -323,7 +458,11 @@ export default function SermonDetailScreen() {
   };
 
   const handlePlayPause = async () => {
-    if (!sound) return;
+    if (!sound) {
+      console.error('Sound object is not initialized');
+      Alert.alert('Audio Error', 'Audio player is not ready. Please wait for audio to load.');
+      return;
+    }
 
     try {
       if (isPlaying) {
@@ -333,35 +472,118 @@ export default function SermonDetailScreen() {
       }
     } catch (error) {
       console.error('Playback error:', error);
-      Alert.alert('Playback Error', 'Failed to control audio playback.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to control audio playback';
+      Alert.alert('Playback Error', errorMessage);
     }
   };
 
   const handleSeek = async (value: number) => {
-    if (!sound) return;
+    if (!sound) {
+      console.error('Sound object is not initialized');
+      return;
+    }
 
     try {
       const newPosition = value * duration;
       await sound.setPositionAsync(newPosition);
     } catch (error) {
       console.error('Seek error:', error);
+      Alert.alert('Seek Error', 'Failed to seek audio position.');
     }
   };
 
   const handleSkip = async (seconds: number) => {
-    if (!sound) return;
+    if (!sound) {
+      console.error('Sound object is not initialized');
+      return;
+    }
 
     try {
       const newPosition = Math.max(0, position + seconds * 1000);
       await sound.setPositionAsync(newPosition);
     } catch (error) {
       console.error('Skip error:', error);
+      Alert.alert('Skip Error', 'Failed to skip audio position.');
+    }
+  };
+
+  const checkDownloadStatus = async () => {
+    if (!sermon?.audio_url) return;
+    
+    try {
+      const isDownloaded = await isAvailableOffline(sermon.audio_url);
+      setDownloadStatus(isDownloaded ? 'downloaded' : 'idle');
+    } catch (error) {
+      console.error('Failed to check download status:', error);
+      setDownloadStatus('error');
     }
   };
 
   const handleDownload = async () => {
-    // TODO: Implement download functionality
-    Alert.alert('Coming Soon', 'Download functionality will be implemented in the next phase.');
+    if (!sermon) return;
+
+    try {
+      setDownloadStatus('checking');
+      
+      // Check if already downloaded
+      const isDownloaded = await isAvailableOffline(sermon.audio_url);
+      if (isDownloaded) {
+        setDownloadStatus('downloaded');
+        Alert.alert(
+          'Already Downloaded', 
+          `${sermon.title} is already available offline. You can access it anytime without an internet connection.`,
+          [
+            { text: 'OK', style: 'default' },
+            { 
+              text: 'View Downloads', 
+              style: 'default',
+              onPress: () => {
+                // You could navigate to a download manager here if needed
+                console.log('Navigate to download manager');
+              }
+            }
+          ]
+        );
+        return;
+      }
+      
+      setDownloadStatus('downloading');
+      
+      // Add download
+      await addDownload(
+        'audio',
+        sermon.title,
+        sermon.audio_url,
+        {
+          contentId: sermon.id,
+          preacher: sermon.preacher,
+          date: sermon.date,
+          duration: sermon.duration,
+          thumbnail_url: sermon.thumbnail_url,
+          description: sermon.description
+        }
+      );
+      
+      setDownloadStatus('downloaded');
+      Alert.alert('Download Started', `${sermon.title} is now downloading. You can monitor progress in the Download Manager.`);
+    } catch (error) {
+      console.error('Failed to download sermon:', error);
+      setDownloadStatus('error');
+      
+      const errorMessage = error instanceof Error ? error.message : 'Failed to download sermon';
+      Alert.alert(
+        'Download Failed', 
+        `${errorMessage}. Please check your internet connection and try again.`,
+        [
+          { text: 'OK', style: 'default' },
+          { 
+            text: 'Retry', 
+            style: 'default',
+            onPress: () => handleDownload()
+          }
+        ]
+      );
+    }
   };
 
   const handleShare = async () => {
@@ -441,17 +663,31 @@ export default function SermonDetailScreen() {
         <ScrollView style={styles.scrollView}>
           {/* Header Section */}
           <View style={styles.header}>
-            <IconButton
-              icon="arrow-left"
-              size={24}
-              onPress={handleBack}
-              style={{
-                position: 'absolute',
-                top: theme.spacing.md,
-                left: theme.spacing.md,
-                zIndex: 1,
-              }}
-            />
+            <View style={{
+              position: 'absolute',
+              top: theme.spacing.xl + 20, // Move down from top edge
+              left: theme.spacing.lg,
+              zIndex: 1,
+              backgroundColor: theme.colors.surface,
+              borderRadius: 25,
+              elevation: 4,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 4,
+              width: 50,
+              height: 50,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+              <IconButton
+                icon="arrow-left"
+                size={24}
+                onPress={handleBack}
+                iconColor={theme.colors.text}
+                style={{ margin: 0 }}
+              />
+            </View>
 
             {sermon.thumbnail_url && (
               <Card.Cover source={{ uri: sermon.thumbnail_url }} style={styles.thumbnail} />
@@ -478,7 +714,28 @@ export default function SermonDetailScreen() {
           {/* Content Section */}
           <View style={styles.content}>
             {/* Audio Player */}
-            <View style={styles.audioPlayer}>
+            {sermon?.audio_url && sermon.audio_url.trim() !== '' ? (
+              <View style={styles.audioPlayer}>
+              {!isAudioValid && audioError ? (
+                <View style={{ alignItems: 'center', padding: theme.spacing.lg }}>
+                  <MaterialIcons name="warning" size={48} color={theme.colors.error} />
+                  <Text style={{ fontSize: 16, color: theme.colors.textSecondary, marginTop: theme.spacing.md, textAlign: 'center' }}>
+                    {audioError}
+                  </Text>
+                  <Button
+                    mode="contained"
+                    onPress={() => {
+                      setIsAudioValid(true);
+                      setAudioError(null);
+                      initializeAudioWithSermon(sermon);
+                    }}
+                    style={{ marginTop: theme.spacing.md }}
+                  >
+                    Retry
+                  </Button>
+                </View>
+              ) : (
+              <>
               <View style={styles.playerHeader}>
                 <Text style={styles.playerTitle}>Audio Player</Text>
                 {isBuffering && <ActivityIndicator size="small" color={theme.colors.primary} />}
@@ -490,16 +747,21 @@ export default function SermonDetailScreen() {
                   <Text style={styles.timeText}>{formatTime(position)}</Text>
                   <Text style={styles.timeText}>{formatTime(duration)}</Text>
                 </View>
-                <ProgressBar
-                  progress={progress}
-                  color={theme.colors.primary}
-                  style={styles.progressBar}
-                  onTouchEnd={event => {
+                <Pressable
+                  onPress={event => {
                     const { locationX } = event.nativeEvent;
-                    const newProgress = locationX / (screenWidth - 2 * theme.spacing.lg);
+                    const containerWidth = screenWidth - 2 * theme.spacing.lg;
+                    const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
                     handleSeek(newProgress);
                   }}
-                />
+                  style={styles.progressBarWrapper}
+                >
+                  <ProgressBar
+                    progress={progress}
+                    color={theme.colors.primary}
+                    style={styles.progressBar}
+                  />
+                </Pressable>
               </View>
 
               {/* Controls */}
@@ -512,7 +774,7 @@ export default function SermonDetailScreen() {
                 />
 
                 <IconButton
-                  icon={isPlaying ? 'pause' : 'play-arrow'}
+                  icon={isPlaying ? 'pause' : 'play'}
                   size={40}
                   onPress={handlePlayPause}
                   style={[styles.controlButton, styles.playButton]}
@@ -531,12 +793,38 @@ export default function SermonDetailScreen() {
               <View style={styles.actions}>
                 <Button
                   mode="outlined"
-                  icon="download"
-                  onPress={handleDownload}
+                  onPress={() => handleDownload()}
                   style={styles.actionButton}
-                  loading={isDownloading}
+                  disabled={downloadStatus === 'downloading' || downloadStatus === 'checking'}
+                  icon={() => {
+                    switch (downloadStatus) {
+                      case 'downloading':
+                        return <ActivityIndicator size={20} color={theme.colors.primary} />;
+                      case 'downloaded':
+                        return <MaterialIcons name="check-circle" size={20} color={theme.colors.success} />;
+                      case 'checking':
+                        return <ActivityIndicator size={20} color={theme.colors.primary} />;
+                      case 'error':
+                        return <MaterialIcons name="error" size={20} color={theme.colors.error} />;
+                      default:
+                        return <MaterialIcons name="download" size={20} color={theme.colors.primary} />;
+                    }
+                  }}
                 >
-                  Download
+                  {(() => {
+                    switch (downloadStatus) {
+                      case 'downloading':
+                        return 'Downloading...';
+                      case 'downloaded':
+                        return 'Downloaded';
+                      case 'checking':
+                        return 'Checking...';
+                      case 'error':
+                        return 'Retry';
+                      default:
+                        return 'Download';
+                    }
+                  })()}
                 </Button>
 
                 <Button
@@ -548,7 +836,22 @@ export default function SermonDetailScreen() {
                   Share
                 </Button>
               </View>
+              </>
+              )}
             </View>
+            ) : (
+              <View style={styles.audioPlayer}>
+                <View style={styles.playerHeader}>
+                  <Text style={styles.playerTitle}>Audio Player</Text>
+                </View>
+                <View style={{ alignItems: 'center', padding: theme.spacing.lg }}>
+                  <MaterialIcons name="warning" size={48} color={theme.colors.textSecondary} />
+                  <Text style={{ fontSize: 16, color: theme.colors.textSecondary, marginTop: theme.spacing.md, textAlign: 'center' }}>
+                    Audio not available for this sermon.
+                  </Text>
+                </View>
+              </View>
+            )}
 
             {/* Stats Section */}
             <View style={styles.section}>
@@ -616,7 +919,7 @@ export default function SermonDetailScreen() {
 
         {/* FAB for quick actions */}
         <FAB
-          icon="more-vert"
+          icon="dots-vertical"
           style={styles.fab}
           onPress={() => {
             // TODO: Implement quick actions menu

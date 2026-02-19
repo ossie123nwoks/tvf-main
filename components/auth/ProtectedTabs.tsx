@@ -9,7 +9,7 @@ export const ProtectedTabs: React.FC = () => {
   const { theme } = useTheme();
 
   return (
-    <AuthGuard requireAuth={true} fallbackRoute="/auth">
+    <AuthGuard requireAuth={true} requireVerification={true} fallbackRoute="/auth">
       <ErrorBoundary>
         <Tabs
           screenOptions={{
@@ -40,7 +40,7 @@ export const ProtectedTabs: React.FC = () => {
             options={{
               title: 'Sermons',
               tabBarIcon: ({ color, size }) => (
-                <MaterialCommunityIcons name="microphone" size={size} color={color} />
+                <MaterialCommunityIcons name="play-circle" size={size} color={color} />
               ),
             }}
           />

@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Share, Alert } from 'react-native';
-import { Button, Card, Text, useTheme } from 'react-native-paper';
+import { Button, Card, Text, useTheme, IconButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { generateDeepLink } from '@/lib/utils/deepLinking';
+import AdvancedSharingModal from './AdvancedSharingModal';
+import { ShareContent } from '@/lib/services/sharingService';
 
 export interface ContentSharingProps {
   type: 'sermon' | 'article';
@@ -24,6 +26,7 @@ export const ContentSharing: React.FC<ContentSharingProps> = ({
   onShare,
 }) => {
   const theme = useTheme();
+  const [showAdvancedModal, setShowAdvancedModal] = useState(false);
 
   const handleShare = async () => {
     try {
@@ -88,8 +91,29 @@ export const ContentSharing: React.FC<ContentSharingProps> = ({
     return type === 'sermon' ? 'Sermon' : 'Article';
   };
 
+  const handleAdvancedShare = () => {
+    setShowAdvancedModal(true);
+  };
+
+  const handleShareSuccess = (result: any) => {
+    if (onShare) {
+      onShare(result);
+    }
+    setShowAdvancedModal(false);
+  };
+
+  const shareContent: ShareContent = {
+    type,
+    id,
+    title,
+    description,
+    author,
+    date,
+  };
+
   return (
-    <Card style={{ margin: 16, backgroundColor: theme.colors.surface }}>
+    <>
+      <Card style={{ margin: 16, backgroundColor: theme.colors.surface }}>
       <Card.Content>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
           <MaterialCommunityIcons name={getShareIcon()} size={24} color={theme.colors.primary} />
@@ -129,7 +153,7 @@ export const ContentSharing: React.FC<ContentSharingProps> = ({
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <Button
             mode="contained"
-            onPress={handleShare}
+            onPress={handleAdvancedShare}
             icon="share-variant"
             style={{ flex: 1 }}
             buttonColor={theme.colors.primary}
@@ -159,5 +183,14 @@ export const ContentSharing: React.FC<ContentSharingProps> = ({
         </Text>
       </Card.Content>
     </Card>
+
+    {/* Advanced Sharing Modal */}
+    <AdvancedSharingModal
+      visible={showAdvancedModal}
+      onDismiss={() => setShowAdvancedModal(false)}
+      content={shareContent}
+      onShareSuccess={handleShareSuccess}
+    />
+    </>
   );
 };

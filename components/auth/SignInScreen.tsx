@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, TextInput, Button, Card } from 'react-native-paper';
+import { Text, TextInput, Button, Divider } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { SignInCredentials } from '@/types/user';
 import { useRouter } from 'expo-router';
 import { ErrorDisplay, InlineError } from './ErrorDisplay';
 import { UserFeedback } from './UserFeedback';
+import { GoogleSignInButton } from './GoogleSignInButton';
+import { GoogleSignInOverlay } from './GoogleSignInOverlay';
 
 interface SignInScreenProps {
   onSwitchToSignUp: () => void;
@@ -18,8 +20,9 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({
   onForgotPassword,
 }) => {
   const { theme } = useTheme();
-  const { signIn, loading, error, clearError } = useAuth();
+  const { signIn, signInWithGoogle, loading, error, clearError } = useAuth();
   const router = useRouter();
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [credentials, setCredentials] = useState<SignInCredentials>({
     email: '',
     password: '',
@@ -29,20 +32,17 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-    },
-    card: {
-      backgroundColor: theme.colors.surface,
-      marginBottom: theme.spacing.md,
+      justifyContent: 'center',
     },
     title: {
-      fontSize: 24,
+      fontSize: 20,
       fontWeight: 'bold',
       color: theme.colors.text,
       textAlign: 'center',
-      marginBottom: theme.spacing.lg,
+      marginBottom: theme.spacing.xl,
     },
     input: {
-      marginBottom: theme.spacing.md,
+      marginBottom: theme.spacing.lg,
       backgroundColor: theme.colors.background,
     },
     errorText: {
@@ -52,11 +52,27 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({
       marginBottom: theme.spacing.sm,
     },
     button: {
-      marginTop: theme.spacing.md,
+      marginTop: theme.spacing.xl,
       marginBottom: theme.spacing.sm,
+      paddingVertical: theme.spacing.sm,
     },
     linkButton: {
       marginTop: theme.spacing.sm,
+    },
+    dividerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: theme.spacing.md,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: theme.colors.border || '#E0E0E0',
+    },
+    dividerText: {
+      marginHorizontal: theme.spacing.md,
+      color: theme.colors.textSecondary,
+      fontSize: 14,
     },
     footer: {
       marginTop: theme.spacing.lg,
@@ -101,58 +117,95 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    console.log('Google Sign-In button pressed');
+    clearError();
+    setGoogleLoading(true);
+    try {
+      console.log('Calling signInWithGoogle...');
+      const result = await signInWithGoogle();
+      console.log('Sign in with Google result:', result);
+      
+      // If there's an error, check if it's a cancellation (which is expected behavior)
+      if ('code' in result && result.code) {
+        // Don't show error for user cancellation - this is expected behavior
+        if (result.code === 'USER_CANCELLED') {
+          console.log('Google sign-in was cancelled by user');
+          // Silently handle cancellation - no error message needed
+        } else {
+          // Only log/show error for actual errors, not cancellations
+          console.error('Google sign in error:', result.message);
+        }
+      }
+    } catch (error) {
+      console.error('Error in handleGoogleSignIn:', error);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text style={styles.title}>Welcome Back</Text>
+      <Text style={styles.title}>Welcome Back</Text>
 
-          <TextInput
-            label="Email"
-            value={credentials.email}
-            onChangeText={value => handleInputChange('email', value)}
-            style={styles.input}
-            mode="outlined"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            error={!!formErrors.email}
-          />
-          {formErrors.email && <Text style={styles.errorText}>{formErrors.email}</Text>}
+      <TextInput
+        label="Email"
+        value={credentials.email}
+        onChangeText={value => handleInputChange('email', value)}
+        style={styles.input}
+        mode="outlined"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoComplete="email"
+        error={!!formErrors.email}
+      />
+      {formErrors.email && <Text style={styles.errorText}>{formErrors.email}</Text>}
 
-          <TextInput
-            label="Password"
-            value={credentials.password}
-            onChangeText={value => handleInputChange('password', value)}
-            style={styles.input}
-            mode="outlined"
-            secureTextEntry
-            autoComplete="password"
-            error={!!formErrors.password}
-          />
-          {formErrors.password && <Text style={styles.errorText}>{formErrors.password}</Text>}
+      <TextInput
+        label="Password"
+        value={credentials.password}
+        onChangeText={value => handleInputChange('password', value)}
+        style={styles.input}
+        mode="outlined"
+        secureTextEntry
+        autoComplete="password"
+        error={!!formErrors.password}
+      />
+      {formErrors.password && <Text style={styles.errorText}>{formErrors.password}</Text>}
 
-          {error && <ErrorDisplay error={error} onDismiss={() => clearError()} compact={true} />}
+      {error && <ErrorDisplay error={error} onDismiss={() => clearError()} compact={true} />}
 
-          <Button
-            mode="contained"
-            onPress={handleSignIn}
-            loading={loading}
-            disabled={loading}
-            style={styles.button}
-          >
-            Sign In
-          </Button>
+      <Button
+        mode="contained"
+        onPress={handleSignIn}
+        loading={loading}
+        disabled={loading}
+        style={styles.button}
+      >
+        Sign In
+      </Button>
 
-          <Button
-            mode="text"
-            onPress={() => router.push('/password-reset')}
-            style={styles.linkButton}
-          >
-            Forgot Password?
-          </Button>
-        </Card.Content>
-      </Card>
+      <Button
+        mode="text"
+        onPress={() => router.push('/password-reset')}
+        style={styles.linkButton}
+      >
+        Forgot Password?
+      </Button>
+
+      {/* Divider */}
+      <View style={styles.dividerContainer}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>Or</Text>
+        <View style={styles.dividerLine} />
+      </View>
+
+      {/* Google Sign-In Button */}
+      <GoogleSignInButton
+        onPress={handleGoogleSignIn}
+        loading={googleLoading}
+        disabled={loading}
+      />
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Don't have an account? </Text>
@@ -160,6 +213,9 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({
           Sign Up
         </Button>
       </View>
+
+      {/* Google Sign-In Overlay */}
+      <GoogleSignInOverlay visible={googleLoading} />
     </View>
   );
 };

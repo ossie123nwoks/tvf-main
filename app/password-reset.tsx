@@ -41,17 +41,16 @@ export default function PasswordReset() {
     scrollView: {
       flex: 1,
     },
+    scrollContent: {
+      paddingBottom: theme.spacing.xl * 2,
+    },
     header: {
-      padding: theme.spacing.lg,
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.xl,
+      paddingTop: theme.spacing.xl * 2,
       alignItems: 'center',
       backgroundColor: theme.colors.primary,
-    },
-    headerTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: '#FFFFFF',
-      textAlign: 'center',
-      marginBottom: theme.spacing.sm,
+      marginBottom: theme.spacing.xl,
     },
     headerSubtitle: {
       fontSize: 16,
@@ -204,7 +203,6 @@ export default function PasswordReset() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>TRUEVINE FELLOWSHIP</Text>
           <Text style={styles.headerSubtitle}>Password Reset</Text>
         </View>
 
@@ -225,10 +223,13 @@ export default function PasswordReset() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>TRUEVINE FELLOWSHIP</Text>
           <Text style={styles.headerSubtitle}>
             {mode === 'request' ? 'Reset Your Password' : 'Set New Password'}
           </Text>

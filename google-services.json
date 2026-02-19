@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "316388759565",
+    "project_id": "andriodpush-e06ce",
+    "storage_bucket": "andriodpush-e06ce.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316388759565:android:86e8a9f1789b4a5e381d44",
+        "android_client_info": {
+          "package_name": "com.tvffellowship.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-OXRGYItOsRb_PNXshzbZ-PZ7kWXpHfM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

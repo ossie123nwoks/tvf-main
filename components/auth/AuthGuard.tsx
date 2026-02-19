@@ -59,7 +59,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
 
     // If email verification is required but user is not verified
     if (requireVerification && user && !user.isEmailVerified) {
-      router.replace('/auth?mode=verify');
+      router.replace('/email-verification');
       return;
     }
 

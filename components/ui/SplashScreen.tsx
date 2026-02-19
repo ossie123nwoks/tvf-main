@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, StyleSheet, Animated, Dimensions, Image } from 'react-native';
 import { Text, useTheme as usePaperTheme } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -23,7 +23,7 @@ export default function SplashScreen({
   showLogo = true,
   showTitle = true,
   showSubtitle = true,
-  logoSize = 120,
+  logoSize = 140,
   titleSize = 32,
   subtitleSize = 18,
 }: SplashScreenProps) {
@@ -37,7 +37,7 @@ export default function SplashScreen({
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      backgroundColor: '#1d3557', // Dark blue background as requested
       justifyContent: 'center',
       alignItems: 'center',
       padding: theme.spacing.xl,
@@ -47,35 +47,12 @@ export default function SplashScreen({
       justifyContent: 'center',
     },
     logo: {
-      marginBottom: theme.spacing.xl,
       alignItems: 'center',
+      justifyContent: 'center',
     },
-    logoIcon: {
-      marginBottom: theme.spacing.lg,
-    },
-    logoCircle: {
+    logoImage: {
       width: logoSize,
       height: logoSize,
-      borderRadius: logoSize / 2,
-      backgroundColor: theme.colors.primary,
-      justifyContent: 'center',
-      alignItems: 'center',
-      ...theme.shadows.large,
-    },
-    logoInner: {
-      width: logoSize * 0.6,
-      height: logoSize * 0.6,
-      borderRadius: (logoSize * 0.6) / 2,
-      backgroundColor: theme.colors.cardBackground,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderWidth: 3,
-      borderColor: theme.colors.primary,
-    },
-    logoText: {
-      fontSize: logoSize * 0.2,
-      fontWeight: 'bold',
-      color: theme.colors.primary,
     },
     title: {
       fontSize: titleSize,
@@ -123,7 +100,7 @@ export default function SplashScreen({
       position: 'absolute',
       bottom: theme.spacing.xl,
       fontSize: 12,
-      color: theme.colors.textTertiary,
+      color: 'rgba(255, 255, 255, 0.7)', // Light text for blue background
     },
   });
 
@@ -219,90 +196,13 @@ export default function SplashScreen({
       >
         {showLogo && (
           <View style={styles.logo}>
-            <View style={styles.logoCircle}>
-              <View style={styles.logoInner}>
-                <MaterialIcons
-                  name="church"
-                  size={logoSize * 0.3}
-                  color={theme.colors.primary}
-                  style={styles.logoIcon}
-                />
-                <Text style={styles.logoText}>T</Text>
-              </View>
-            </View>
+            <Image
+              source={require('@/assets/splash-image.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
           </View>
         )}
-
-        {showTitle && (
-          <Animated.Text
-            style={[
-              styles.title,
-              {
-                opacity: fadeAnim,
-                transform: [
-                  {
-                    translateY: slideAnim.interpolate({
-                      inputRange: [0, 50],
-                      outputRange: [0, 20],
-                    }),
-                  },
-                ],
-              },
-            ]}
-          >
-            TRUEVINE
-          </Animated.Text>
-        )}
-
-        {showSubtitle && (
-          <Animated.Text
-            style={[
-              styles.subtitle,
-              {
-                opacity: fadeAnim,
-                transform: [
-                  {
-                    translateY: slideAnim.interpolate({
-                      inputRange: [0, 50],
-                      outputRange: [0, 15],
-                    }),
-                  },
-                ],
-              },
-            ]}
-          >
-            Fellowship Church
-          </Animated.Text>
-        )}
-
-        <Animated.Text
-          style={[
-            styles.tagline,
-            {
-              opacity: fadeAnim.interpolate({
-                inputRange: [0, 0.5, 1],
-                outputRange: [0, 0, 1],
-              }),
-            },
-          ]}
-        >
-          "Building lives on the foundation of God's Word"
-        </Animated.Text>
-
-        <Animated.View
-          style={[
-            styles.loadingContainer,
-            {
-              opacity: fadeAnim.interpolate({
-                inputRange: [0, 0.7, 1],
-                outputRange: [0, 0, 1],
-              }),
-            },
-          ]}
-        >
-          <Text style={styles.loadingText}>Preparing your experience...</Text>
-          {renderLoadingDots()}
-        </Animated.View>
       </Animated.View>
 
       <Text style={styles.version}>v1.0.0</Text>

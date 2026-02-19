@@ -303,3 +303,4 @@ export class AudioProgressTracker {
 
 // Export singleton instance
 export const audioProgressTracker = AudioProgressTracker.getInstance();
+

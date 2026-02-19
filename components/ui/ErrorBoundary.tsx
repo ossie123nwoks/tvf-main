@@ -1,7 +1,6 @@
 import React, { Component, ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, Button, Card } from 'react-native-paper';
-import { useTheme } from '@/lib/theme/ThemeProvider';
+import { Text, Button } from 'react-native-paper';
 
 interface Props {
   children: ReactNode;
@@ -76,70 +75,76 @@ interface ErrorFallbackProps {
   onReport: () => void;
 }
 
+// Static styles that don't depend on theme context
+const fallbackStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    backgroundColor: '#FFFFFF',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 24,
+    alignItems: 'center',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#D32F2F',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  message: {
+    fontSize: 16,
+    color: '#666666',
+    marginBottom: 24,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  errorDetails: {
+    fontSize: 12,
+    color: '#666666',
+    marginBottom: 24,
+    textAlign: 'center',
+    fontFamily: 'monospace',
+    backgroundColor: '#F5F5F5',
+    padding: 12,
+    borderRadius: 8,
+    maxWidth: '100%',
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 16,
+  },
+});
+
 function ErrorFallback({ error, onRetry, onReport }: ErrorFallbackProps) {
-  const { theme } = useTheme();
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: theme.spacing.xl,
-      backgroundColor: theme.colors.background,
-    },
-    card: {
-      padding: theme.spacing.lg,
-      alignItems: 'center',
-      maxWidth: 400,
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: theme.colors.error,
-      marginBottom: theme.spacing.md,
-      textAlign: 'center',
-    },
-    message: {
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-      marginBottom: theme.spacing.lg,
-      textAlign: 'center',
-      lineHeight: 24,
-    },
-    errorDetails: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
-      marginBottom: theme.spacing.lg,
-      textAlign: 'center',
-      fontFamily: 'monospace',
-      backgroundColor: theme.colors.surface,
-      padding: theme.spacing.md,
-      borderRadius: theme.spacing.sm,
-      maxWidth: '100%',
-    },
-    actions: {
-      flexDirection: 'row',
-      gap: theme.spacing.md,
-      marginTop: theme.spacing.md,
-    },
-  });
-
   return (
-    <View style={styles.container}>
-      <Card style={styles.card}>
-        <Text style={styles.title}>Something went wrong</Text>
-        <Text style={styles.message}>
+    <View style={fallbackStyles.container}>
+      <View style={fallbackStyles.card}>
+        <Text style={fallbackStyles.title}>Something went wrong</Text>
+        <Text style={fallbackStyles.message}>
           We're sorry, but something unexpected happened. Please try again or report this issue if
           it persists.
         </Text>
 
         {__DEV__ && error && (
-          <Text style={styles.errorDetails} numberOfLines={5}>
+          <Text style={fallbackStyles.errorDetails} numberOfLines={5}>
             {error.message}
           </Text>
         )}
 
-        <View style={styles.actions}>
+        <View style={fallbackStyles.actions}>
           <Button mode="contained" onPress={onRetry}>
             Try Again
           </Button>
@@ -147,7 +152,7 @@ function ErrorFallback({ error, onRetry, onReport }: ErrorFallbackProps) {
             Report Issue
           </Button>
         </View>
-      </Card>
+      </View>
     </View>
   );
 }

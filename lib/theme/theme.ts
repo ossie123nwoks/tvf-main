@@ -76,8 +76,8 @@ export interface AppTheme {
 
 export const lightTheme: AppTheme = {
   colors: {
-    primary: '#6366F1', // Purple from design system
-    secondary: '#8B5CF6', // Purple light variant
+    primary: '#1d3557', // Dark blue as requested
+    secondary: '#457b9d', // Complementary blue variant
     background: '#F8FAFC', // Background from design system
     surface: '#FFFFFF', // Card background
     surfaceVariant: '#F1F5F9', // Light background variant
@@ -93,25 +93,25 @@ export const lightTheme: AppTheme = {
     error: '#EF4444', // Red for errors
     success: '#10B981', // Green for success
     warning: '#F59E0B', // Amber for warnings
-    info: '#6366F1', // Purple for info
+    info: '#1d3557', // Dark blue for info
     // Content-specific colors
     cardBackground: '#FFFFFF', // Card background
     cardBorder: '#E2E8F0', // Card border
     cardShadow: '#000000', // Card shadow
     // Interactive elements
-    ripple: '#A78BFA', // Purple light for ripple
+    ripple: '#457b9d', // Blue for ripple
     overlay: '#000000', // Overlay
     // Status colors
     online: '#10B981', // Green for online
     offline: '#EF4444', // Red for offline
     // Audio player specific
-    audioProgress: '#6366F1', // Purple for progress
-    audioProgressBackground: '#A78BFA', // Light purple for background
-    audioControl: '#6366F1', // Purple for controls
+    audioProgress: '#1d3557', // Dark blue for progress
+    audioProgressBackground: '#457b9d', // Blue for background
+    audioControl: '#1d3557', // Dark blue for controls
     // Content types
-    sermon: '#6366F1', // Purple for sermons
-    article: '#8B5CF6', // Purple light for articles
-    category: '#A78BFA', // Purple light for categories
+    sermon: '#1d3557', // Dark blue for sermons
+    article: '#457b9d', // Blue for articles
+    category: '#457b9d', // Blue for categories
   },
   spacing: {
     xs: 4, // xs from design system
@@ -152,8 +152,8 @@ export const lightTheme: AppTheme = {
 
 export const darkTheme: AppTheme = {
   colors: {
-    primary: '#A78BFA', // Purple light for dark mode
-    secondary: '#8B5CF6', // Purple for dark mode
+    primary: '#60A5FA', // Bright sky blue - pops against dark background
+    secondary: '#8B5CF6', // Vibrant purple for modern contrast
     background: '#0F172A', // Dark background
     surface: '#1E293B', // Dark surface
     surfaceVariant: '#334155', // Dark surface variant
@@ -169,25 +169,25 @@ export const darkTheme: AppTheme = {
     error: '#F87171', // Red for errors
     success: '#34D399', // Green for success
     warning: '#FBBF24', // Amber for warnings
-    info: '#A78BFA', // Purple for info
+    info: '#60A5FA', // Bright sky blue for info
     // Content-specific colors
     cardBackground: '#1E293B', // Dark card background
     cardBorder: '#334155', // Dark card border
     cardShadow: '#000000', // Card shadow
     // Interactive elements
-    ripple: '#4F46E5', // Purple dark for ripple
+    ripple: '#8B5CF6', // Vibrant purple for ripple
     overlay: '#000000', // Overlay
     // Status colors
     online: '#34D399', // Green for online
     offline: '#F87171', // Red for offline
     // Audio player specific
-    audioProgress: '#A78BFA', // Purple light for progress
-    audioProgressBackground: '#4F46E5', // Purple dark for background
-    audioControl: '#A78BFA', // Purple light for controls
+    audioProgress: '#60A5FA', // Bright sky blue for progress
+    audioProgressBackground: '#8B5CF6', // Vibrant purple for background
+    audioControl: '#60A5FA', // Bright sky blue for controls
     // Content types
-    sermon: '#A78BFA', // Purple light for sermons
-    article: '#8B5CF6', // Purple for articles
-    category: '#6366F1', // Purple for categories
+    sermon: '#60A5FA', // Bright sky blue for sermons
+    article: '#A78BFA', // Lighter purple for articles
+    category: '#A78BFA', // Lighter purple for categories
   },
   spacing: {
     xs: 4,

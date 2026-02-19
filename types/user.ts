@@ -109,3 +109,32 @@ export interface AuthSuccess {
   user: User;
   session?: Session;
 }
+
+/**
+ * Google Sign-In specific types
+ */
+export interface GoogleSignInCredentials {
+  accessToken: string;
+  idToken: string;
+  refreshToken?: string;
+}
+
+export interface GoogleProfileData {
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string;
+  emailVerified: boolean;
+  provider: 'google';
+}
+
+export interface OAuthFlowResult {
+  success: boolean;
+  code?: string;
+  error?: string;
+  cancelled?: boolean;
+}
+
+export interface GoogleAuthOptions {
+  skipBrowserRedirect?: boolean;
+}

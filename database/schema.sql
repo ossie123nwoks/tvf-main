@@ -46,6 +46,19 @@ CREATE TABLE public.tags (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Topics table for sermon topics
+CREATE TABLE public.topics (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT UNIQUE NOT NULL,
+    description TEXT,
+    color TEXT DEFAULT '#FFA726',
+    icon TEXT DEFAULT 'tag',
+    is_active BOOLEAN DEFAULT TRUE,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Sermons table
 CREATE TABLE public.sermons (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -93,11 +106,37 @@ CREATE TABLE public.sermon_tags (
     PRIMARY KEY (sermon_id, tag_id)
 );
 
+-- Sermon topics relationship
+CREATE TABLE public.sermon_topics (
+    sermon_id UUID REFERENCES public.sermons(id) ON DELETE CASCADE,
+    topic_id UUID REFERENCES public.topics(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (sermon_id, topic_id)
+);
+
 -- Article tags relationship
 CREATE TABLE public.article_tags (
     article_id UUID REFERENCES public.articles(id) ON DELETE CASCADE,
     tag_id UUID REFERENCES public.tags(id) ON DELETE CASCADE,
     PRIMARY KEY (article_id, tag_id)
+);
+
+-- Article topics relationship
+CREATE TABLE public.article_topics (
+    article_id UUID REFERENCES public.articles(id) ON DELETE CASCADE,
+    topic_id UUID REFERENCES public.topics(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (article_id, topic_id)
+);
+
+-- Article series relationship
+-- Note: Unlike sermons which have a direct series_id column,
+-- articles use a junction table to support multiple series per article
+CREATE TABLE public.article_series (
+    article_id UUID REFERENCES public.articles(id) ON DELETE CASCADE,
+    series_id UUID REFERENCES public.series(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (article_id, series_id)
 );
 
 -- ========================================
@@ -195,6 +234,7 @@ CREATE TABLE public.push_tokens (
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     token TEXT NOT NULL,
     platform TEXT NOT NULL CHECK (platform IN ('ios', 'android', 'web')),
+    device_id TEXT,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -248,6 +288,16 @@ CREATE INDEX idx_categories_active ON public.categories(is_active);
 
 -- Tags indexes
 CREATE INDEX idx_tags_name ON public.tags(name);
+
+-- Topics indexes
+CREATE INDEX idx_topics_name ON public.topics(name);
+CREATE INDEX idx_topics_active ON public.topics(is_active);
+CREATE INDEX idx_sermon_topics_sermon_id ON public.sermon_topics(sermon_id);
+CREATE INDEX idx_sermon_topics_topic_id ON public.sermon_topics(topic_id);
+CREATE INDEX idx_article_topics_article_id ON public.article_topics(article_id);
+CREATE INDEX idx_article_topics_topic_id ON public.article_topics(topic_id);
+CREATE INDEX idx_article_series_article_id ON public.article_series(article_id);
+CREATE INDEX idx_article_series_series_id ON public.article_series(series_id);
 
 -- Sermons indexes
 CREATE INDEX idx_sermons_category_id ON public.sermons(category_id);
@@ -325,6 +375,9 @@ $$ language 'plpgsql';
 -- Apply triggers to tables with updated_at (users table trigger already exists)
 CREATE TRIGGER update_categories_updated_at BEFORE UPDATE ON public.categories FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_tags_updated_at BEFORE UPDATE ON public.tags FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Topics triggers
+CREATE TRIGGER update_topics_updated_at BEFORE UPDATE ON public.topics FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_sermons_updated_at BEFORE UPDATE ON public.sermons FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_articles_updated_at BEFORE UPDATE ON public.articles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_user_preferences_updated_at BEFORE UPDATE ON public.user_preferences FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -339,6 +392,12 @@ CREATE TRIGGER update_app_invitations_updated_at BEFORE UPDATE ON public.app_inv
 -- Enable RLS on all tables (users table already has RLS enabled)
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tags ENABLE ROW LEVEL SECURITY;
+
+-- Enable RLS for topics tables
+ALTER TABLE public.topics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sermon_topics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.article_topics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.article_series ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sermons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.articles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_preferences ENABLE ROW LEVEL SECURITY;
@@ -360,6 +419,19 @@ CREATE POLICY "Public read access to categories" ON public.categories
     FOR SELECT USING (is_active = true);
 
 CREATE POLICY "Public read access to tags" ON public.tags
+    FOR SELECT USING (true);
+
+-- Topics policies
+CREATE POLICY "Public read access to topics" ON public.topics
+    FOR SELECT USING (is_active = true);
+
+CREATE POLICY "Public read access to sermon topics" ON public.sermon_topics
+    FOR SELECT USING (true);
+
+CREATE POLICY "Public read access to article topics" ON public.article_topics
+    FOR SELECT USING (true);
+
+CREATE POLICY "Public read access to article series" ON public.article_series
     FOR SELECT USING (true);
 
 -- Authenticated user access to their own data (users table policies already exist)
@@ -401,6 +473,22 @@ CREATE POLICY "Admins can manage all content" ON public.sermons
     );
 
 CREATE POLICY "Admins can manage all content" ON public.articles
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.users 
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+
+CREATE POLICY "Admins can manage article topics" ON public.article_topics
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM public.users 
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+
+CREATE POLICY "Admins can manage article series" ON public.article_series
     FOR ALL USING (
         EXISTS (
             SELECT 1 FROM public.users 
@@ -510,11 +598,12 @@ $$ LANGUAGE plpgsql;
 
 -- Insert default categories
 INSERT INTO public.categories (name, description, color, icon, sort_order) VALUES
-('Sermons', 'Weekly sermon recordings and teachings', '#1976D2', 'volume-high', 1),
-('Articles', 'Spiritual articles and devotionals', '#388E3C', 'book-open', 2),
-('Announcements', 'Church announcements and updates', '#F57C00', 'bullhorn', 3),
-('Events', 'Church events and activities', '#7B1FA2', 'calendar', 4),
-('Ministries', 'Information about church ministries', '#D32F2F', 'account-group', 5);
+('Series', 'Sermon series and multi-part teachings', '#1976D2', 'book-series', 1),
+('Topics', 'Sermons organized by specific topics and themes', '#388E3C', 'tag-multiple', 2),
+('Articles', 'Spiritual articles and devotionals', '#F57C00', 'book-open', 3),
+('Announcements', 'Church announcements and updates', '#7B1FA2', 'bullhorn', 4),
+('Events', 'Church events and activities', '#D32F2F', 'calendar', 5),
+('Ministries', 'Information about church ministries', '#FF6F00', 'account-group', 6);
 
 -- Insert default tags
 INSERT INTO public.tags (name, description, color) VALUES
@@ -526,6 +615,19 @@ INSERT INTO public.tags (name, description, color) VALUES
 ('Community', 'Community and fellowship', '#FF6F00'),
 ('Leadership', 'Leadership and service', '#8E24AA'),
 ('Youth', 'Youth ministry and topics', '#43A047');
+
+-- Insert default topics
+INSERT INTO public.topics (name, description, color, icon, sort_order) VALUES
+('Love', 'Sermons about love, compassion, and relationships', '#E91E63', 'heart', 1),
+('Faith', 'Sermons about faith, trust, and belief', '#9C27B0', 'cross', 2),
+('Hope', 'Sermons about hope, encouragement, and future', '#3F51B5', 'lightbulb', 3),
+('Grace', 'Sermons about God''s grace and mercy', '#2196F3', 'gift', 4),
+('Prayer', 'Sermons about prayer and communication with God', '#00BCD4', 'pray', 5),
+('Worship', 'Sermons about worship and praise', '#4CAF50', 'music', 6),
+('Forgiveness', 'Sermons about forgiveness and reconciliation', '#8BC34A', 'handshake', 7),
+('Salvation', 'Sermons about salvation and eternal life', '#CDDC39', 'star', 8),
+('Healing', 'Sermons about healing and restoration', '#FFEB3B', 'medical-bag', 9),
+('Wisdom', 'Sermons about wisdom and understanding', '#FFC107', 'book-open', 10);
 
 -- ========================================
 -- COMMENTS

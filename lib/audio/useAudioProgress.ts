@@ -142,3 +142,4 @@ export const useAudioProgress = (): UseAudioProgressReturn => {
     isLoading,
   };
 };
+

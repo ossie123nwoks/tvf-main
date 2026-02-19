@@ -7,12 +7,13 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { EmailVerificationRequest, EmailVerificationConfirm } from '@/types/user';
 import { ErrorDisplay, InlineError } from '@/components/auth/ErrorDisplay';
 import { UserFeedback } from '@/components/auth/UserFeedback';
+import { AuthService } from '@/lib/supabase/auth';
 
 type VerificationMode = 'request' | 'confirm';
 
 export default function EmailVerification() {
   const { theme } = useTheme();
-  const { user, requestEmailVerification, loading, error, clearError } = useAuth();
+  const { user, requestEmailVerification, loading, error, clearError, refreshUser } = useAuth();
   const router = useRouter();
   const params = useLocalSearchParams();
 
@@ -27,6 +28,7 @@ export default function EmailVerification() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
 
   const styles = StyleSheet.create({
     container: {
@@ -146,10 +148,19 @@ export default function EmailVerification() {
 
   // Auto-verify if token is present
   useEffect(() => {
-    if (params.token && !isVerifying) {
+    if (params.token && !isVerifying && !isSuccess) {
       handleAutoVerification();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.token]);
+
+  // Check if user becomes verified (e.g., from another tab/device)
+  useEffect(() => {
+    if (user?.isEmailVerified && !isSuccess) {
+      setIsSuccess(true);
+      setSuccessMessage('Email verified successfully! You can now access all features of the app.');
+    }
+  }, [user?.isEmailVerified]);
 
   const validateEmail = (): boolean => {
     if (!email.trim()) {
@@ -168,6 +179,7 @@ export default function EmailVerification() {
     if (!validateEmail()) return;
 
     clearError();
+    setVerificationError(null);
     const result = await requestEmailVerification({ email: email.trim() });
 
     if (result.success) {
@@ -175,19 +187,61 @@ export default function EmailVerification() {
       setSuccessMessage(
         'Verification email sent! Please check your inbox and click the verification link.'
       );
+    } else {
+      setVerificationError(result.error || 'Failed to send verification email');
     }
   };
 
   const handleAutoVerification = async () => {
     setIsVerifying(true);
     clearError();
+    setVerificationError(null);
 
-    // Simulate verification process
-    setTimeout(() => {
+    try {
+      // Supabase processes email verification tokens automatically when the deep link
+      // is handled. The token in the URL params is processed by Supabase's auth system.
+      // We need to refresh the user session to check if verification succeeded.
+      
+      // Wait a moment for Supabase to process the token
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Refresh user data to get latest verification status
+      await refreshUser();
+      
+      // Check again after refresh
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Get current user to check verification status
+      const currentUser = await AuthService.getCurrentUser();
+      
+      if (currentUser?.isEmailVerified) {
+        setIsVerifying(false);
+        setIsSuccess(true);
+        setSuccessMessage('Email verified successfully! You can now access all features of the app.');
+      } else {
+        // If still not verified, try to verify with the token
+        const token = params.token as string;
+        if (token) {
+          const verifyResult = await AuthService.verifyEmail(token);
+          if (verifyResult.success) {
+            await refreshUser();
+            setIsVerifying(false);
+            setIsSuccess(true);
+            setSuccessMessage('Email verified successfully! You can now access all features of the app.');
+          } else {
+            setIsVerifying(false);
+            setVerificationError(verifyResult.error || 'Email verification failed. Please try requesting a new verification email.');
+          }
+        } else {
+          setIsVerifying(false);
+          setVerificationError('Verification token not found. Please request a new verification email.');
+        }
+      }
+    } catch (error) {
+      console.error('Verification error:', error);
       setIsVerifying(false);
-      setIsSuccess(true);
-      setSuccessMessage('Email verified successfully! You can now access all features of the app.');
-    }, 2000);
+      setVerificationError('An error occurred during verification. Please try again.');
+    }
   };
 
   const handleBackToSignIn = () => {
@@ -313,6 +367,9 @@ export default function EmailVerification() {
                 {error && (
                   <ErrorDisplay error={error} onDismiss={() => clearError()} compact={true} />
                 )}
+                {verificationError && (
+                  <ErrorDisplay error={verificationError} onDismiss={() => setVerificationError(null)} compact={true} />
+                )}
 
                 <Button
                   mode="contained"
@@ -333,6 +390,17 @@ export default function EmailVerification() {
                 <Text style={styles.description}>
                   We're processing your email verification. This may take a moment.
                 </Text>
+                {verificationError && (
+                  <ErrorDisplay error={verificationError} onDismiss={() => setVerificationError(null)} compact={true} />
+                )}
+                <Button
+                  mode="outlined"
+                  onPress={handleRequestVerification}
+                  disabled={loading || isVerifying}
+                  style={styles.button}
+                >
+                  Resend Verification Email
+                </Button>
               </Card.Content>
             </Card>
           )}

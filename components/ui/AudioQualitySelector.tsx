@@ -523,7 +523,7 @@ export const AudioQualitySelector: React.FC<AudioQualitySelectorProps> = ({
                 <Button
                   mode="outlined"
                   onPress={() => setPreferencesDialogVisible(true)}
-                  icon="settings"
+                  icon="cog"
                   style={styles.actionButton}
                 >
                   Preferences

@@ -1,0 +1,15 @@
+# Cursor ignore file
+# This file tells Cursor which files to ignore
+
+# Allow .env files (remove from ignore list)
+# .env files are typically ignored by default, but we want to edit them
+
+# Keep these ignored for security/performance
+node_modules/
+.expo/
+dist/
+build/
+*.log
+.DS_Store
+Thumbs.db
+!.env   

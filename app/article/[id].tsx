@@ -70,6 +70,7 @@ export default function ArticleDetailScreen() {
       fontSize: 28,
       fontWeight: 'bold',
       color: theme.colors.text,
+      marginTop: theme.spacing.xl,
       marginBottom: theme.spacing.sm,
       lineHeight: 36,
     },
@@ -443,9 +444,10 @@ export default function ArticleDetailScreen() {
               onPress={handleBack}
               style={{
                 position: 'absolute',
-                top: theme.spacing.md,
+                top: theme.spacing.lg,
                 left: theme.spacing.md,
                 zIndex: 1,
+                backgroundColor: theme.colors.surface,
               }}
             />
 

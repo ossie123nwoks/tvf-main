@@ -8,11 +8,36 @@ export interface Sermon {
   thumbnail_url?: string;
   description: string;
   category_id: string;
+  series_id?: string; // Optional - sermon can belong to a series
   tags: string[];
   downloads: number;
   views: number;
   is_featured: boolean;
   is_published: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Series {
+  id: string;
+  name: string;
+  description?: string;
+  thumbnail_url?: string;
+  start_date?: string;
+  end_date?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Topic {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+  icon: string;
+  is_active: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }

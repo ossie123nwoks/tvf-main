@@ -546,3 +546,4 @@ export class AudioQualityManager {
 
 // Export singleton instance
 export const audioQualityManager = AudioQualityManager.getInstance();
+

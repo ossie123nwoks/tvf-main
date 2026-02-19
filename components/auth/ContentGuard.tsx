@@ -96,7 +96,7 @@ export const ContentGuard: React.FC<ContentGuardProps> = ({
           {showVerificationButton && (
             <Button
               mode="contained"
-              onPress={() => router.push('/auth?mode=verify')}
+              onPress={() => router.push('/email-verification')}
               style={styles.button}
             >
               Verify Email

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, Button, Card, useTheme as usePaperTheme } from 'react-native-paper';
+import { Text, Button, Card, useTheme as usePaperTheme, ActivityIndicator } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useRouter } from 'expo-router';
@@ -16,15 +16,20 @@ export default function Auth() {
   const router = useRouter();
   const [authMode, setAuthMode] = useState<AuthMode>('signin');
 
-  // Redirect to dashboard if already authenticated
+  // Redirect based on authentication and verification status
   useEffect(() => {
     if (isAuthenticated && user) {
-      router.replace('/(tabs)/dashboard');
+      // If email is not verified, redirect to verification screen
+      if (!user.isEmailVerified) {
+        router.replace('/email-verification');
+      } else {
+        router.replace('/(tabs)/dashboard');
+      }
     }
   }, [isAuthenticated, user, router]);
 
-  // Don't render auth screen if already authenticated
-  if (isAuthenticated && user) {
+  // Don't render auth screen if already authenticated and verified
+  if (isAuthenticated && user && user.isEmailVerified) {
     return null;
   }
 
@@ -37,16 +42,20 @@ export default function Auth() {
       flex: 1,
     },
     header: {
-      padding: theme.spacing.lg,
+      paddingTop: theme.spacing.xl * 3, // More top padding like reference
+      paddingBottom: theme.spacing.xl,
+      paddingHorizontal: theme.spacing.lg,
       alignItems: 'center',
       backgroundColor: theme.colors.primary,
+      minHeight: 120, // Ensure consistent header height
     },
     headerTitle: {
-      fontSize: 28,
+      fontSize: 24,
       fontWeight: 'bold',
       color: '#FFFFFF',
       textAlign: 'center',
-      marginBottom: theme.spacing.xs,
+      marginBottom: theme.spacing.sm,
+      marginTop: theme.spacing.lg,
     },
     headerSubtitle: {
       fontSize: 16,
@@ -56,7 +65,9 @@ export default function Auth() {
     },
     content: {
       flex: 1,
-      padding: theme.spacing.lg,
+      padding: theme.spacing.xl,
+      paddingTop: theme.spacing.xl * 3, // More top padding to center content better
+      justifyContent: 'center', // Center content vertically
     },
     modeToggle: {
       flexDirection: 'row',
@@ -116,9 +127,8 @@ export default function Auth() {
   if (loading) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>TRUEVINE FELLOWSHIP</Text>
-          <Text style={styles.headerSubtitle}>Loading...</Text>
+        <View style={styles.content}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       </View>
     );
@@ -127,12 +137,6 @@ export default function Auth() {
   return (
     <ErrorBoundary>
       <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>TRUEVINE FELLOWSHIP</Text>
-          <Text style={styles.headerSubtitle}>Sign in to access your spiritual journey</Text>
-        </View>
-
         {/* Mode Toggle */}
         <View style={styles.content}>
           <View style={styles.modeToggle}>
@@ -165,7 +169,11 @@ export default function Auth() {
           </View>
 
           {/* Auth Forms */}
-          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <ScrollView 
+            style={styles.scrollView} 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+          >
             {authMode === 'signin' ? (
               <SignInScreen
                 onSwitchToSignUp={handleSwitchToSignUp}

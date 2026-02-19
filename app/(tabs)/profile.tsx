@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import {
   Text,
@@ -16,13 +16,74 @@ import {
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { UserProfileUpdate, ChangePasswordRequest } from '@/types/user';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SessionStatus } from '@/components/auth/SessionStatus';
+import { useSavedContent } from '@/lib/hooks/useSavedContent';
+import { useOfflineDownloads } from '@/lib/storage/useOfflineDownloads';
 
 export default function Profile() {
   const { theme, isDark, setTheme } = useTheme();
   const { user, signOut, updateProfile, changePassword, deleteAccount, loading } = useAuth();
   const router = useRouter();
+  const { savedContent, isLoading: savedContentLoading, unsaveContent, refreshSavedContent } = useSavedContent();
+  const { downloads, storageInfo, cleanupDownloads } = useOfflineDownloads();
+
+  // Refresh saved content when component mounts or when navigating back
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshSavedContent();
+    }, [refreshSavedContent])
+  );
+
+  // Helper function to check if avatar URL is a default Google avatar (to avoid logo conflicts)
+  const isGoogleDefaultAvatar = (url?: string): boolean => {
+    if (!url) return false;
+    
+    try {
+      // Check if it's a Google avatar URL
+      if (url.includes('googleusercontent.com') || url.includes('google.com')) {
+        const urlObj = new URL(url);
+        const pathname = urlObj.pathname.toLowerCase();
+        
+        // Google default avatars have these patterns that include logo overlay:
+        // - Contains '/default' in path
+        // - Contains '/photo.jpg' (generic default)
+        // - Has query parameters like '=s96-c' where 'c' indicates default
+        // - Path contains hash-like segments that indicate default avatar
+        const isDefault = 
+          pathname.includes('/default') || 
+          pathname.includes('/photo.jpg') ||
+          pathname.match(/\/a\/default-/i) ||
+          url.match(/=s\d+-c\b/i) || // Pattern like =s96-c indicates default
+          url.match(/\/photo\/default/);
+        
+        return isDefault;
+      }
+      
+      return false;
+    } catch (error) {
+      // If URL parsing fails, check for default patterns directly in the URL string
+      const lowerUrl = url.toLowerCase();
+      return lowerUrl.includes('/default') || 
+             lowerUrl.includes('/photo.jpg') ||
+             lowerUrl.match(/=s\d+-c\b/i) !== null ||
+             lowerUrl.match(/\/photo\/default/) !== null;
+    }
+  };
+
+  // Helper function to get the avatar source (either cleaned URL or undefined for fallback)
+  const getAvatarSource = (url?: string): string | undefined => {
+    if (!url) return undefined;
+    
+    // Only replace default Google avatars with initials to avoid Google logo overlay conflicts
+    // Custom Google avatars should display normally
+    if (isGoogleDefaultAvatar(url)) {
+      return undefined; // Return undefined to use initials fallback for default avatars
+    }
+    
+    // For all other avatars (including custom Google avatars), return the URL as-is
+    return url;
+  };
 
   // State for edit mode
   const [isEditing, setIsEditing] = useState(false);
@@ -55,6 +116,28 @@ export default function Profile() {
   // State for delete account confirmation
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteReason, setDeleteReason] = useState('');
+
+  // State for clear all bookmarks dialog
+  const [showClearBookmarksDialog, setShowClearBookmarksDialog] = useState(false);
+
+  // State for privacy settings
+  const [privacySettings, setPrivacySettings] = useState({
+    profileVisible: true,
+    showEmail: false,
+    activityTracking: true,
+  });
+
+
+  // Calculate saved content stats - use useMemo to ensure reactivity
+  const savedSermons = React.useMemo(() => {
+    if (!savedContent || !Array.isArray(savedContent) || savedContent.length === 0) return [];
+    return savedContent.filter(item => item && item.content && 'duration' in item.content);
+  }, [savedContent]);
+
+  const savedArticles = React.useMemo(() => {
+    if (!savedContent || !Array.isArray(savedContent) || savedContent.length === 0) return [];
+    return savedContent.filter(item => item && item.content && 'excerpt' in item.content);
+  }, [savedContent]);
 
   const styles = StyleSheet.create({
     container: {
@@ -195,15 +278,36 @@ export default function Profile() {
     },
     // Action buttons row
     actionButtons: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
+      flexDirection: 'column',
       marginTop: theme.spacing.lg,
-      gap: theme.spacing.md,
+      gap: theme.spacing.sm,
     },
     actionButton: {
-      flex: 1,
+      width: '100%',
       borderRadius: theme.borderRadius.md,
       height: 48,
+    },
+    // Stats container
+    statsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginBottom: theme.spacing.lg,
+      padding: theme.spacing.md,
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.borderRadius.md,
+    },
+    statItem: {
+      alignItems: 'center',
+    },
+    statValue: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: theme.colors.primary,
+      marginBottom: theme.spacing.xs,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: theme.colors.textSecondary,
     },
   });
 
@@ -311,6 +415,50 @@ export default function Profile() {
     ]);
   };
 
+  const handleClearAllBookmarks = async () => {
+    try {
+      // Remove all saved content
+      for (const item of savedContent) {
+        const contentType = 'duration' in item.content ? 'sermon' : 'article';
+        await unsaveContent(contentType, item.content.id);
+      }
+      setShowClearBookmarksDialog(false);
+      Alert.alert('Success', 'All bookmarks have been cleared');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to clear bookmarks. Please try again.');
+    }
+  };
+
+  const handleClearDownloads = async () => {
+    Alert.alert(
+      'Clear Downloads',
+      'Are you sure you want to clear all downloaded content? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await cleanupDownloads();
+              Alert.alert('Success', 'All downloads have been cleared');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to clear downloads. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const formatStorageSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+  };
+
+
   if (!user) {
     return (
       <View style={styles.container}>
@@ -324,11 +472,23 @@ export default function Profile() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Hero Section - matches design system */}
         <View style={styles.heroSection}>
-          <Avatar.Image
-            size={80}
-            source={{ uri: user.avatarUrl || 'https://via.placeholder.com/80' }}
-            style={styles.avatar}
-          />
+          {(() => {
+            const avatarSource = getAvatarSource(user?.avatarUrl);
+            return avatarSource ? (
+              <Avatar.Image
+                size={80}
+                source={{ uri: avatarSource }}
+                style={styles.avatar}
+              />
+            ) : (
+              <Avatar.Text
+                size={80}
+                label={`${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase() || 'U'}
+                style={[styles.avatar, { backgroundColor: theme.colors.primary }]}
+                labelStyle={{ color: '#FFFFFF', fontSize: 32, fontWeight: 'bold' }}
+              />
+            );
+          })()}
           <Text style={styles.heroTitle}>
             {user.firstName} {user.lastName}
           </Text>
@@ -430,48 +590,138 @@ export default function Profile() {
           {/* Preferences */}
           <Card style={styles.card}>
             <Card.Content style={styles.cardContent}>
-              <Text style={styles.sectionTitle}>Preferences</Text>
+              <Text style={styles.sectionTitle}>Quick Preferences</Text>
+
+              <Text style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.md }}>
+                Quick access to commonly used settings. For more options, see the sections below.
+              </Text>
 
               <View style={styles.switchContainer}>
-                <Text style={styles.switchText}>New Content Notifications</Text>
+                <Text style={styles.switchText}>Dark Theme</Text>
                 <Switch
-                  value={user.preferences?.notifications?.newContent || false}
-                  onValueChange={value =>
+                  value={isDark}
+                  onValueChange={value => {
+                    setTheme(value);
                     setEditData(prev => ({
                       ...prev,
                       preferences: {
                         ...prev.preferences,
-                        notifications: {
-                          newContent: value,
-                          reminders: prev.preferences?.notifications?.reminders ?? true,
-                          updates: prev.preferences?.notifications?.updates ?? true,
-                          marketing: prev.preferences?.notifications?.marketing ?? false,
-                        },
+                        theme: value ? 'dark' : 'light',
                       },
-                    }))
+                    }));
+                  }}
+                />
+              </View>
+            </Card.Content>
+          </Card>
+
+          {/* Saved Content */}
+          <Card style={styles.card}>
+            <Card.Content style={styles.cardContent}>
+              <Text style={styles.sectionTitle}>Saved Content</Text>
+
+              <View style={styles.statsContainer}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{savedSermons.length}</Text>
+                  <Text style={styles.statLabel}>Saved Sermons</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{savedArticles.length}</Text>
+                  <Text style={styles.statLabel}>Saved Articles</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{savedContent.length}</Text>
+                  <Text style={styles.statLabel}>Total Saved</Text>
+                </View>
+              </View>
+
+              <View style={styles.actionButtons}>
+                <Button
+                  mode="contained"
+                  onPress={() => router.push('/saved/sermons')}
+                  style={[styles.actionButton, styles.primaryButton]}
+                  icon="bookmark"
+                  buttonColor={theme.colors.primary}
+                  textColor="#FFFFFF"
+                >
+                  View Saved Sermons
+                </Button>
+                <Button
+                  mode="contained"
+                  onPress={() => router.push('/saved/articles')}
+                  style={[styles.actionButton, styles.primaryButton]}
+                  icon="bookmark-outline"
+                  buttonColor={theme.colors.primary}
+                  textColor="#FFFFFF"
+                >
+                  View Saved Articles
+                </Button>
+              </View>
+
+              {savedContent.length > 0 && (
+                <Button
+                  mode="outlined"
+                  onPress={() => setShowClearBookmarksDialog(true)}
+                  style={[styles.secondaryButton, { marginTop: theme.spacing.md }]}
+                  textColor={theme.colors.error}
+                  icon="delete-outline"
+                >
+                  Clear All Bookmarks
+                </Button>
+              )}
+            </Card.Content>
+          </Card>
+
+          {/* Privacy Settings */}
+          <Card style={styles.card}>
+            <Card.Content style={styles.cardContent}>
+              <Text style={styles.sectionTitle}>Privacy Settings</Text>
+
+              <View style={styles.switchContainer}>
+                <Text style={styles.switchText}>Profile Visibility</Text>
+                <Switch
+                  value={privacySettings.profileVisible}
+                  onValueChange={value =>
+                    setPrivacySettings(prev => ({ ...prev, profileVisible: value }))
                   }
                 />
               </View>
 
               <View style={styles.switchContainer}>
-                <Text style={styles.switchText}>Reminder Notifications</Text>
+                <Text style={styles.switchText}>Show Email in Profile</Text>
                 <Switch
-                  value={user.preferences?.notifications?.reminders || false}
+                  value={privacySettings.showEmail}
                   onValueChange={value =>
-                    setEditData(prev => ({
-                      ...prev,
-                      preferences: {
-                        ...prev.preferences,
-                        notifications: {
-                          newContent: prev.preferences?.notifications?.newContent ?? true,
-                          reminders: value,
-                          updates: prev.preferences?.notifications?.updates ?? true,
-                          marketing: prev.preferences?.notifications?.marketing ?? false,
-                        },
-                      },
-                    }))
+                    setPrivacySettings(prev => ({ ...prev, showEmail: value }))
                   }
                 />
+              </View>
+
+              <View style={styles.switchContainer}>
+                <Text style={styles.switchText}>Activity Tracking</Text>
+                <Switch
+                  value={privacySettings.activityTracking}
+                  onValueChange={value =>
+                    setPrivacySettings(prev => ({ ...prev, activityTracking: value }))
+                  }
+                />
+              </View>
+            </Card.Content>
+          </Card>
+
+          {/* Download Management */}
+          <Card style={styles.card}>
+            <Card.Content style={styles.cardContent}>
+              <Text style={styles.sectionTitle}>Download Management</Text>
+
+              <View style={styles.row}>
+                <Text style={styles.rowText}>Total Downloads</Text>
+                <Text style={styles.rowSubtext}>{downloads.length}</Text>
+              </View>
+
+              <View style={styles.row}>
+                <Text style={styles.rowText}>Storage Used</Text>
+                <Text style={styles.rowSubtext}>{formatStorageSize(storageInfo.usedSpace)}</Text>
               </View>
 
               <View style={styles.switchContainer}>
@@ -490,6 +740,54 @@ export default function Profile() {
                 />
               </View>
 
+              <View style={styles.row}>
+                <Text style={styles.rowText}>Audio Quality</Text>
+                <Text style={styles.rowSubtext}>
+                  {user.preferences?.audioQuality || 'medium'}
+                </Text>
+              </View>
+
+              {downloads.length > 0 && (
+                <Button
+                  mode="outlined"
+                  onPress={handleClearDownloads}
+                  style={styles.secondaryButton}
+                  textColor={theme.colors.error}
+                  icon="delete-outline"
+                >
+                  Clear All Downloads
+                </Button>
+              )}
+            </Card.Content>
+          </Card>
+
+          {/* Notifications Management */}
+          <Card style={styles.card}>
+            <Card.Content style={styles.cardContent}>
+              <Text style={styles.sectionTitle}>Notifications</Text>
+
+              <Text style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.md }}>
+                Manage your notification history and preferences
+              </Text>
+
+              <Button
+                mode="contained"
+                onPress={() => router.push('/notifications')}
+                style={styles.primaryButton}
+                icon="bell"
+                buttonColor={theme.colors.primary}
+                textColor="#FFFFFF"
+              >
+                Open Notifications
+              </Button>
+            </Card.Content>
+          </Card>
+
+          {/* App Appearance Settings */}
+          <Card style={styles.card}>
+            <Card.Content style={styles.cardContent}>
+              <Text style={styles.sectionTitle}>App Appearance</Text>
+
               <View style={styles.switchContainer}>
                 <Text style={styles.switchText}>Dark Theme</Text>
                 <Switch
@@ -506,6 +804,34 @@ export default function Profile() {
                   }}
                 />
               </View>
+
+              <View style={styles.row}>
+                <Text style={styles.rowText}>Language</Text>
+                <Text style={styles.rowSubtext}>
+                  {user.preferences?.language === 'en' ? 'English' : user.preferences?.language || 'English'}
+                </Text>
+              </View>
+            </Card.Content>
+          </Card>
+
+          {/* Data Management */}
+          <Card style={styles.card}>
+            <Card.Content style={styles.cardContent}>
+              <Text style={styles.sectionTitle}>Data Management</Text>
+
+              <Text style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.md }}>
+                Manage your app data and export options
+              </Text>
+
+              <Button
+                mode="outlined"
+                onPress={() => Alert.alert('Coming Soon', 'Data export feature will be available soon')}
+                style={styles.secondaryButton}
+                icon="download"
+                textColor={theme.colors.primary}
+              >
+                Export My Data
+              </Button>
             </Card.Content>
           </Card>
 
@@ -619,6 +945,25 @@ export default function Profile() {
           </Dialog.Actions>
         </Dialog>
       </Portal>
+
+      {/* Clear All Bookmarks Dialog */}
+      <Portal>
+        <Dialog visible={showClearBookmarksDialog} onDismiss={() => setShowClearBookmarksDialog(false)}>
+          <Dialog.Title>Clear All Bookmarks</Dialog.Title>
+          <Dialog.Content>
+            <Text style={{ marginBottom: theme.spacing.md }}>
+              Are you sure you want to remove all {savedContent.length} saved items? This action cannot be undone.
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setShowClearBookmarksDialog(false)}>Cancel</Button>
+            <Button onPress={handleClearAllBookmarks} loading={savedContentLoading} textColor={theme.colors.error}>
+              Clear All
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
     </View>
   );
 }

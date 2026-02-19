@@ -30,6 +30,7 @@ interface AuthContextType extends AuthState {
   // Authentication methods
   signUp: (credentials: SignUpCredentials) => Promise<AuthSuccess | AuthError>;
   signIn: (credentials: SignInCredentials) => Promise<AuthSuccess | AuthError>;
+  signInWithGoogle: () => Promise<AuthSuccess | AuthError>;
   signOut: () => Promise<void>;
 
   // Password management
@@ -169,48 +170,237 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const {
       data: { subscription },
     } = AuthService.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event, session);
+      console.log('🔐 Auth state change:', event, session ? 'session exists' : 'no session');
 
-      if (event === 'SIGNED_IN' && session) {
-        const user = await AuthService.getCurrentUser();
-        setAuthState({
-          user,
-          session: session
-            ? {
-                accessToken: session.access_token,
-                refreshToken: session.refresh_token,
-                expiresAt: session.expires_at,
-                user: user!,
+      try {
+        if (event === 'SIGNED_IN' && session) {
+          console.log('✅ SIGNED_IN event received, processing...');
+          
+          // Create user immediately from session.user to avoid blocking on network
+          const createUserFromSession = (sessionUser: any) => {
+            if (!sessionUser) return null;
+            return {
+              id: sessionUser.id || '',
+              email: sessionUser.email || '',
+              firstName: sessionUser.user_metadata?.first_name || '',
+              lastName: sessionUser.user_metadata?.last_name || '',
+              avatarUrl: sessionUser.user_metadata?.avatar_url || '',
+              role: 'member', // Will be updated if we can fetch from DB
+              isEmailVerified: sessionUser.email_confirmed_at !== null,
+              lastSignInAt: sessionUser.last_sign_in_at || '',
+              createdAt: sessionUser.created_at || new Date().toISOString(),
+              updatedAt: sessionUser.updated_at || sessionUser.created_at || new Date().toISOString(),
+              preferences: {
+                theme: 'auto',
+                notifications: {
+                  newContent: true,
+                  reminders: true,
+                  updates: true,
+                  marketing: false,
+                },
+                audioQuality: 'medium',
+                autoDownload: false,
+                language: 'en',
+              },
+            };
+          };
+          
+          // Create user immediately from session to unblock authentication
+          let user = createUserFromSession(session.user);
+          console.log('✅ User created from session:', user ? `${user.email}` : 'null');
+          
+          // Convert expires_at to milliseconds if it's in seconds (Supabase returns seconds)
+          const expiresAt = session.expires_at 
+            ? (session.expires_at > 10000000000 ? session.expires_at : session.expires_at * 1000)
+            : Date.now() + 3600000; // Default to 1 hour if missing
+          
+          // Set auth state immediately to unblock the UI
+          console.log('🔄 Setting auth state immediately...');
+          setAuthState({
+            user,
+            session: session
+              ? {
+                  accessToken: session.access_token,
+                  refreshToken: session.refresh_token,
+                  expiresAt,
+                  user: user!,
+                }
+              : null,
+            loading: false,
+            error: null,
+            isAuthenticated: true,
+            isInitialized: true,
+          });
+          console.log('✅ Auth state set, user can now proceed');
+          
+          // Try to fetch complete user data in the background (with timeout)
+          // This will update the user with role and other data if available
+          const fetchCompleteUserData = async () => {
+            try {
+              console.log('📋 Fetching complete user data in background...');
+              
+              // Create a timeout promise
+              const timeoutPromise = new Promise<null>((resolve) => {
+                setTimeout(() => {
+                  console.log('⏱️ Timeout: getCurrentUser took too long, using session data');
+                  resolve(null);
+                }, 15000); // 15 second timeout
+              });
+              
+              // Race between getCurrentUser and timeout
+              const fetchedUser = await Promise.race([
+                AuthService.getCurrentUser(),
+                timeoutPromise,
+              ]);
+              
+              if (fetchedUser) {
+                console.log('✅ Complete user data fetched:', fetchedUser.email);
+                // Update state with complete user data
+                setAuthState(prev => ({
+                  ...prev,
+                  user: fetchedUser,
+                  session: prev.session ? {
+                    ...prev.session,
+                    user: fetchedUser,
+                  } : null,
+                }));
+              } else {
+                console.log('ℹ️ Using session-based user data (timeout or error)');
               }
-            : null,
-          loading: false,
-          error: null,
-          isAuthenticated: true,
-          isInitialized: true,
-        });
-      } else if (event === 'SIGNED_OUT') {
-        setAuthState({
-          user: null,
-          session: null,
-          loading: false,
-          error: null,
-          isAuthenticated: false,
-          isInitialized: true,
-        });
-      } else if (event === 'TOKEN_REFRESHED' && session) {
-        const user = await AuthService.getCurrentUser();
-        setAuthState(prev => ({
-          ...prev,
-          session: session
-            ? {
-                accessToken: session.access_token,
-                refreshToken: session.refresh_token,
-                expiresAt: session.expires_at,
-                user: user!,
-              }
-            : prev.session,
-          user,
-        }));
+            } catch (error) {
+              console.error('❌ Error fetching complete user data:', error);
+              // Continue with session-based user - already set above
+            }
+          };
+          
+          // Fetch complete user data in background (non-blocking)
+          fetchCompleteUserData();
+          
+          // Handle Google profile creation/update (don't block on errors)
+          if (session.user?.app_metadata?.provider === 'google') {
+            // Run in background, don't await
+            AuthService.createOrUpdateGoogleProfile(session.user).catch((error) => {
+              console.error('❌ Error creating/updating Google profile:', error);
+            });
+          }
+        } else if (event === 'SIGNED_OUT') {
+          console.log('👋 SIGNED_OUT event received');
+          setAuthState({
+            user: null,
+            session: null,
+            loading: false,
+            error: null,
+            isAuthenticated: false,
+            isInitialized: true,
+          });
+        } else if (event === 'TOKEN_REFRESHED' && session) {
+          console.log('🔄 TOKEN_REFRESHED event received');
+          let user;
+          try {
+            user = await AuthService.getCurrentUser();
+          } catch (error) {
+            console.error('Error getting current user on token refresh:', error);
+            // If getCurrentUser fails, create a basic user from session.user
+            if (session.user) {
+              user = {
+                id: session.user.id || '',
+                email: session.user.email || '',
+                firstName: session.user.user_metadata?.first_name || '',
+                lastName: session.user.user_metadata?.last_name || '',
+                avatarUrl: session.user.user_metadata?.avatar_url || '',
+                role: 'member',
+                isEmailVerified: session.user.email_confirmed_at !== null,
+                lastSignInAt: session.user.last_sign_in_at || '',
+                createdAt: session.user.created_at || new Date().toISOString(),
+                updatedAt: session.user.updated_at || session.user.created_at || new Date().toISOString(),
+                preferences: {
+                  theme: 'auto',
+                  notifications: {
+                    newContent: true,
+                    reminders: true,
+                    updates: true,
+                    marketing: false,
+                  },
+                  audioQuality: 'medium',
+                  autoDownload: false,
+                  language: 'en',
+                },
+              };
+            } else {
+              user = null;
+            }
+          }
+          
+          // Convert expires_at to milliseconds if it's in seconds
+          const expiresAt = session.expires_at 
+            ? (session.expires_at > 10000000000 ? session.expires_at : session.expires_at * 1000)
+            : Date.now() + 3600000;
+          
+          setAuthState(prev => ({
+            ...prev,
+            session: session
+              ? {
+                  accessToken: session.access_token,
+                  refreshToken: session.refresh_token,
+                  expiresAt,
+                  user: user!,
+                }
+              : prev.session,
+            user,
+          }));
+        }
+      } catch (error) {
+        console.error('❌ Error in auth state change handler:', error);
+        // Ensure state is updated even on error to prevent infinite loading
+        if (event === 'SIGNED_IN' && session) {
+          console.log('🔄 Fallback: Setting auth state from error handler');
+          // Create a basic user from session.user as fallback
+          const user = session.user ? {
+            id: session.user.id || '',
+            email: session.user.email || '',
+            firstName: session.user.user_metadata?.first_name || '',
+            lastName: session.user.user_metadata?.last_name || '',
+            avatarUrl: session.user.user_metadata?.avatar_url || '',
+            role: 'member',
+            isEmailVerified: session.user.email_confirmed_at !== null,
+            lastSignInAt: session.user.last_sign_in_at || '',
+            createdAt: session.user.created_at || new Date().toISOString(),
+            updatedAt: session.user.updated_at || session.user.created_at || new Date().toISOString(),
+            preferences: {
+              theme: 'auto',
+              notifications: {
+                newContent: true,
+                reminders: true,
+                updates: true,
+                marketing: false,
+              },
+              audioQuality: 'medium',
+              autoDownload: false,
+              language: 'en',
+            },
+          } : null;
+          
+          const expiresAt = session.expires_at 
+            ? (session.expires_at > 10000000000 ? session.expires_at : session.expires_at * 1000)
+            : Date.now() + 3600000;
+          
+          setAuthState({
+            user,
+            session: session
+              ? {
+                  accessToken: session.access_token,
+                  refreshToken: session.refresh_token,
+                  expiresAt,
+                  user: user!,
+                }
+              : null,
+            loading: false,
+            error: null,
+            isAuthenticated: true,
+            isInitialized: true,
+          });
+          console.log('✅ Fallback auth state set');
+        }
       }
     });
 
@@ -258,16 +448,62 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signIn = useCallback(
     async (credentials: SignInCredentials): Promise<AuthSuccess | AuthError> => {
       try {
+        console.log('🔑 Sign in initiated');
         setAuthState(prev => ({ ...prev, loading: true, error: null }));
 
         const result = await AuthService.signIn(credentials);
 
         if ('code' in result) {
           // Error case
+          console.log('❌ Sign in error:', result.message);
           setAuthState(prev => ({ ...prev, loading: false, error: result.message }));
           return result;
         } else {
-          // Success case
+          // Success case - Note: onAuthStateChange will also fire and update state
+          // But we set it here immediately to prevent loading delay
+          console.log('✅ Sign in successful, setting state immediately');
+          setAuthState({
+            user: result.user,
+            session: result.session || null,
+            loading: false,
+            error: null,
+            isAuthenticated: true,
+            isInitialized: true,
+          });
+          console.log('✅ Sign in state set, waiting for onAuthStateChange...');
+          return result;
+        }
+      } catch (error) {
+        console.error('❌ Sign in error in context:', error);
+        const errorMessage = 'An unexpected error occurred during sign in';
+        setAuthState(prev => ({ ...prev, loading: false, error: errorMessage }));
+        return {
+          code: 'UNKNOWN_ERROR',
+          message: errorMessage,
+        };
+      }
+    },
+    []
+  );
+
+  // Sign in with Google method
+  const signInWithGoogle = useCallback(
+    async (): Promise<AuthSuccess | AuthError> => {
+      try {
+        setAuthState(prev => ({ ...prev, loading: true, error: null }));
+
+        const result = await AuthService.signInWithGoogle();
+
+        if ('code' in result) {
+          // Error case - but don't set error for user cancellation (expected behavior)
+          if (result.code === 'USER_CANCELLED') {
+            setAuthState(prev => ({ ...prev, loading: false, error: null }));
+          } else {
+            setAuthState(prev => ({ ...prev, loading: false, error: result.message }));
+          }
+          return result;
+        } else {
+          // Success case - Native Google Sign-In returns session directly
           setAuthState({
             user: result.user,
             session: result.session || null,
@@ -279,8 +515,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           return result;
         }
       } catch (error) {
-        console.error('Sign in error in context:', error);
-        const errorMessage = 'An unexpected error occurred during sign in';
+        console.error('Sign in with Google error in context:', error);
+        const errorMessage = 'An unexpected error occurred during Google sign in';
         setAuthState(prev => ({ ...prev, loading: false, error: errorMessage }));
         return {
           code: 'UNKNOWN_ERROR',
@@ -556,6 +792,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     ...authState,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
     requestPasswordReset,
     confirmPasswordReset,

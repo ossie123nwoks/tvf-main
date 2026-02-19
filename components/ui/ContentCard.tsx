@@ -214,7 +214,7 @@ export default function ContentCard({
   };
 
   const getContentReadTime = () => {
-    if (isArticle) {
+    if (isArticle && content.content) {
       // Estimate read time based on content length (average reading speed: 200 words per minute)
       const wordCount = content.content.split(' ').length;
       const readTime = Math.ceil(wordCount / 200);
@@ -268,7 +268,7 @@ export default function ContentCard({
               {isArticle && <Text style={styles.metaText}>• {getContentReadTime()} min read</Text>}
             </View>
 
-            {content.tags.length > 0 && variant !== 'compact' && (
+            {content.tags && Array.isArray(content.tags) && content.tags.length > 0 && variant !== 'compact' && (
               <View style={styles.tags}>
                 {content.tags.slice(0, 3).map((tag, index) => (
                   <Chip
@@ -305,7 +305,7 @@ export default function ContentCard({
                   </View>
                 )}
                 <View style={styles.stat}>
-                  <Text style={styles.statNumber}>{content.tags.length}</Text>
+                  <Text style={styles.statNumber}>{content.tags?.length || 0}</Text>
                   <Text style={styles.statLabel}>Tags</Text>
                 </View>
               </View>
