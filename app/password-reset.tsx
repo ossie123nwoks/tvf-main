@@ -37,6 +37,9 @@ export default function PasswordReset() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Email sent banner state
+  const [emailSent, setEmailSent] = useState(false);
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -161,9 +164,14 @@ export default function PasswordReset() {
     if (!validateEmail()) return;
 
     clearError();
+    setEmailSent(false);
     const result = await requestPasswordReset({ email: email.trim() });
 
     if (result.success) {
+      setEmailSent(true);
+      setOtp('');
+      setPassword('');
+      setConfirmPassword('');
       setMode('otp');
     }
   };
@@ -197,6 +205,9 @@ export default function PasswordReset() {
     if (!validatePassword() || !validateOtp()) return;
 
     clearError();
+    setOtpError('');
+    setPasswordError('');
+
     const result = await confirmPasswordResetOtp({
       email: email.trim(),
       token: otp.trim(),
@@ -204,11 +215,17 @@ export default function PasswordReset() {
     });
 
     if ('code' in result) {
-      // Error case
-      if (result.code === 'otp_expired' || result.code === 'Token expired') {
-        setOtpError('This code has expired. Please request a new one.');
+      // Error case — show it prominently on the OTP field
+      const msg = result.message || 'Failed to reset password. Please try again.';
+      if (
+        result.code?.toLowerCase().includes('otp') ||
+        result.code?.toLowerCase().includes('token') ||
+        result.code?.toLowerCase().includes('expired') ||
+        result.code?.toLowerCase().includes('invalid')
+      ) {
+        setOtpError(msg);
       } else {
-        setOtpError(result.message);
+        setOtpError(msg);
       }
     } else {
       // Success case
@@ -226,6 +243,7 @@ export default function PasswordReset() {
     if (field === 'email' && emailError) setEmailError('');
     if (field === 'password' && passwordError) setPasswordError('');
     if (field === 'confirmPassword' && confirmPasswordError) setConfirmPasswordError('');
+    if (field === 'otp' && otpError) setOtpError('');
 
     // Update state
     if (field === 'email') setEmail(value);
@@ -318,13 +336,48 @@ export default function PasswordReset() {
             <Card style={styles.card}>
               <Card.Content>
                 <Text style={styles.title}>Enter Code & New Password</Text>
+
+                {/* Email sent banner */}
+                {emailSent && (
+                  <View
+                    style={{
+                      backgroundColor: theme.colors.primaryContainer,
+                      borderRadius: theme.borderRadius.md,
+                      padding: theme.spacing.md,
+                      marginBottom: theme.spacing.md,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: theme.colors.primary,
+                        textAlign: 'center',
+                        fontSize: 14,
+                        fontWeight: '600',
+                      }}
+                    >
+                      ✉️ Code sent to {email}
+                    </Text>
+                    <Text
+                      style={{
+                        color: theme.colors.primary,
+                        textAlign: 'center',
+                        fontSize: 12,
+                        marginTop: 4,
+                        opacity: 0.8,
+                      }}
+                    >
+                      Check your inbox (and spam folder) and enter the code below.
+                    </Text>
+                  </View>
+                )}
+
                 <Text
                   style={[
                     styles.footerText,
                     { marginBottom: theme.spacing.lg, textAlign: 'center' },
                   ]}
                 >
-                  We've sent a code to {email}. Enter it below along with your new password.
+                  Enter the code from your email and choose a new password.
                 </Text>
 
                 <TextInput
