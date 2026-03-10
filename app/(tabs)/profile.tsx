@@ -139,177 +139,53 @@ export default function Profile() {
     return savedContent.filter(item => item && item.content && 'excerpt' in item.content);
   }, [savedContent]);
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    scrollView: {
-      flex: 1,
-    },
-    // Hero Section - matches design system
+  // Theme-dependent dynamic styles
+  const dynamicStyles = {
+    container: { backgroundColor: theme.colors.background },
     heroSection: {
-      minHeight: 200,
-      padding: theme.spacing.lg,
       backgroundColor: theme.colors.cardBackground,
       borderRadius: theme.borderRadius.lg,
       margin: theme.spacing.md,
       marginBottom: theme.spacing.lg,
-      alignItems: 'center',
       ...theme.shadows.medium,
     },
-    avatar: {
-      marginBottom: theme.spacing.md,
-      borderWidth: 3,
-      borderColor: theme.colors.primary,
-    },
-    heroTitle: {
-      fontSize: 24,
-      fontWeight: '700',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.sm,
-      textAlign: 'center',
-    },
-    heroSubtitle: {
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-      textAlign: 'center',
-      marginBottom: theme.spacing.xs,
-    },
-    memberSince: {
-      fontSize: 14,
-      color: theme.colors.textTertiary,
-      textAlign: 'center',
-    },
-    content: {
-      paddingHorizontal: theme.spacing.md,
-      paddingBottom: theme.spacing.xl,
-    },
-    // Card styling - matches design system
+    avatar: { borderColor: theme.colors.primary },
     card: {
-      marginBottom: theme.spacing.md,
       backgroundColor: theme.colors.cardBackground,
       borderRadius: theme.borderRadius.lg,
       borderWidth: 1,
       borderColor: theme.colors.border,
       ...theme.shadows.small,
     },
-    cardContent: {
-      padding: theme.spacing.lg,
-    },
-    sectionTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.md,
-    },
-    // Form inputs - matches design system
     input: {
-      marginBottom: theme.spacing.md,
       backgroundColor: theme.colors.cardBackground,
       borderRadius: theme.borderRadius.md,
-    },
-    // Row layouts
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: theme.spacing.md,
-      paddingVertical: theme.spacing.sm,
-    },
-    rowText: {
-      color: theme.colors.text,
-      fontSize: 16,
-      fontWeight: '500',
-    },
-    rowSubtext: {
-      color: theme.colors.textSecondary,
-      fontSize: 14,
-      marginTop: theme.spacing.xs,
-    },
-    // Switch containers
-    switchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: theme.spacing.md,
-      paddingVertical: theme.spacing.sm,
-    },
-    switchText: {
-      color: theme.colors.text,
-      fontSize: 16,
-      flex: 1,
-      marginRight: theme.spacing.md,
-    },
-    // Buttons - matches design system
-    button: {
-      marginTop: theme.spacing.md,
-      borderRadius: theme.borderRadius.md,
-      height: 48,
     },
     primaryButton: {
       backgroundColor: theme.colors.primary,
       borderRadius: theme.borderRadius.md,
-      height: 48,
     },
     secondaryButton: {
-      backgroundColor: 'transparent',
-      borderWidth: 1,
       borderColor: theme.colors.primary,
       borderRadius: theme.borderRadius.md,
-      height: 48,
     },
     dangerButton: {
-      marginTop: theme.spacing.lg,
       backgroundColor: theme.colors.error,
       borderRadius: theme.borderRadius.md,
-      height: 48,
     },
-    // Dialog inputs
     passwordInput: {
-      marginBottom: theme.spacing.md,
       backgroundColor: theme.colors.cardBackground,
       borderRadius: theme.borderRadius.md,
     },
     deleteInput: {
-      marginBottom: theme.spacing.md,
       backgroundColor: theme.colors.cardBackground,
       borderRadius: theme.borderRadius.md,
     },
-    // Action buttons row
-    actionButtons: {
-      flexDirection: 'column',
-      marginTop: theme.spacing.lg,
-      gap: theme.spacing.sm,
-    },
-    actionButton: {
-      width: '100%',
-      borderRadius: theme.borderRadius.md,
-      height: 48,
-    },
-    // Stats container
     statsContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      marginBottom: theme.spacing.lg,
-      padding: theme.spacing.md,
-      backgroundColor: theme.colors.surface,
+      backgroundColor: theme.colors.surfaceVariant,
       borderRadius: theme.borderRadius.md,
     },
-    statItem: {
-      alignItems: 'center',
-    },
-    statValue: {
-      fontSize: 24,
-      fontWeight: '700',
-      color: theme.colors.primary,
-      marginBottom: theme.spacing.xs,
-    },
-    statLabel: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
-    },
-  });
+  };
 
   const handleEditToggle = () => {
     if (isEditing) {
@@ -461,48 +337,50 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <View style={styles.container}>
+      <View style={[profileStyles.container, dynamicStyles.container]}>
         <Text>Loading profile...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Hero Section - matches design system */}
-        <View style={styles.heroSection}>
+    <View style={[profileStyles.container, dynamicStyles.container]}>
+      <ScrollView style={profileStyles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Hero Section */}
+        <View style={[profileStyles.heroSection, dynamicStyles.heroSection]}>
           {(() => {
             const avatarSource = getAvatarSource(user?.avatarUrl);
             return avatarSource ? (
               <Avatar.Image
-                size={80}
+                size={88}
                 source={{ uri: avatarSource }}
-                style={styles.avatar}
+                style={[profileStyles.avatar, dynamicStyles.avatar]}
               />
             ) : (
               <Avatar.Text
-                size={80}
+                size={88}
                 label={`${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase() || 'U'}
-                style={[styles.avatar, { backgroundColor: theme.colors.primary }]}
-                labelStyle={{ color: '#FFFFFF', fontSize: 32, fontWeight: 'bold' }}
+                style={[profileStyles.avatar, dynamicStyles.avatar, { backgroundColor: theme.colors.primary }]}
+                labelStyle={{ color: '#FFFFFF', ...theme.typography.displayMedium }}
               />
             );
           })()}
-          <Text style={styles.heroTitle}>
+          <Text style={{ ...theme.typography.headlineLarge, color: theme.colors.text, marginBottom: theme.spacing.xs, textAlign: 'center' }}>
             {user.firstName} {user.lastName}
           </Text>
-          <Text style={styles.heroSubtitle}>{user.email}</Text>
-          <Text style={styles.memberSince}>
+          <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, textAlign: 'center', marginBottom: theme.spacing.xxs }}>
+            {user.email}
+          </Text>
+          <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary, textAlign: 'center' }}>
             Member since {new Date(user.createdAt).toLocaleDateString()}
           </Text>
         </View>
 
-        <View style={styles.content}>
+        <View style={profileStyles.content}>
           {/* Profile Information */}
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
-              <Text style={styles.sectionTitle}>Profile Information</Text>
+          <Card style={[profileStyles.card, dynamicStyles.card]}>
+            <Card.Content style={profileStyles.cardContent}>
+              <Text style={{ ...theme.typography.titleLarge, color: theme.colors.text, marginBottom: theme.spacing.md }}>Profile Information</Text>
 
               {isEditing ? (
                 <>
@@ -510,21 +388,21 @@ export default function Profile() {
                     label="First Name"
                     value={editData.firstName}
                     onChangeText={value => setEditData(prev => ({ ...prev, firstName: value }))}
-                    style={styles.input}
+                    style={[profileStyles.input, dynamicStyles.input]}
                     mode="outlined"
                   />
                   <TextInput
                     label="Last Name"
                     value={editData.lastName}
                     onChangeText={value => setEditData(prev => ({ ...prev, lastName: value }))}
-                    style={styles.input}
+                    style={[profileStyles.input, dynamicStyles.input]}
                     mode="outlined"
                   />
                   <TextInput
                     label="Avatar URL (optional)"
                     value={editData.avatarUrl}
                     onChangeText={value => setEditData(prev => ({ ...prev, avatarUrl: value }))}
-                    style={styles.input}
+                    style={[profileStyles.input, dynamicStyles.input]}
                     mode="outlined"
                     placeholder="https://example.com/avatar.jpg"
                   />
@@ -534,7 +412,7 @@ export default function Profile() {
                       mode="contained"
                       onPress={handleSaveProfile}
                       loading={loading}
-                      style={[styles.actionButton, styles.primaryButton]}
+                      style={[profileStyles.actionButton, dynamicStyles.primaryButton]}
                       buttonColor={theme.colors.primary}
                       textColor="#FFFFFF"
                     >
@@ -543,7 +421,7 @@ export default function Profile() {
                     <Button
                       mode="outlined"
                       onPress={handleCancelEdit}
-                      style={[styles.actionButton, styles.secondaryButton]}
+                      style={[profileStyles.actionButton, dynamicStyles.secondaryButton]}
                       textColor={theme.colors.primary}
                     >
                       Cancel
@@ -552,31 +430,31 @@ export default function Profile() {
                 </>
               ) : (
                 <>
-                  <View style={styles.row}>
-                    <Text style={styles.rowText}>First Name</Text>
-                    <Text style={styles.rowSubtext}>{user.firstName}</Text>
+                  <View style={profileStyles.row}>
+                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500' }}>First Name</Text>
+                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>{user.firstName}</Text>
                   </View>
-                  <View style={styles.row}>
-                    <Text style={styles.rowText}>Last Name</Text>
-                    <Text style={styles.rowSubtext}>{user.lastName}</Text>
+                  <View style={profileStyles.row}>
+                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500' }}>Last Name</Text>
+                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>{user.lastName}</Text>
                   </View>
-                  <View style={styles.row}>
-                    <Text style={styles.rowText}>Email</Text>
-                    <Text style={styles.rowSubtext}>{user.email}</Text>
+                  <View style={profileStyles.row}>
+                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500' }}>Email</Text>
+                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>{user.email}</Text>
                   </View>
-                  <View style={styles.row}>
-                    <Text style={styles.rowText}>Role</Text>
-                    <Text style={styles.rowSubtext}>{user.role}</Text>
+                  <View style={profileStyles.row}>
+                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500' }}>Role</Text>
+                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>{user.role}</Text>
                   </View>
-                  <View style={styles.row}>
-                    <Text style={styles.rowText}>Email Verified</Text>
-                    <Text style={styles.rowSubtext}>{user.isEmailVerified ? 'Yes' : 'No'}</Text>
+                  <View style={profileStyles.row}>
+                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500' }}>Email Verified</Text>
+                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>{user.isEmailVerified ? 'Yes' : 'No'}</Text>
                   </View>
 
                   <Button
                     mode="contained"
                     onPress={() => setIsEditing(true)}
-                    style={styles.primaryButton}
+                    style={dynamicStyles.primaryButton}
                     buttonColor={theme.colors.primary}
                     textColor="#FFFFFF"
                   >
@@ -588,16 +466,16 @@ export default function Profile() {
           </Card>
 
           {/* Preferences */}
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
-              <Text style={styles.sectionTitle}>Quick Preferences</Text>
+          <Card style={[profileStyles.card, dynamicStyles.card]}>
+            <Card.Content style={profileStyles.cardContent}>
+              <Text style={{ ...theme.typography.titleLarge, color: theme.colors.text, marginBottom: theme.spacing.md }}>Quick Preferences</Text>
 
               <Text style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.md }}>
                 Quick access to commonly used settings. For more options, see the sections below.
               </Text>
 
-              <View style={styles.switchContainer}>
-                <Text style={styles.switchText}>Dark Theme</Text>
+              <View style={profileStyles.switchContainer}>
+                <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, flex: 1, marginRight: theme.spacing.md }}>Dark Theme</Text>
                 <Switch
                   value={isDark}
                   onValueChange={value => {
@@ -616,30 +494,30 @@ export default function Profile() {
           </Card>
 
           {/* Saved Content */}
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
-              <Text style={styles.sectionTitle}>Saved Content</Text>
+          <Card style={[profileStyles.card, dynamicStyles.card]}>
+            <Card.Content style={profileStyles.cardContent}>
+              <Text style={{ ...theme.typography.titleLarge, color: theme.colors.text, marginBottom: theme.spacing.md }}>Saved Content</Text>
 
-              <View style={styles.statsContainer}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{savedSermons.length}</Text>
-                  <Text style={styles.statLabel}>Saved Sermons</Text>
+              <View style={[profileStyles.statsContainer, dynamicStyles.statsContainer]}>
+                <View style={profileStyles.statItem}>
+                  <Text style={{ ...theme.typography.headlineLarge, color: theme.colors.primary, marginBottom: theme.spacing.xxs }}>{savedSermons.length}</Text>
+                  <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary }}>Saved Sermons</Text>
                 </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{savedArticles.length}</Text>
-                  <Text style={styles.statLabel}>Saved Articles</Text>
+                <View style={profileStyles.statItem}>
+                  <Text style={{ ...theme.typography.headlineLarge, color: theme.colors.primary, marginBottom: theme.spacing.xxs }}>{savedArticles.length}</Text>
+                  <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary }}>Saved Articles</Text>
                 </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{savedContent.length}</Text>
-                  <Text style={styles.statLabel}>Total Saved</Text>
+                <View style={profileStyles.statItem}>
+                  <Text style={{ ...theme.typography.headlineLarge, color: theme.colors.primary, marginBottom: theme.spacing.xxs }}>{savedContent.length}</Text>
+                  <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary }}>Total Saved</Text>
                 </View>
               </View>
 
-              <View style={styles.actionButtons}>
+              <View style={profileStyles.actionButtons}>
                 <Button
                   mode="contained"
                   onPress={() => router.push('/saved/sermons')}
-                  style={[styles.actionButton, styles.primaryButton]}
+                  style={[profileStyles.actionButton, dynamicStyles.primaryButton]}
                   icon="bookmark"
                   buttonColor={theme.colors.primary}
                   textColor="#FFFFFF"
@@ -649,7 +527,7 @@ export default function Profile() {
                 <Button
                   mode="contained"
                   onPress={() => router.push('/saved/articles')}
-                  style={[styles.actionButton, styles.primaryButton]}
+                  style={[profileStyles.actionButton, dynamicStyles.primaryButton]}
                   icon="bookmark-outline"
                   buttonColor={theme.colors.primary}
                   textColor="#FFFFFF"
@@ -662,7 +540,7 @@ export default function Profile() {
                 <Button
                   mode="outlined"
                   onPress={() => setShowClearBookmarksDialog(true)}
-                  style={[styles.secondaryButton, { marginTop: theme.spacing.md }]}
+                  style={[dynamicStyles.secondaryButton, { marginTop: theme.spacing.md }]}
                   textColor={theme.colors.error}
                   icon="delete-outline"
                 >
@@ -673,12 +551,12 @@ export default function Profile() {
           </Card>
 
           {/* Privacy Settings */}
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
-              <Text style={styles.sectionTitle}>Privacy Settings</Text>
+          <Card style={[profileStyles.card, dynamicStyles.card]}>
+            <Card.Content style={profileStyles.cardContent}>
+              <Text style={{ ...theme.typography.titleLarge, color: theme.colors.text, marginBottom: theme.spacing.md }}>Privacy Settings</Text>
 
-              <View style={styles.switchContainer}>
-                <Text style={styles.switchText}>Profile Visibility</Text>
+              <View style={profileStyles.switchContainer}>
+                <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, flex: 1, marginRight: theme.spacing.md }}>Profile Visibility</Text>
                 <Switch
                   value={privacySettings.profileVisible}
                   onValueChange={value =>
@@ -687,8 +565,8 @@ export default function Profile() {
                 />
               </View>
 
-              <View style={styles.switchContainer}>
-                <Text style={styles.switchText}>Show Email in Profile</Text>
+              <View style={profileStyles.switchContainer}>
+                <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, flex: 1, marginRight: theme.spacing.md }}>Show Email in Profile</Text>
                 <Switch
                   value={privacySettings.showEmail}
                   onValueChange={value =>
@@ -697,8 +575,8 @@ export default function Profile() {
                 />
               </View>
 
-              <View style={styles.switchContainer}>
-                <Text style={styles.switchText}>Activity Tracking</Text>
+              <View style={profileStyles.switchContainer}>
+                <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, flex: 1, marginRight: theme.spacing.md }}>Activity Tracking</Text>
                 <Switch
                   value={privacySettings.activityTracking}
                   onValueChange={value =>
@@ -710,22 +588,22 @@ export default function Profile() {
           </Card>
 
           {/* Download Management */}
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
-              <Text style={styles.sectionTitle}>Download Management</Text>
+          <Card style={[profileStyles.card, dynamicStyles.card]}>
+            <Card.Content style={profileStyles.cardContent}>
+              <Text style={{ ...theme.typography.titleLarge, color: theme.colors.text, marginBottom: theme.spacing.md }}>Download Management</Text>
 
-              <View style={styles.row}>
-                <Text style={styles.rowText}>Total Downloads</Text>
-                <Text style={styles.rowSubtext}>{downloads.length}</Text>
+              <View style={profileStyles.row}>
+                <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500' }}>Total Downloads</Text>
+                <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>{downloads.length}</Text>
               </View>
 
-              <View style={styles.row}>
-                <Text style={styles.rowText}>Storage Used</Text>
-                <Text style={styles.rowSubtext}>{formatStorageSize(storageInfo.usedSpace)}</Text>
+              <View style={profileStyles.row}>
+                <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500' }}>Storage Used</Text>
+                <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>{formatStorageSize(storageInfo.usedSpace)}</Text>
               </View>
 
-              <View style={styles.switchContainer}>
-                <Text style={styles.switchText}>Auto Download</Text>
+              <View style={profileStyles.switchContainer}>
+                <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, flex: 1, marginRight: theme.spacing.md }}>Auto Download</Text>
                 <Switch
                   value={user.preferences?.autoDownload || false}
                   onValueChange={value =>
@@ -740,9 +618,9 @@ export default function Profile() {
                 />
               </View>
 
-              <View style={styles.row}>
-                <Text style={styles.rowText}>Audio Quality</Text>
-                <Text style={styles.rowSubtext}>
+              <View style={profileStyles.row}>
+                <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500' }}>Audio Quality</Text>
+                <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>
                   {user.preferences?.audioQuality || 'medium'}
                 </Text>
               </View>
@@ -751,7 +629,7 @@ export default function Profile() {
                 <Button
                   mode="outlined"
                   onPress={handleClearDownloads}
-                  style={styles.secondaryButton}
+                  style={dynamicStyles.secondaryButton}
                   textColor={theme.colors.error}
                   icon="delete-outline"
                 >
@@ -762,18 +640,18 @@ export default function Profile() {
           </Card>
 
           {/* Notifications Management */}
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
-              <Text style={styles.sectionTitle}>Notifications</Text>
+          <Card style={[profileStyles.card, dynamicStyles.card]}>
+            <Card.Content style={profileStyles.cardContent}>
+              <Text style={{ ...theme.typography.titleLarge, color: theme.colors.text, marginBottom: theme.spacing.md }}>Notifications</Text>
 
-              <Text style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.md }}>
+              <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginBottom: theme.spacing.md }}>
                 Manage your notification history and preferences
               </Text>
 
               <Button
                 mode="contained"
                 onPress={() => router.push('/notifications')}
-                style={styles.primaryButton}
+                style={dynamicStyles.primaryButton}
                 icon="bell"
                 buttonColor={theme.colors.primary}
                 textColor="#FFFFFF"
@@ -784,12 +662,12 @@ export default function Profile() {
           </Card>
 
           {/* App Appearance Settings */}
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
-              <Text style={styles.sectionTitle}>App Appearance</Text>
+          <Card style={[profileStyles.card, dynamicStyles.card]}>
+            <Card.Content style={profileStyles.cardContent}>
+              <Text style={{ ...theme.typography.titleLarge, color: theme.colors.text, marginBottom: theme.spacing.md }}>App Appearance</Text>
 
-              <View style={styles.switchContainer}>
-                <Text style={styles.switchText}>Dark Theme</Text>
+              <View style={profileStyles.switchContainer}>
+                <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, flex: 1, marginRight: theme.spacing.md }}>Dark Theme</Text>
                 <Switch
                   value={isDark}
                   onValueChange={value => {
@@ -805,9 +683,9 @@ export default function Profile() {
                 />
               </View>
 
-              <View style={styles.row}>
-                <Text style={styles.rowText}>Language</Text>
-                <Text style={styles.rowSubtext}>
+              <View style={profileStyles.row}>
+                <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500' }}>Language</Text>
+                <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>
                   {user.preferences?.language === 'en' ? 'English' : user.preferences?.language || 'English'}
                 </Text>
               </View>
@@ -815,18 +693,18 @@ export default function Profile() {
           </Card>
 
           {/* Data Management */}
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
-              <Text style={styles.sectionTitle}>Data Management</Text>
+          <Card style={[profileStyles.card, dynamicStyles.card]}>
+            <Card.Content style={profileStyles.cardContent}>
+              <Text style={{ ...theme.typography.titleLarge, color: theme.colors.text, marginBottom: theme.spacing.md }}>Data Management</Text>
 
-              <Text style={{ color: theme.colors.textSecondary, marginBottom: theme.spacing.md }}>
+              <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginBottom: theme.spacing.md }}>
                 Manage your app data and export options
               </Text>
 
               <Button
                 mode="outlined"
                 onPress={() => Alert.alert('Coming Soon', 'Data export feature will be available soon')}
-                style={styles.secondaryButton}
+                style={dynamicStyles.secondaryButton}
                 icon="download"
                 textColor={theme.colors.primary}
               >
@@ -839,15 +717,15 @@ export default function Profile() {
           <SessionStatus showDetails={true} compact={false} />
 
           {/* Account Actions */}
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
-              <Text style={styles.sectionTitle}>Account Actions</Text>
+          <Card style={[profileStyles.card, dynamicStyles.card]}>
+            <Card.Content style={profileStyles.cardContent}>
+              <Text style={{ ...theme.typography.titleLarge, color: theme.colors.text, marginBottom: theme.spacing.md }}>Account Actions</Text>
 
-              <View style={styles.actionButtons}>
+              <View style={profileStyles.actionButtons}>
                 <Button
                   mode="outlined"
                   onPress={() => setShowPasswordDialog(true)}
-                  style={[styles.actionButton, styles.secondaryButton]}
+                  style={[profileStyles.actionButton, dynamicStyles.secondaryButton]}
                   icon="lock"
                   textColor={theme.colors.primary}
                 >
@@ -857,7 +735,7 @@ export default function Profile() {
                 <Button
                   mode="outlined"
                   onPress={handleSignOut}
-                  style={[styles.actionButton, styles.secondaryButton]}
+                  style={[profileStyles.actionButton, dynamicStyles.secondaryButton]}
                   icon="logout"
                   textColor={theme.colors.primary}
                 >
@@ -868,7 +746,7 @@ export default function Profile() {
               <Button
                 mode="contained"
                 onPress={() => setShowDeleteDialog(true)}
-                style={styles.dangerButton}
+                style={[profileStyles.dangerButton, dynamicStyles.dangerButton]}
                 icon="delete"
                 buttonColor={theme.colors.error}
                 textColor="#FFFFFF"
@@ -889,7 +767,7 @@ export default function Profile() {
               label="Current Password"
               value={passwordData.currentPassword}
               onChangeText={value => setPasswordData(prev => ({ ...prev, currentPassword: value }))}
-              style={styles.passwordInput}
+              style={[profileStyles.input, dynamicStyles.passwordInput]}
               mode="outlined"
               secureTextEntry
             />
@@ -897,7 +775,7 @@ export default function Profile() {
               label="New Password"
               value={passwordData.newPassword}
               onChangeText={value => setPasswordData(prev => ({ ...prev, newPassword: value }))}
-              style={styles.passwordInput}
+              style={[profileStyles.input, dynamicStyles.passwordInput]}
               mode="outlined"
               secureTextEntry
             />
@@ -905,7 +783,7 @@ export default function Profile() {
               label="Confirm New Password"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              style={styles.passwordInput}
+              style={[profileStyles.input, dynamicStyles.passwordInput]}
               mode="outlined"
               secureTextEntry
             />
@@ -931,7 +809,7 @@ export default function Profile() {
               label="Reason for deletion (optional)"
               value={deleteReason}
               onChangeText={setDeleteReason}
-              style={styles.deleteInput}
+              style={[profileStyles.input, dynamicStyles.deleteInput]}
               mode="outlined"
               multiline
               numberOfLines={3}
@@ -967,3 +845,71 @@ export default function Profile() {
     </View>
   );
 }
+
+// Static styles — NOT inside the component render
+const profileStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  heroSection: {
+    minHeight: 200,
+    padding: 24,
+    alignItems: 'center',
+  },
+  avatar: {
+    marginBottom: 16,
+    borderWidth: 3,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+  },
+  card: {
+    marginBottom: 16,
+  },
+  cardContent: {
+    padding: 24,
+  },
+  input: {
+    marginBottom: 16,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    paddingVertical: 8,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    paddingVertical: 8,
+  },
+  actionButtons: {
+    flexDirection: 'column',
+    marginTop: 24,
+    gap: 8,
+  },
+  actionButton: {
+    width: '100%',
+    height: 48,
+  },
+  dangerButton: {
+    marginTop: 24,
+    height: 48,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 24,
+    padding: 16,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+});
