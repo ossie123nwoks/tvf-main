@@ -1,19 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, ScrollView, StyleSheet, RefreshControl, Alert, FlatList, Modal, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, RefreshControl, Alert, FlatList, TouchableOpacity, Share } from 'react-native';
 import {
   Text,
-  Card,
   Searchbar,
-  Chip,
-  Button,
   useTheme as usePaperTheme,
+  Button,
   ActivityIndicator,
-  FAB,
-  Menu,
-  Divider,
   IconButton,
-  Badge,
-  Avatar,
 } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -22,6 +15,11 @@ import { ContentService } from '@/lib/supabase/content';
 import { SearchService } from '@/lib/services/search';
 import { Article, Category, Series, Topic, ContentSearchParams } from '@/types/content';
 import CustomDropdown from '@/components/ui/CustomDropdown';
+// New design system components
+import BlogCard from '@/components/ui/BlogCard';
+import FilterModal from '@/components/ui/FilterModal';
+import { SkeletonList } from '@/components/ui/SkeletonLoader';
+import { useSavedContent } from '@/lib/hooks/useSavedContent';
 
 export default function ArticlesScreen() {
   const { theme } = useTheme();
@@ -52,181 +50,21 @@ export default function ArticlesScreen() {
   // Search debouncing
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    scrollView: {
-      flex: 1,
-      padding: theme.spacing.md,
-    },
-    // Header section - matches design system
-    header: {
-      marginTop: theme.spacing.lg,
-      marginBottom: theme.spacing.lg,
-      paddingTop: theme.spacing.md,
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.sm,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-      marginBottom: theme.spacing.md,
-    },
-    // Search and filters
-    searchBar: {
-      marginBottom: theme.spacing.md,
-      backgroundColor: theme.colors.surface,
-    },
-    filtersRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: theme.spacing.md,
-      gap: theme.spacing.sm,
-    },
-    categories: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: theme.spacing.sm,
-      marginBottom: theme.spacing.lg,
-    },
-    tags: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: theme.spacing.sm,
-      marginBottom: theme.spacing.lg,
-    },
-    // Article cards - matches design system
-    card: {
-      marginHorizontal: theme.spacing.md,
-      marginBottom: theme.spacing.md,
-      backgroundColor: theme.colors.cardBackground,
-      borderRadius: theme.borderRadius.lg,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      ...theme.shadows.medium,
-    },
-    cardContent: {
-      padding: theme.spacing.lg,
-    },
-    cardHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: theme.spacing.md,
-    },
-    authorInfo: {
-      flex: 1,
-      marginLeft: theme.spacing.md,
-    },
-    cardTitle: {
-      fontSize: 20,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.sm,
-      lineHeight: 26,
-    },
-    cardAuthor: {
-      fontSize: 14,
-      fontWeight: '500',
-      color: theme.colors.primary,
-      marginBottom: theme.spacing.xs,
-    },
-    cardMeta: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: theme.spacing.md,
-      gap: theme.spacing.sm,
-    },
-    cardExcerpt: {
-      fontSize: 14,
-      color: theme.colors.textSecondary,
-      lineHeight: 20,
-      marginBottom: theme.spacing.md,
-    },
-    cardActions: {
-      paddingHorizontal: theme.spacing.lg,
-      paddingBottom: theme.spacing.lg,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    stats: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: theme.spacing.lg,
-      marginBottom: theme.spacing.md,
-      paddingTop: theme.spacing.md,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border,
-    },
-    stat: {
-      alignItems: 'center',
-    },
-    statNumber: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.primary,
-    },
-    statLabel: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
-      marginTop: theme.spacing.xs,
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: theme.spacing.xl,
-    },
-    emptyContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: theme.spacing.xl,
-    },
-    emptyText: {
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-      textAlign: 'center',
-      marginBottom: theme.spacing.md,
-    },
-    fab: {
-      position: 'absolute',
-      margin: theme.spacing.lg,
-      right: 0,
-      bottom: 0,
-      backgroundColor: theme.colors.primary,
-    },
-    readingTime: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
-      fontStyle: 'italic',
-    },
-  });
+  // Saved content
+  const { isContentSaved, toggleSave } = useSavedContent();
 
-  // Load initial data
-  useEffect(() => {
-    loadInitialData();
-  }, []);
+  // ============================================================================
+  // Data Loading (preserved business logic)
+  // ============================================================================
 
-  // Load data when filters change
+  useEffect(() => { loadInitialData(); }, []);
+
   useEffect(() => {
-    if (!loading) {
-      loadArticles(true);
-    }
+    if (!loading) loadArticles(true);
   }, [selectedSeries, selectedTopics, sortBy, sortOrder]);
 
-  // Cleanup search timeout on unmount
   useEffect(() => {
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
+    return () => { if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current); };
   }, []);
 
   const loadInitialData = async () => {
@@ -243,10 +81,9 @@ export default function ArticlesScreen() {
       setCategories(categoriesData);
       setSeries(seriesData);
       setTopics(topicsData);
-
       await loadArticles(true);
-    } catch (error) {
-      console.error('Failed to load initial data:', error);
+    } catch (err) {
+      console.error('Failed to load initial data:', err);
       setError('Failed to load article data. Please try again.');
     } finally {
       setLoading(false);
@@ -273,47 +110,29 @@ export default function ArticlesScreen() {
         published: true,
       };
 
-      if (searchQuery) {
-        searchParams.query = searchQuery;
-      }
+      if (searchQuery) searchParams.query = searchQuery;
 
       // Handle series and topics filtering
       if (selectedSeries || selectedTopics.length > 0) {
         let filteredArticles: Article[] = [];
 
-        // Get articles by series or topics
         if (selectedSeries && selectedTopics.length > 0) {
-          // Both series and topics selected
-          // Get articles from the series
           const seriesArticles = await ContentService.getArticlesBySeries(selectedSeries);
-
-          // Get articles with any of the selected topics
           const topicArticles = await ContentService.getArticlesByTopics(selectedTopics);
-
-          // Create a Set of article IDs that have at least one of the selected topics
           const topicArticleIds = new Set(topicArticles.map(a => a.id));
-
-          // Filter articles: must be in series AND have at least one of the selected topics
           filteredArticles = seriesArticles.filter(article => topicArticleIds.has(article.id));
         } else if (selectedSeries) {
-          // Only series selected
           filteredArticles = await ContentService.getArticlesBySeries(selectedSeries);
         } else {
-          // Only topics selected - articles with ANY of the selected topics
           const topicArticles = await ContentService.getArticlesByTopics(selectedTopics);
-
-          // Remove duplicates (an article can have multiple of the selected topics)
           const uniqueArticleIds = new Set<string>();
           filteredArticles = topicArticles.filter(article => {
-            if (uniqueArticleIds.has(article.id)) {
-              return false;
-            }
+            if (uniqueArticleIds.has(article.id)) return false;
             uniqueArticleIds.add(article.id);
             return true;
           });
         }
 
-        // Apply search query filter
         if (searchQuery) {
           const query = searchQuery.toLowerCase();
           filteredArticles = filteredArticles.filter(article =>
@@ -324,36 +143,23 @@ export default function ArticlesScreen() {
           );
         }
 
-        // Apply sorting
         filteredArticles.sort((a, b) => {
           let compareResult = 0;
-
           switch (sortBy) {
-            case 'title':
-              compareResult = a.title.localeCompare(b.title);
-              break;
-            case 'popularity':
-              compareResult = (b.views || 0) - (a.views || 0);
-              break;
+            case 'title': compareResult = a.title.localeCompare(b.title); break;
+            case 'popularity': compareResult = (b.views || 0) - (a.views || 0); break;
             case 'date':
-            default:
-              compareResult = new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
-              break;
+            default: compareResult = new Date(b.published_at).getTime() - new Date(a.published_at).getTime(); break;
           }
-
           return sortOrder === 'asc' ? -compareResult : compareResult;
         });
 
-        // Apply pagination
         const startIndex = (page - 1) * 20;
         const endIndex = startIndex + 20;
         const paginatedArticles = filteredArticles.slice(startIndex, endIndex);
 
-        if (reset) {
-          setArticles(paginatedArticles);
-        } else {
-          setArticles(prev => [...prev, ...paginatedArticles]);
-        }
+        if (reset) setArticles(paginatedArticles);
+        else setArticles(prev => [...prev, ...paginatedArticles]);
 
         setTotalArticles(filteredArticles.length);
         setHasMore(endIndex < filteredArticles.length);
@@ -361,47 +167,34 @@ export default function ArticlesScreen() {
         return;
       }
 
-      // Use standard ContentService.getArticles when no series/topics filters
       const response = await ContentService.getArticles(searchParams);
 
-      if (reset) {
-        setArticles(response.data);
-      } else {
-        setArticles(prev => [...prev, ...response.data]);
-      }
+      if (reset) setArticles(response.data);
+      else setArticles(prev => [...prev, ...response.data]);
 
       setTotalArticles(response.total);
       setHasMore(response.hasMore);
       setCurrentPage(page + 1);
-    } catch (error) {
-      console.error('Failed to load articles:', error);
-
-      // Show user-friendly error message
-      if (reset) {
-        setError('Failed to load articles. Please try again.');
-      } else {
-        Alert.alert('Error', 'Failed to load articles. Please try again.');
-      }
+    } catch (err) {
+      console.error('Failed to load articles:', err);
+      if (reset) setError('Failed to load articles. Please try again.');
+      else Alert.alert('Error', 'Failed to load articles. Please try again.');
     } finally {
       setLoadingMore(false);
     }
   }, [currentPage, hasMore, searchQuery, selectedSeries, selectedTopics, sortBy, sortOrder]);
 
+  // ============================================================================
+  // Actions
+  // ============================================================================
+
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
-
-    // Clear existing timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
 
     if (query.length >= 2) {
-      // Debounce search
-      searchTimeoutRef.current = setTimeout(() => {
-        loadArticles(true);
-      }, 500);
+      searchTimeoutRef.current = setTimeout(() => loadArticles(true), 500);
     } else if (query.length === 0) {
-      // Clear search immediately
       loadArticles(true);
     }
   }, [loadArticles]);
@@ -413,27 +206,29 @@ export default function ArticlesScreen() {
   };
 
   const handleLoadMore = () => {
-    if (!loadingMore && hasMore) {
-      loadArticles(false);
+    if (!loadingMore && hasMore) loadArticles(false);
+  };
+
+  const handleArticlePress = (article: Article) => router.push(`/article/${article.id}`);
+
+  const handleSharePress = async (article: Article) => {
+    try {
+      await Share.share({
+        message: `Check out this article: "${article.title}" by ${article.author}`,
+        title: article.title,
+      });
+    } catch (err) {
+      console.error('Failed to share article:', err);
     }
   };
 
-  const handleArticlePress = (article: Article) => {
-    router.push(`/article/${article.id}`);
-  };
-
-  const handleReadPress = (article: Article) => {
-    router.push(`/article/${article.id}`);
-  };
-
-  const handleSharePress = (article: Article) => {
-    // TODO: Implement share functionality
-    Alert.alert('Coming Soon', 'Share functionality will be implemented in the next phase.');
-  };
-
-  const handleBookmarkPress = (article: Article) => {
-    // TODO: Implement bookmark functionality
-    Alert.alert('Coming Soon', 'Bookmark functionality will be implemented in the next phase.');
+  const handleBookmarkPress = async (article: Article) => {
+    try {
+      await toggleSave('article', article.id);
+    } catch (err) {
+      console.error('Failed to bookmark article:', err);
+      Alert.alert('Error', 'Failed to save article. Please try again.');
+    }
   };
 
   const clearFilters = () => {
@@ -443,161 +238,75 @@ export default function ArticlesScreen() {
     setSortOrder('desc');
   };
 
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  // ============================================================================
+  // Sort
+  // ============================================================================
 
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-    return date.toLocaleDateString();
+  const currentSortKey = `${sortBy}_${sortOrder}`;
+
+  const sortOptions = [
+    { key: 'date_desc', label: 'Newest First', icon: 'arrow-downward' },
+    { key: 'date_asc', label: 'Oldest First', icon: 'arrow-upward' },
+    { key: 'title_asc', label: 'A → Z', icon: 'sort-by-alpha' },
+    { key: 'title_desc', label: 'Z → A', icon: 'sort-by-alpha' },
+    { key: 'popularity_desc', label: 'Most Popular', icon: 'trending-up' },
+  ];
+
+  const handleSortSelect = (value: string) => {
+    const [newSortBy, newSortOrder] = value.split('_') as ['date' | 'title' | 'popularity', 'asc' | 'desc'];
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
   };
 
-  const calculateReadingTime = (content: string): number => {
-    const wordsPerMinute = 200;
-    const wordCount = content.split(/\s+/).length;
-    return Math.ceil(wordCount / wordsPerMinute);
-  };
+  // ============================================================================
+  // Render
+  // ============================================================================
 
-  const getInitials = (name: string): string => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  const renderArticleCard = ({ item: article }: { item: Article; index: number }) => (
+    <BlogCard
+      article={article}
+      variant="default"
+      onPress={() => handleArticlePress(article)}
+      onShare={() => handleSharePress(article)}
+      onSave={() => handleBookmarkPress(article)}
+      isSaved={isContentSaved('article', article.id)}
+    />
+  );
 
-  // Render article card
-  const renderArticleCard = (item: { item: Article; index: number }) => {
-    const article = item.item;
-    return (
-      <Card style={styles.card} onPress={() => handleArticlePress(article)}>
-        <Card.Cover
-          source={{
-            uri: article.thumbnail_url || 'https://via.placeholder.com/300x200?text=No+Image',
-          }}
-        />
-        <Card.Content style={styles.cardContent}>
-          {/* Article Title */}
-          <Text style={styles.cardTitle} numberOfLines={2}>
-            {article.title}
-          </Text>
-
-          {/* Article Header */}
-          <View style={styles.cardHeader}>
-            {article.is_featured && <Badge size={16}>Featured</Badge>}
-          </View>
-
-          {/* Article Meta */}
-          <View style={styles.cardMeta}>
-            <Text variant="bodySmall">{formatDate(article.published_at)}</Text>
-            <Text style={styles.readingTime}>
-              {calculateReadingTime(article.content)} min read
-            </Text>
-          </View>
-
-          {/* Article Excerpt */}
-          <Text style={styles.cardExcerpt} numberOfLines={3}>
-            {article.excerpt}
-          </Text>
-
-        </Card.Content>
-
-        {/* Article Actions */}
-        <Card.Actions style={styles.cardActions}>
-          <Button
-            icon="book-open"
-            mode="contained"
-            onPress={() => handleReadPress(article)}
-            compact
-          >
-            Read Article
-          </Button>
-          <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-            <TouchableOpacity
-              onPress={() => handleSharePress(article)}
-              style={{
-                padding: theme.spacing.sm,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
-              activeOpacity={0.7}
-            >
-              <MaterialIcons
-                name="share"
-                size={32}
-                color={theme.colors.primary}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => handleBookmarkPress(article)}
-              style={{
-                padding: theme.spacing.sm,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
-              activeOpacity={0.7}
-            >
-              <MaterialIcons
-                name="bookmark"
-                size={32}
-                color={theme.colors.primary}
-              />
-            </TouchableOpacity>
-          </View>
-        </Card.Actions>
-      </Card>
-    );
-  };
-
-  const keyExtractor = (item: Article) => item.id;
-
-  const getItemLayout = (data: ArrayLike<Article> | null | undefined, index: number) => {
-    if (!data) return { length: 0, offset: 0, index };
-    const itemHeight = 450; // Approximate height for article card
-    return {
-      length: itemHeight,
-      offset: itemHeight * index,
-      index,
-    };
-  };
-
-  // Header component for FlatList
   const renderHeader = () => (
     <>
-      <View style={styles.header}>
-        <Text style={styles.title}>Articles</Text>
+      {/* Page Title */}
+      <View style={{ marginTop: theme.spacing.lg, marginBottom: theme.spacing.md, paddingTop: theme.spacing.md }}>
+        <Text style={{ ...theme.typography.displayMedium, color: theme.colors.text }}>
+          Articles
+        </Text>
+        <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.xxs }}>
+          {totalArticles > 0 ? `${totalArticles} articles available` : 'Browse our article library'}
+        </Text>
+      </View>
 
-        {/* Sort Button */}
-        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: theme.spacing.sm }}>
-          <TouchableOpacity
-            onPress={() => setSortModalVisible(true)}
-            style={{
-              padding: theme.spacing.sm,
-              borderRadius: theme.borderRadius.sm,
-              backgroundColor: theme.colors.surface,
-            }}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons
-              name="sort"
-              size={24}
-              color={theme.colors.primary}
-            />
-          </TouchableOpacity>
-        </View>
+      {/* Sort button */}
+      <View style={[staticStyles.sortRow, { marginBottom: theme.spacing.sm }]}>
+        <View style={{ flex: 1 }} />
+        <IconButton
+          icon="sort"
+          size={20}
+          iconColor={theme.colors.textSecondary}
+          style={{ margin: 0 }}
+          onPress={() => setSortModalVisible(true)}
+        />
       </View>
 
       {/* Search Bar */}
       <Searchbar
-        placeholder="Search articles by title, author, or content..."
+        placeholder="Search by title, author..."
         onChangeText={handleSearch}
         value={searchQuery}
-        style={styles.searchBar}
+        style={[staticStyles.searchBar, {
+          backgroundColor: theme.colors.surfaceVariant,
+          borderRadius: theme.borderRadius.md,
+        }]}
+        inputStyle={{ ...theme.typography.bodyMedium }}
         icon="magnify"
         onClearIconPress={() => {
           setSearchQuery('');
@@ -605,12 +314,12 @@ export default function ArticlesScreen() {
         }}
       />
 
-      {/* Series, Topics, and Clear Button Row */}
-      <View style={styles.categories}>
+      {/* Filters Row */}
+      <View style={[staticStyles.filtersRow, { marginTop: theme.spacing.sm, marginBottom: theme.spacing.md }]}>
         <CustomDropdown
           options={[
             { id: 'all-series', label: 'All Series', value: null },
-            ...series.map(s => ({ id: s.id, label: s.name, value: s.id }))
+            ...series.map(s => ({ id: s.id, label: s.name, value: s.id })),
           ]}
           selectedValue={selectedSeries}
           onSelect={(value) => setSelectedSeries(value)}
@@ -628,74 +337,73 @@ export default function ArticlesScreen() {
           multiSelect={true}
         />
 
-        <TouchableOpacity
-          onPress={clearFilters}
-          style={{
-            marginBottom: theme.spacing.sm,
-            marginLeft: theme.spacing.sm,
-            height: 48,
-            width: 48,
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons
-            name="delete"
-            size={24}
-            color={theme.colors.error}
-          />
-        </TouchableOpacity>
+        {(selectedSeries || selectedTopics.length > 0) && (
+          <TouchableOpacity
+            onPress={clearFilters}
+            style={[staticStyles.clearBtn, { backgroundColor: theme.colors.errorContainer, borderRadius: theme.borderRadius.sm }]}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="close" size={18} color={theme.colors.error} />
+          </TouchableOpacity>
+        )}
       </View>
     </>
   );
 
-  // Footer component for FlatList
   const renderFooter = () => {
-    if (loadingMore) {
-      return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color={theme.colors.primary} />
-          <Text style={styles.emptyText}>Loading more articles...</Text>
-        </View>
-      );
-    }
+    if (loadingMore) return <SkeletonList type="article" count={2} />;
     return null;
   };
 
-  // Empty component for FlatList
   const renderEmpty = () => (
-    <View style={styles.emptyContainer}>
-      <MaterialIcons name="article" size={64} color={theme.colors.textSecondary} />
-      <Text style={styles.emptyText}>
+    <View style={[staticStyles.emptyContainer, { padding: theme.spacing.xl }]}>
+      <MaterialIcons name="article" size={64} color={theme.colors.textTertiary} />
+      <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.textSecondary, textAlign: 'center', marginTop: theme.spacing.md }}>
         {searchQuery || selectedSeries || selectedTopics.length > 0
-          ? 'No articles match your current filters. Try adjusting your search criteria.'
-          : 'No articles available at the moment. Check back later for new content.'}
+          ? 'No articles match your current filters.'
+          : 'No articles available yet. Check back later!'}
       </Text>
+      {(searchQuery || selectedSeries || selectedTopics.length > 0) && (
+        <Button
+          mode="text"
+          onPress={clearFilters}
+          textColor={theme.colors.primary}
+          style={{ marginTop: theme.spacing.sm }}
+        >
+          Clear Filters
+        </Button>
+      )}
     </View>
   );
 
+  // ============================================================================
+  // Full-screen loading / error states
+  // ============================================================================
+
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[staticStyles.container, staticStyles.centered, { backgroundColor: theme.colors.background }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.emptyText}>Loading articles...</Text>
+        <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.md }}>
+          Loading articles...
+        </Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.emptyContainer}>
+      <View style={[staticStyles.container, staticStyles.centered, { backgroundColor: theme.colors.background }]}>
         <MaterialIcons name="error-outline" size={64} color={theme.colors.error} />
-        <Text style={styles.emptyText}>{error}</Text>
+        <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.textSecondary, textAlign: 'center', marginTop: theme.spacing.md }}>
+          {error}
+        </Text>
         <Button
           mode="contained"
-          onPress={() => {
-            setError(null);
-            loadInitialData();
-          }}
+          onPress={() => { setError(null); loadInitialData(); }}
           style={{ marginTop: theme.spacing.md }}
+          buttonColor={theme.colors.primary}
+          textColor="#FFFFFF"
         >
           Try Again
         </Button>
@@ -704,20 +412,25 @@ export default function ArticlesScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[staticStyles.container, { backgroundColor: theme.colors.background }]}>
       <FlatList
         data={articles}
         renderItem={renderArticleCard}
-        keyExtractor={keyExtractor}
+        keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={[
           { padding: theme.spacing.md },
-          articles.length === 0 && { flexGrow: 1 }
+          articles.length === 0 && { flexGrow: 1 },
         ]}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
         }
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
@@ -726,134 +439,53 @@ export default function ArticlesScreen() {
         windowSize={5}
         initialNumToRender={10}
         updateCellsBatchingPeriod={50}
-        getItemLayout={getItemLayout}
       />
 
-
       {/* Sort Modal */}
-      <Modal
+      <FilterModal
         visible={sortModalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setSortModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-          activeOpacity={1}
-          onPress={() => setSortModalVisible(false)}
-        >
-          <TouchableOpacity
-            style={{
-              backgroundColor: theme.colors.surface,
-              borderRadius: 12,
-              padding: theme.spacing.md,
-              width: '80%',
-              maxWidth: 300,
-            }}
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <Text style={{
-              fontSize: 18,
-              fontWeight: 'bold',
-              color: theme.colors.text,
-              marginBottom: theme.spacing.md,
-            }}>
-              Sort By
-            </Text>
-
-            <TouchableOpacity
-              style={{
-                padding: theme.spacing.md,
-                borderRadius: 8,
-                backgroundColor: sortBy === 'date' && sortOrder === 'desc' ? theme.colors.primary + '20' : 'transparent',
-              }}
-              onPress={() => {
-                setSortBy('date');
-                setSortOrder('desc');
-                setSortModalVisible(false);
-              }}
-            >
-              <Text style={{ color: theme.colors.text }}>Newest First</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={{
-                padding: theme.spacing.md,
-                borderRadius: 8,
-                backgroundColor: sortBy === 'date' && sortOrder === 'asc' ? theme.colors.primary + '20' : 'transparent',
-              }}
-              onPress={() => {
-                setSortBy('date');
-                setSortOrder('asc');
-                setSortModalVisible(false);
-              }}
-            >
-              <Text style={{ color: theme.colors.text }}>Oldest First</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={{
-                padding: theme.spacing.md,
-                borderRadius: 8,
-                backgroundColor: sortBy === 'title' && sortOrder === 'asc' ? theme.colors.primary + '20' : 'transparent',
-              }}
-              onPress={() => {
-                setSortBy('title');
-                setSortOrder('asc');
-                setSortModalVisible(false);
-              }}
-            >
-              <Text style={{ color: theme.colors.text }}>A-Z</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={{
-                padding: theme.spacing.md,
-                borderRadius: 8,
-                backgroundColor: sortBy === 'title' && sortOrder === 'desc' ? theme.colors.primary + '20' : 'transparent',
-              }}
-              onPress={() => {
-                setSortBy('title');
-                setSortOrder('desc');
-                setSortModalVisible(false);
-              }}
-            >
-              <Text style={{ color: theme.colors.text }}>Z-A</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={{
-                padding: theme.spacing.md,
-                borderRadius: 8,
-                backgroundColor: sortBy === 'popularity' ? theme.colors.primary + '20' : 'transparent',
-              }}
-              onPress={() => {
-                setSortBy('popularity');
-                setSortOrder('desc');
-                setSortModalVisible(false);
-              }}
-            >
-              <Text style={{ color: theme.colors.text }}>Popular</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* FAB for quick actions */}
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={() => {
-          // TODO: Implement quick actions menu
-          Alert.alert('Coming Soon', 'Quick actions will be implemented in the next phase.');
-        }}
+        onClose={() => setSortModalVisible(false)}
+        title="Sort By"
+        options={sortOptions}
+        selectedValue={currentSortKey}
+        onSelect={handleSortSelect}
       />
     </View>
   );
 }
+
+// Static styles — NOT inside the component render
+const staticStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  sortRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  searchBar: {
+    elevation: 0,
+  },
+  filtersRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+  },
+  clearBtn: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
