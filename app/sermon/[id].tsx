@@ -1,18 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, ScrollView, StyleSheet, Alert, Dimensions, Pressable } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, Dimensions, Pressable, Platform, Image } from 'react-native';
 import {
   Text,
   Card,
   Button,
-  useTheme as usePaperTheme,
   ActivityIndicator,
   IconButton,
   Chip,
-  Divider,
-  Badge,
-  Avatar,
   ProgressBar,
-  FAB,
 } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -22,6 +17,7 @@ import { Sermon, Category } from '@/types/content';
 import { Audio } from 'expo-av';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { useOfflineDownloads } from '@/lib/storage/useOfflineDownloads';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -29,6 +25,7 @@ export default function SermonDetailScreen() {
   const { theme } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   // Sermon data
   const [sermon, setSermon] = useState<Sermon | null>(null);
@@ -52,238 +49,71 @@ export default function SermonDetailScreen() {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadStatus, setDownloadStatus] = useState<'idle' | 'checking' | 'downloading' | 'downloaded' | 'error'>('idle');
 
-  // Offline downloads functionality
-  const { 
-    addDownload, 
-    isAvailableOffline, 
+  // Offline downloads
+  const {
+    addDownload,
+    isAvailableOffline,
     getOfflinePath,
-    downloads 
+    downloads
   } = useOfflineDownloads();
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    scrollView: {
-      flex: 1,
-    },
+  // Dynamic styles that depend on theme
+  const dynamicStyles = React.useMemo(() => ({
+    container: { backgroundColor: theme.colors.background },
     header: {
-      backgroundColor: theme.colors.surface,
-      padding: theme.spacing.lg,
-      paddingTop: theme.spacing.xl + 60, // Add extra padding to account for back button
+      backgroundColor: theme.colors.surfaceElevated,
+      paddingTop: Platform.select({ ios: Math.max(insets.top, 20), android: 0 }),
     },
-    thumbnail: {
-      width: '100%',
-      height: 200,
-      borderRadius: theme.spacing.md,
-      marginTop: theme.spacing.lg, // Add top margin to create space from back button
-      marginBottom: theme.spacing.md,
+    playerCard: {
+      backgroundColor: theme.colors.audioSurface,
+      borderRadius: theme.borderRadius.xl,
+      borderWidth: 1,
+      borderColor: theme.colors.cardBorder,
+      ...theme.shadows.medium,
     },
-    title: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.sm,
-      lineHeight: 30,
+    sectionCard: {
+      backgroundColor: theme.colors.surfaceElevated,
+      borderRadius: theme.borderRadius.lg,
+      borderWidth: 1,
+      borderColor: theme.colors.cardBorder,
+      ...theme.shadows.small,
     },
-    preacher: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: theme.colors.primary,
-      marginBottom: theme.spacing.sm,
+    progressTrack: {
+      backgroundColor: theme.colors.audioProgressBackground,
+      borderRadius: theme.borderRadius.full,
     },
-    meta: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: theme.spacing.md,
-      gap: theme.spacing.sm,
+    progressFill: {
+      backgroundColor: theme.colors.audioProgress,
+      borderRadius: theme.borderRadius.full,
     },
-    metaText: {
-      fontSize: 14,
-      color: theme.colors.textSecondary,
-    },
-    featuredBadge: {
-      marginLeft: 'auto',
-    },
-    content: {
-      padding: theme.spacing.lg,
-    },
-    section: {
-      marginBottom: theme.spacing.xl,
-    },
-    sectionTitle: {
-      fontSize: 20,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.md,
-    },
-    description: {
-      fontSize: 16,
-      color: theme.colors.text,
-      lineHeight: 24,
-      marginBottom: theme.spacing.md,
-    },
-    tags: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: theme.spacing.sm,
-      marginBottom: theme.spacing.md,
-    },
-    stats: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      padding: theme.spacing.md,
-      backgroundColor: theme.colors.surface,
-      borderRadius: theme.spacing.md,
-      marginBottom: theme.spacing.lg,
-    },
-    stat: {
-      alignItems: 'center',
-    },
-    statNumber: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: theme.colors.primary,
-    },
-    statLabel: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
-      marginTop: theme.spacing.xs,
-    },
-    audioPlayer: {
-      backgroundColor: theme.colors.surface,
-      padding: theme.spacing.lg,
-      borderRadius: theme.spacing.md,
-      marginBottom: theme.spacing.lg,
-      elevation: 4,
-    },
-    playerHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: theme.spacing.md,
-    },
-    playerTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: theme.colors.text,
-      flex: 1,
-    },
-    controls: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: theme.spacing.md,
-      gap: theme.spacing.md,
-    },
-    controlButton: {
-      width: 56,
-      height: 56,
-    },
-    playButton: {
-      width: 64,
-      height: 64,
-    },
-    progressContainer: {
-      marginBottom: theme.spacing.md,
-    },
-    progressBarWrapper: {
-      height: 40,
-      justifyContent: 'center',
-      paddingVertical: theme.spacing.sm,
-    },
-    progressBar: {
-      height: 6,
-      borderRadius: 3,
-    },
-    timeDisplay: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: theme.spacing.sm,
-    },
-    timeText: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
-    },
-    actions: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      marginTop: theme.spacing.md,
-    },
-    actionButton: {
-      flex: 1,
-      marginHorizontal: theme.spacing.xs,
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: theme.spacing.xl,
-    },
-    errorContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: theme.spacing.xl,
-    },
-    errorText: {
-      fontSize: 16,
-      color: theme.colors.error,
-      textAlign: 'center',
-      marginBottom: theme.spacing.md,
-    },
-    fab: {
-      position: 'absolute',
-      margin: theme.spacing.md,
-      right: 0,
-      bottom: 0,
-    },
-  });
+  }), [theme, insets]);
 
-  // Load sermon data
+  // ───── Data Loading ─────
+
   useEffect(() => {
-    if (id) {
-      loadSermon();
-    }
+    if (id) { loadSermon(); }
   }, [id]);
 
-  // Check download status when sermon loads
   useEffect(() => {
-    if (sermon?.audio_url) {
-      checkDownloadStatus();
-    }
+    if (sermon?.audio_url) { checkDownloadStatus(); }
   }, [sermon]);
 
-  // Monitor download progress
   useEffect(() => {
     if (sermon?.id) {
       const downloadItem = downloads.find(d => d.metadata?.contentId === sermon.id);
       if (downloadItem) {
         switch (downloadItem.status) {
-          case 'downloading':
-            setDownloadStatus('downloading');
-            break;
-          case 'completed':
-            setDownloadStatus('downloaded');
-            break;
-          case 'failed':
-            setDownloadStatus('error');
-            break;
-          case 'paused':
-            setDownloadStatus('downloading');
-            break;
+          case 'downloading': setDownloadStatus('downloading'); break;
+          case 'completed': setDownloadStatus('downloaded'); break;
+          case 'failed': setDownloadStatus('error'); break;
+          case 'paused': setDownloadStatus('downloading'); break;
         }
       }
     }
   }, [downloads, sermon]);
 
-  // Cleanup audio on unmount
   useEffect(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
+    return () => { if (sound) { sound.unloadAsync(); } };
   }, [sound]);
 
   const loadSermon = async () => {
@@ -296,7 +126,6 @@ export default function SermonDetailScreen() {
       const sermonData = await ContentService.getSermonById(id);
       setSermon(sermonData);
 
-      // Load category information
       if (sermonData.category_id) {
         try {
           const categoryData = await ContentService.getCategoryById(sermonData.category_id);
@@ -306,7 +135,6 @@ export default function SermonDetailScreen() {
         }
       }
 
-      // Initialize audio with the loaded sermon data
       await initializeAudioWithSermon(sermonData);
     } catch (error) {
       console.error('Failed to load sermon:', error);
@@ -319,55 +147,42 @@ export default function SermonDetailScreen() {
   const initializeAudioWithSermon = async (sermonData: Sermon) => {
     try {
       setIsLoading(true);
-      
-      // Validate audio URL
+
       if (!sermonData?.audio_url || sermonData.audio_url.trim() === '') {
-        console.warn('No audio URL provided for sermon');
         setIsLoading(false);
         setIsAudioValid(false);
         setAudioError('No audio file is available for this sermon.');
         return;
       }
 
-      // Check for placeholder audio URL
       if (sermonData.audio_url.includes('placeholder') || sermonData.audio_url.includes('demo') || sermonData.audio_url.includes('sample')) {
-        console.warn('Placeholder audio URL detected:', sermonData.audio_url);
         setIsLoading(false);
         setIsAudioValid(false);
         setAudioError('Audio file is not available. Please upload a real audio file.');
         return;
       }
 
-      // Check if URL is valid
       let audioUrlObj;
       try {
         audioUrlObj = new URL(sermonData.audio_url);
       } catch (urlError) {
-        console.error('Invalid audio URL:', sermonData.audio_url);
         setIsLoading(false);
         Alert.alert('Invalid Audio URL', 'The audio file URL is invalid.');
         return;
       }
 
-      // Check if the URL is accessible (basic check)
       if (!audioUrlObj.protocol.startsWith('http')) {
-        console.error('Unsupported protocol for audio URL:', audioUrlObj.protocol);
         setIsLoading(false);
         Alert.alert('Unsupported Protocol', 'Audio must be served over HTTP or HTTPS.');
         return;
       }
 
-      // Request audio permissions
       const permissionStatus = await Audio.requestPermissionsAsync();
       if (permissionStatus.status !== 'granted') {
-        Alert.alert(
-          'Permission Required',
-          'Audio playback permission is required to play sermons.'
-        );
+        Alert.alert('Permission Required', 'Audio playback permission is required.');
         return;
       }
 
-      // Set audio mode
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         staysActiveInBackground: true,
@@ -376,256 +191,156 @@ export default function SermonDetailScreen() {
         playThroughEarpieceAndroid: false,
       });
 
-      // Check if audio is available offline first
       let audioUri = sermonData.audio_url;
       const isOfflineAvailable = await isAvailableOffline(sermonData.audio_url);
       if (isOfflineAvailable) {
         const offlinePath = await getOfflinePath(sermonData.audio_url);
         if (offlinePath) {
           audioUri = offlinePath;
-          console.log('Using offline audio:', offlinePath);
         }
       }
 
-      // Load audio with better error handling
-      console.log('Loading audio from:', audioUri);
-      
       const { sound: audioSound } = await Audio.Sound.createAsync(
         { uri: audioUri },
-        { 
-          shouldPlay: false,
-          isLooping: false,
-          isMuted: false,
-          volume: 1.0,
-          rate: 1.0,
-          shouldCorrectPitch: true,
-        },
+        { shouldPlay: false, isLooping: false, isMuted: false, volume: 1.0, rate: 1.0, shouldCorrectPitch: true },
         onPlaybackStatusUpdate
       );
 
       setSound(audioSound);
 
-      // Get duration
       const audioStatus = await audioSound.getStatusAsync();
       if (audioStatus.isLoaded && 'durationMillis' in audioStatus) {
         setDuration(audioStatus.durationMillis || 0);
-        console.log('Audio loaded successfully. Duration:', audioStatus.durationMillis);
       }
       setIsLoading(false);
     } catch (error) {
-      console.error('Failed to initialize audio:', error);
       setIsLoading(false);
       setIsAudioValid(false);
-      
-      // Provide more specific error messages
+
       let errorMessage = 'Failed to initialize audio player.';
-      
       if (error instanceof Error) {
-        console.error('Error name:', error.name);
-        console.error('Error message:', error.message);
-        
         if (error.message.includes('Network') || error.message.includes('timeout') || error.message.includes('-1008')) {
-          errorMessage = 'Network timeout. The audio file could not be loaded. Please check your internet connection and try again.';
+          errorMessage = 'Network timeout. Please check your connection.';
         } else if (error.message.includes('format') || error.message.includes('codec')) {
-          errorMessage = 'Audio format not supported. Please contact support.';
-        } else if (error.message.includes('permission')) {
-          errorMessage = 'Audio permission denied. Please enable audio permissions in settings.';
+          errorMessage = 'Audio format not supported.';
         } else if (error.message.includes('not found') || error.message.includes('404')) {
-          errorMessage = 'Audio file not found. It may have been removed or moved.';
+          errorMessage = 'Audio file not found.';
         } else {
           errorMessage = `Unable to load audio: ${error.message}`;
         }
       }
-      
       setAudioError(errorMessage);
       setError(errorMessage);
     }
   };
 
+  // ───── Audio Controls ─────
+
   const onPlaybackStatusUpdate = (status: any) => {
     if (status.isLoaded) {
       setIsPlaying(status.isPlaying);
       setIsBuffering(status.isBuffering);
-
-      if (status.positionMillis !== null) {
-        setPosition(status.positionMillis);
-      }
-
-      if (status.durationMillis !== null) {
-        setDuration(status.durationMillis);
-      }
+      if (status.positionMillis !== null) setPosition(status.positionMillis);
+      if (status.durationMillis !== null) setDuration(status.durationMillis);
     }
   };
 
   const handlePlayPause = async () => {
     if (!sound) {
-      console.error('Sound object is not initialized');
-      Alert.alert('Audio Error', 'Audio player is not ready. Please wait for audio to load.');
+      Alert.alert('Audio Error', 'Audio player is not ready.');
       return;
     }
-
     try {
-      if (isPlaying) {
-        await sound.pauseAsync();
-      } else {
-        await sound.playAsync();
-      }
+      if (isPlaying) { await sound.pauseAsync(); }
+      else { await sound.playAsync(); }
     } catch (error) {
-      console.error('Playback error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to control audio playback';
-      Alert.alert('Playback Error', errorMessage);
+      Alert.alert('Playback Error', error instanceof Error ? error.message : 'Failed to control audio.');
     }
   };
 
   const handleSeek = async (value: number) => {
-    if (!sound) {
-      console.error('Sound object is not initialized');
-      return;
-    }
-
+    if (!sound) return;
     try {
-      const newPosition = value * duration;
-      await sound.setPositionAsync(newPosition);
+      await sound.setPositionAsync(value * duration);
     } catch (error) {
-      console.error('Seek error:', error);
       Alert.alert('Seek Error', 'Failed to seek audio position.');
     }
   };
 
   const handleSkip = async (seconds: number) => {
-    if (!sound) {
-      console.error('Sound object is not initialized');
-      return;
-    }
-
+    if (!sound) return;
     try {
       const newPosition = Math.max(0, position + seconds * 1000);
       await sound.setPositionAsync(newPosition);
     } catch (error) {
-      console.error('Skip error:', error);
       Alert.alert('Skip Error', 'Failed to skip audio position.');
     }
   };
 
+  // ───── Download & Actions ─────
+
   const checkDownloadStatus = async () => {
     if (!sermon?.audio_url) return;
-    
     try {
       const isDownloaded = await isAvailableOffline(sermon.audio_url);
       setDownloadStatus(isDownloaded ? 'downloaded' : 'idle');
     } catch (error) {
-      console.error('Failed to check download status:', error);
       setDownloadStatus('error');
     }
   };
 
   const handleDownload = async () => {
     if (!sermon) return;
-
     try {
       setDownloadStatus('checking');
-      
-      // Check if already downloaded
       const isDownloaded = await isAvailableOffline(sermon.audio_url);
       if (isDownloaded) {
         setDownloadStatus('downloaded');
-        Alert.alert(
-          'Already Downloaded', 
-          `${sermon.title} is already available offline. You can access it anytime without an internet connection.`,
-          [
-            { text: 'OK', style: 'default' },
-            { 
-              text: 'View Downloads', 
-              style: 'default',
-              onPress: () => {
-                // You could navigate to a download manager here if needed
-                console.log('Navigate to download manager');
-              }
-            }
-          ]
-        );
+        Alert.alert('Already Downloaded', `${sermon.title} is available offline.`);
         return;
       }
-      
       setDownloadStatus('downloading');
-      
-      // Add download
-      await addDownload(
-        'audio',
-        sermon.title,
-        sermon.audio_url,
-        {
-          contentId: sermon.id,
-          preacher: sermon.preacher,
-          date: sermon.date,
-          duration: sermon.duration,
-          thumbnail_url: sermon.thumbnail_url,
-          description: sermon.description
-        }
-      );
-      
+      await addDownload('audio', sermon.title, sermon.audio_url, {
+        contentId: sermon.id, preacher: sermon.preacher, date: sermon.date,
+        duration: sermon.duration, thumbnail_url: sermon.thumbnail_url, description: sermon.description
+      });
       setDownloadStatus('downloaded');
-      Alert.alert('Download Started', `${sermon.title} is now downloading. You can monitor progress in the Download Manager.`);
+      Alert.alert('Download Started', `${sermon.title} is now downloading.`);
     } catch (error) {
-      console.error('Failed to download sermon:', error);
       setDownloadStatus('error');
-      
-      const errorMessage = error instanceof Error ? error.message : 'Failed to download sermon';
-      Alert.alert(
-        'Download Failed', 
-        `${errorMessage}. Please check your internet connection and try again.`,
-        [
-          { text: 'OK', style: 'default' },
-          { 
-            text: 'Retry', 
-            style: 'default',
-            onPress: () => handleDownload()
-          }
-        ]
-      );
+      Alert.alert('Download Failed', 'Please check your connection and try again.', [
+        { text: 'OK' },
+        { text: 'Retry', onPress: () => handleDownload() },
+      ]);
     }
   };
 
   const handleShare = async () => {
-    // TODO: Implement share functionality
     Alert.alert('Coming Soon', 'Share functionality will be implemented in the next phase.');
   };
 
   const handleBack = () => {
     if (sound && isPlaying) {
-      Alert.alert(
-        'Audio Playing',
-        'Audio is currently playing. Do you want to stop it and go back?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Stop & Go Back',
-            onPress: async () => {
-              await sound.stopAsync();
-              router.back();
-            },
-          },
-        ]
-      );
+      Alert.alert('Audio Playing', 'Stop audio and go back?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Stop & Go Back', onPress: async () => { await sound.stopAsync(); router.back(); } },
+      ]);
     } else {
       router.back();
     }
   };
 
-  const formatTime = (milliseconds: number): string => {
-    const totalSeconds = Math.floor(milliseconds / 1000);
+  // ───── Formatters ─────
+
+  const formatTime = (ms: number): string => {
+    const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   const formatDuration = (seconds: number): string => {
@@ -634,21 +349,27 @@ export default function SermonDetailScreen() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  // ───── Loading / Error States ─────
+
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[staticStyles.centered, dynamicStyles.container]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.metaText}>Loading sermon...</Text>
+        <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.md }}>
+          Loading sermon...
+        </Text>
       </View>
     );
   }
 
   if (error || !sermon) {
     return (
-      <View style={styles.errorContainer}>
-        <MaterialIcons name="error" size={64} color={theme.colors.error} />
-        <Text style={styles.errorText}>{error || 'Sermon not found'}</Text>
-        <Button mode="contained" onPress={handleBack}>
+      <View style={[staticStyles.centered, dynamicStyles.container]}>
+        <MaterialIcons name="error-outline" size={64} color={theme.colors.error} />
+        <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.textSecondary, textAlign: 'center', marginTop: theme.spacing.md, marginHorizontal: theme.spacing.lg }}>
+          {error || 'Sermon not found'}
+        </Text>
+        <Button mode="contained" onPress={handleBack} style={{ marginTop: theme.spacing.md }} buttonColor={theme.colors.primary} textColor="#FFFFFF">
           Go Back
         </Button>
       </View>
@@ -657,247 +378,226 @@ export default function SermonDetailScreen() {
 
   const progress = duration > 0 ? position / duration : 0;
 
+  // ───── Main Render ─────
+
   return (
     <ErrorBoundary>
-      <View style={styles.container}>
-        <ScrollView style={styles.scrollView}>
-          {/* Header Section */}
-          <View style={styles.header}>
-            <View style={{
-              position: 'absolute',
-              top: theme.spacing.xl + 20, // Move down from top edge
-              left: theme.spacing.lg,
-              zIndex: 1,
-              backgroundColor: theme.colors.surface,
-              borderRadius: 25,
-              elevation: 4,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.25,
-              shadowRadius: 4,
-              width: 50,
-              height: 50,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-              <IconButton
-                icon="arrow-left"
-                size={24}
-                onPress={handleBack}
-                iconColor={theme.colors.text}
-                style={{ margin: 0 }}
-              />
-            </View>
+      <View style={[staticStyles.flex, dynamicStyles.container]}>
+        <ScrollView style={staticStyles.flex} showsVerticalScrollIndicator={false}>
 
-            {sermon.thumbnail_url && (
-              <Card.Cover source={{ uri: sermon.thumbnail_url }} style={styles.thumbnail} />
+          {/* ─── Hero Header ─── */}
+          <View style={[staticStyles.heroSection, dynamicStyles.header]}>
+            {/* Back Button */}
+            <Pressable
+              style={[staticStyles.backBtn, { backgroundColor: theme.colors.background + 'CC', borderRadius: theme.borderRadius.full }]}
+              onPress={handleBack}
+            >
+              <MaterialIcons name="arrow-back" size={22} color={theme.colors.text} />
+            </Pressable>
+
+            {/* Thumbnail */}
+            {sermon.thumbnail_url ? (
+              <View style={[staticStyles.thumbnailContainer, { borderRadius: theme.borderRadius.lg, ...theme.shadows.medium }]}>
+                <Image
+                  source={{ uri: sermon.thumbnail_url }}
+                  style={[staticStyles.thumbnail, { borderRadius: theme.borderRadius.lg }]}
+                  resizeMode="cover"
+                />
+              </View>
+            ) : (
+              <View style={[staticStyles.thumbnailPlaceholder, { borderRadius: theme.borderRadius.lg, backgroundColor: theme.colors.surfaceVariant }]}>
+                <MaterialIcons name="headset" size={64} color={theme.colors.textTertiary} />
+              </View>
             )}
 
-            <Text style={styles.title}>{sermon.title}</Text>
-            <Text style={styles.preacher}>{sermon.preacher}</Text>
+            {/* Title & Meta */}
+            <Text style={{ ...theme.typography.headlineLarge, color: theme.colors.text, marginTop: theme.spacing.lg }}>
+              {sermon.title}
+            </Text>
+            <Text style={{ ...theme.typography.titleMedium, color: theme.colors.primary, marginTop: theme.spacing.xs }}>
+              {sermon.preacher}
+            </Text>
 
-            <View style={styles.meta}>
-              <MaterialIcons name="calendar-today" size={16} color={theme.colors.textSecondary} />
-              <Text style={styles.metaText}>{formatDate(sermon.date)}</Text>
-
-              <MaterialIcons name="access-time" size={16} color={theme.colors.textSecondary} />
-              <Text style={styles.metaText}>{formatDuration(sermon.duration)}</Text>
-
+            <View style={[staticStyles.metaRow, { marginTop: theme.spacing.sm }]}>
+              <View style={staticStyles.metaItem}>
+                <MaterialIcons name="calendar-today" size={14} color={theme.colors.textTertiary} />
+                <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary, marginLeft: 4 }}>
+                  {formatDate(sermon.date)}
+                </Text>
+              </View>
+              <View style={[staticStyles.metaDot, { backgroundColor: theme.colors.textTertiary }]} />
+              <View style={staticStyles.metaItem}>
+                <MaterialIcons name="access-time" size={14} color={theme.colors.textTertiary} />
+                <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary, marginLeft: 4 }}>
+                  {formatDuration(sermon.duration)}
+                </Text>
+              </View>
               {sermon.is_featured && (
-                <Badge size={16} style={styles.featuredBadge}>
-                  Featured
-                </Badge>
+                <>
+                  <View style={[staticStyles.metaDot, { backgroundColor: theme.colors.textTertiary }]} />
+                  <View style={[staticStyles.featuredBadge, { backgroundColor: theme.colors.accent + '20', borderRadius: theme.borderRadius.xs }]}>
+                    <MaterialIcons name="star" size={12} color={theme.colors.accent} />
+                    <Text style={{ ...theme.typography.labelSmall, color: theme.colors.accent, marginLeft: 2 }}>Featured</Text>
+                  </View>
+                </>
               )}
             </View>
           </View>
 
-          {/* Content Section */}
-          <View style={styles.content}>
-            {/* Audio Player */}
-            {sermon?.audio_url && sermon.audio_url.trim() !== '' ? (
-              <View style={styles.audioPlayer}>
+          {/* ─── Content ─── */}
+          <View style={{ padding: theme.spacing.md }}>
+
+            {/* ─── Audio Player Card ─── */}
+            <View style={[staticStyles.playerCard, dynamicStyles.playerCard, { padding: theme.spacing.lg }]}>
               {!isAudioValid && audioError ? (
-                <View style={{ alignItems: 'center', padding: theme.spacing.lg }}>
-                  <MaterialIcons name="warning" size={48} color={theme.colors.error} />
-                  <Text style={{ fontSize: 16, color: theme.colors.textSecondary, marginTop: theme.spacing.md, textAlign: 'center' }}>
+                <View style={staticStyles.centered}>
+                  <MaterialIcons name="music-off" size={48} color={theme.colors.error} />
+                  <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.sm, textAlign: 'center' }}>
                     {audioError}
                   </Text>
                   <Button
                     mode="contained"
-                    onPress={() => {
-                      setIsAudioValid(true);
-                      setAudioError(null);
-                      initializeAudioWithSermon(sermon);
-                    }}
+                    onPress={() => { setIsAudioValid(true); setAudioError(null); initializeAudioWithSermon(sermon); }}
                     style={{ marginTop: theme.spacing.md }}
+                    buttonColor={theme.colors.primary}
+                    textColor="#FFFFFF"
+                    compact
                   >
                     Retry
                   </Button>
                 </View>
+              ) : sermon?.audio_url && sermon.audio_url.trim() !== '' ? (
+                <>
+                  {/* Player Header */}
+                  <View style={staticStyles.playerHeader}>
+                    <MaterialIcons name="headset" size={20} color={theme.colors.primary} />
+                    <Text style={{ ...theme.typography.titleSmall, color: theme.colors.text, marginLeft: 8, flex: 1 }}>
+                      Now Playing
+                    </Text>
+                    {isBuffering && <ActivityIndicator size="small" color={theme.colors.primary} />}
+                  </View>
+
+                  {/* Progress */}
+                  <View style={{ marginTop: theme.spacing.md }}>
+                    <View style={staticStyles.timeRow}>
+                      <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textTertiary }}>{formatTime(position)}</Text>
+                      <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textTertiary }}>{formatTime(duration)}</Text>
+                    </View>
+                    <Pressable
+                      onPress={event => {
+                        const { locationX } = event.nativeEvent;
+                        const containerWidth = screenWidth - (theme.spacing.md * 2 + theme.spacing.lg * 2);
+                        handleSeek(Math.max(0, Math.min(1, locationX / containerWidth)));
+                      }}
+                      style={[staticStyles.progressWrapper]}
+                    >
+                      <View style={[staticStyles.progressTrack, dynamicStyles.progressTrack]}>
+                        <View style={[staticStyles.progressFill, dynamicStyles.progressFill, { width: `${progress * 100}%` }]} />
+                      </View>
+                    </Pressable>
+                  </View>
+
+                  {/* Controls */}
+                  <View style={[staticStyles.controlsRow, { marginTop: theme.spacing.lg }]}>
+                    <Pressable onPress={() => handleSkip(-30)} style={staticStyles.controlBtn}>
+                      <MaterialIcons name="replay-30" size={28} color={theme.colors.textSecondary} />
+                    </Pressable>
+
+                    <Pressable
+                      onPress={handlePlayPause}
+                      disabled={isLoading}
+                      style={[staticStyles.playBtn, { backgroundColor: theme.colors.primary, borderRadius: theme.borderRadius.full }]}
+                    >
+                      {isLoading ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                      ) : (
+                        <MaterialIcons name={isPlaying ? 'pause' : 'play-arrow'} size={36} color="#FFFFFF" />
+                      )}
+                    </Pressable>
+
+                    <Pressable onPress={() => handleSkip(30)} style={staticStyles.controlBtn}>
+                      <MaterialIcons name="forward-30" size={28} color={theme.colors.textSecondary} />
+                    </Pressable>
+                  </View>
+
+                  {/* Action Bar */}
+                  <View style={[staticStyles.actionBar, { marginTop: theme.spacing.lg, borderTopWidth: 1, borderTopColor: theme.colors.borderLight, paddingTop: theme.spacing.md }]}>
+                    <Pressable
+                      onPress={handleDownload}
+                      disabled={downloadStatus === 'downloading' || downloadStatus === 'checking'}
+                      style={staticStyles.actionItem}
+                    >
+                      <MaterialIcons
+                        name={downloadStatus === 'downloaded' ? 'check-circle' : downloadStatus === 'error' ? 'error' : 'download'}
+                        size={22}
+                        color={downloadStatus === 'downloaded' ? theme.colors.success : downloadStatus === 'error' ? theme.colors.error : theme.colors.textSecondary}
+                      />
+                      <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textSecondary, marginTop: 2 }}>
+                        {downloadStatus === 'downloaded' ? 'Saved' : downloadStatus === 'downloading' ? 'Saving...' : 'Download'}
+                      </Text>
+                    </Pressable>
+                    <Pressable onPress={handleShare} style={staticStyles.actionItem}>
+                      <MaterialIcons name="share" size={22} color={theme.colors.textSecondary} />
+                      <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textSecondary, marginTop: 2 }}>Share</Text>
+                    </Pressable>
+                  </View>
+                </>
               ) : (
-              <>
-              <View style={styles.playerHeader}>
-                <Text style={styles.playerTitle}>Audio Player</Text>
-                {isBuffering && <ActivityIndicator size="small" color={theme.colors.primary} />}
-              </View>
-
-              {/* Progress Bar */}
-              <View style={styles.progressContainer}>
-                <View style={styles.timeDisplay}>
-                  <Text style={styles.timeText}>{formatTime(position)}</Text>
-                  <Text style={styles.timeText}>{formatTime(duration)}</Text>
-                </View>
-                <Pressable
-                  onPress={event => {
-                    const { locationX } = event.nativeEvent;
-                    const containerWidth = screenWidth - 2 * theme.spacing.lg;
-                    const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
-                    handleSeek(newProgress);
-                  }}
-                  style={styles.progressBarWrapper}
-                >
-                  <ProgressBar
-                    progress={progress}
-                    color={theme.colors.primary}
-                    style={styles.progressBar}
-                  />
-                </Pressable>
-              </View>
-
-              {/* Controls */}
-              <View style={styles.controls}>
-                <IconButton
-                  icon="skip-previous"
-                  size={32}
-                  onPress={() => handleSkip(-30)}
-                  style={styles.controlButton}
-                />
-
-                <IconButton
-                  icon={isPlaying ? 'pause' : 'play'}
-                  size={40}
-                  onPress={handlePlayPause}
-                  style={[styles.controlButton, styles.playButton]}
-                  disabled={isLoading}
-                />
-
-                <IconButton
-                  icon="skip-next"
-                  size={32}
-                  onPress={() => handleSkip(30)}
-                  style={styles.controlButton}
-                />
-              </View>
-
-              {/* Actions */}
-              <View style={styles.actions}>
-                <Button
-                  mode="outlined"
-                  onPress={() => handleDownload()}
-                  style={styles.actionButton}
-                  disabled={downloadStatus === 'downloading' || downloadStatus === 'checking'}
-                  icon={() => {
-                    switch (downloadStatus) {
-                      case 'downloading':
-                        return <ActivityIndicator size={20} color={theme.colors.primary} />;
-                      case 'downloaded':
-                        return <MaterialIcons name="check-circle" size={20} color={theme.colors.success} />;
-                      case 'checking':
-                        return <ActivityIndicator size={20} color={theme.colors.primary} />;
-                      case 'error':
-                        return <MaterialIcons name="error" size={20} color={theme.colors.error} />;
-                      default:
-                        return <MaterialIcons name="download" size={20} color={theme.colors.primary} />;
-                    }
-                  }}
-                >
-                  {(() => {
-                    switch (downloadStatus) {
-                      case 'downloading':
-                        return 'Downloading...';
-                      case 'downloaded':
-                        return 'Downloaded';
-                      case 'checking':
-                        return 'Checking...';
-                      case 'error':
-                        return 'Retry';
-                      default:
-                        return 'Download';
-                    }
-                  })()}
-                </Button>
-
-                <Button
-                  mode="outlined"
-                  icon="share"
-                  onPress={handleShare}
-                  style={styles.actionButton}
-                >
-                  Share
-                </Button>
-              </View>
-              </>
-              )}
-            </View>
-            ) : (
-              <View style={styles.audioPlayer}>
-                <View style={styles.playerHeader}>
-                  <Text style={styles.playerTitle}>Audio Player</Text>
-                </View>
-                <View style={{ alignItems: 'center', padding: theme.spacing.lg }}>
-                  <MaterialIcons name="warning" size={48} color={theme.colors.textSecondary} />
-                  <Text style={{ fontSize: 16, color: theme.colors.textSecondary, marginTop: theme.spacing.md, textAlign: 'center' }}>
+                <View style={[staticStyles.centered, { padding: theme.spacing.lg }]}>
+                  <MaterialIcons name="music-off" size={48} color={theme.colors.textTertiary} />
+                  <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.sm }}>
                     Audio not available for this sermon.
                   </Text>
                 </View>
-              </View>
-            )}
-
-            {/* Stats Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Statistics</Text>
-              <View style={styles.stats}>
-                <View style={styles.stat}>
-                  <Text style={styles.statNumber}>{sermon.views}</Text>
-                  <Text style={styles.statLabel}>Views</Text>
-                </View>
-                <View style={styles.stat}>
-                  <Text style={styles.statNumber}>{sermon.downloads}</Text>
-                  <Text style={styles.statLabel}>Downloads</Text>
-                </View>
-                <View style={styles.stat}>
-                  <Text style={styles.statNumber}>
-                    {sermon.tags && Array.isArray(sermon.tags) ? sermon.tags.length : 0}
-                  </Text>
-                  <Text style={styles.statLabel}>Tags</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Description Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Description</Text>
-              <Text style={styles.description} numberOfLines={showFullDescription ? undefined : 6}>
-                {sermon.description}
-              </Text>
-              {sermon.description && sermon.description.length > 200 && (
-                <Button
-                  mode="text"
-                  onPress={() => setShowFullDescription(!showFullDescription)}
-                  style={{ alignSelf: 'flex-start' }}
-                >
-                  {showFullDescription ? 'Show Less' : 'Read More'}
-                </Button>
               )}
             </View>
 
-            {/* Tags Section */}
+            {/* ─── Stats ─── */}
+            <View style={[staticStyles.statsRow, dynamicStyles.sectionCard, { padding: theme.spacing.md, marginTop: theme.spacing.md }]}>
+              {[
+                { value: sermon.views, label: 'Views', icon: 'visibility' as const },
+                { value: sermon.downloads, label: 'Downloads', icon: 'download' as const },
+                { value: sermon.tags && Array.isArray(sermon.tags) ? sermon.tags.length : 0, label: 'Tags', icon: 'label' as const },
+              ].map((stat, i) => (
+                <View key={i} style={staticStyles.statItem}>
+                  <MaterialIcons name={stat.icon} size={18} color={theme.colors.primary} />
+                  <Text style={{ ...theme.typography.headlineSmall, color: theme.colors.text, marginTop: 2 }}>{stat.value}</Text>
+                  <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary }}>{stat.label}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* ─── Description ─── */}
+            {sermon.description && (
+              <View style={[dynamicStyles.sectionCard, { padding: theme.spacing.lg, marginTop: theme.spacing.md }]}>
+                <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text, marginBottom: theme.spacing.sm }}>
+                  Description
+                </Text>
+                <Text
+                  style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}
+                  numberOfLines={showFullDescription ? undefined : 5}
+                >
+                  {sermon.description}
+                </Text>
+                {sermon.description.length > 200 && (
+                  <Pressable onPress={() => setShowFullDescription(!showFullDescription)}>
+                    <Text style={{ ...theme.typography.labelMedium, color: theme.colors.primary, marginTop: theme.spacing.xs }}>
+                      {showFullDescription ? 'Show Less' : 'Read More'}
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            )}
+
+            {/* ─── Tags ─── */}
             {sermon.tags && Array.isArray(sermon.tags) && sermon.tags.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Tags</Text>
-                <View style={styles.tags}>
+              <View style={[dynamicStyles.sectionCard, { padding: theme.spacing.lg, marginTop: theme.spacing.md }]}>
+                <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text, marginBottom: theme.spacing.sm }}>
+                  Tags
+                </Text>
+                <View style={staticStyles.tagsWrap}>
                   {sermon.tags.map((tag, index) => (
-                    <Chip key={index} style={{ marginBottom: theme.spacing.sm }}>
+                    <Chip key={index} style={{ marginRight: theme.spacing.xs, marginBottom: theme.spacing.xs, backgroundColor: theme.colors.primaryContainer }} textStyle={{ ...theme.typography.labelSmall, color: theme.colors.primary }}>
                       {tag}
                     </Chip>
                   ))}
@@ -905,28 +605,62 @@ export default function SermonDetailScreen() {
               </View>
             )}
 
-            {/* Category Section */}
+            {/* ─── Category ─── */}
             {category && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Category</Text>
-                <Chip icon={category.icon} style={{ alignSelf: 'flex-start' }}>
+              <View style={[dynamicStyles.sectionCard, { padding: theme.spacing.lg, marginTop: theme.spacing.md }]}>
+                <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text, marginBottom: theme.spacing.sm }}>
+                  Category
+                </Text>
+                <Chip icon={category.icon} style={{ alignSelf: 'flex-start', backgroundColor: theme.colors.primaryContainer }} textStyle={{ ...theme.typography.labelMedium, color: theme.colors.primary }}>
                   {category.name}
                 </Chip>
               </View>
             )}
+
+            {/* Bottom spacer */}
+            <View style={{ height: theme.spacing.xxl }} />
           </View>
         </ScrollView>
-
-        {/* FAB for quick actions */}
-        <FAB
-          icon="dots-vertical"
-          style={styles.fab}
-          onPress={() => {
-            // TODO: Implement quick actions menu
-            Alert.alert('Coming Soon', 'Quick actions will be implemented in the next phase.');
-          }}
-        />
       </View>
     </ErrorBoundary>
   );
 }
+
+// ───── Static Styles ─────
+
+const staticStyles = StyleSheet.create({
+  flex: { flex: 1 },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  heroSection: { paddingHorizontal: 16, paddingBottom: 20 },
+  backBtn: {
+    width: 40, height: 40, justifyContent: 'center', alignItems: 'center',
+    position: 'absolute', top: 16, left: 16, zIndex: 10,
+  },
+  thumbnailContainer: { width: '100%', height: 220, marginTop: 56, overflow: 'hidden' },
+  thumbnail: { width: '100%', height: '100%' },
+  thumbnailPlaceholder: { width: '100%', height: 220, marginTop: 56, justifyContent: 'center', alignItems: 'center' },
+  metaRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' },
+  metaItem: { flexDirection: 'row', alignItems: 'center' },
+  metaDot: { width: 4, height: 4, borderRadius: 2, marginHorizontal: 8 },
+  featuredBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 2 },
+
+  // Player
+  playerCard: {},
+  playerHeader: { flexDirection: 'row', alignItems: 'center' },
+  timeRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+  progressWrapper: { height: 24, justifyContent: 'center' },
+  progressTrack: { height: 6, width: '100%' },
+  progressFill: { height: 6, position: 'absolute', left: 0, top: 0 },
+  controlsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 24 },
+  controlBtn: { width: 48, height: 48, justifyContent: 'center', alignItems: 'center' },
+  playBtn: { width: 64, height: 64, justifyContent: 'center', alignItems: 'center' },
+  actionBar: { flexDirection: 'row', justifyContent: 'space-around' },
+  actionItem: { alignItems: 'center', paddingVertical: 4, paddingHorizontal: 16 },
+
+  // Stats
+  statsRow: { flexDirection: 'row', justifyContent: 'space-around' },
+  statItem: { alignItems: 'center' },
+
+  // Tags
+  tagsWrap: { flexDirection: 'row', flexWrap: 'wrap' },
+});
