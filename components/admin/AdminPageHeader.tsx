@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -8,12 +8,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface AdminPageHeaderProps {
   title: string;
+  subtitle?: string;
   rightAction?: React.ReactNode;
 }
 
-export default function AdminPageHeader({ 
+export default function AdminPageHeader({
   title,
-  rightAction 
+  subtitle,
+  rightAction
 }: AdminPageHeaderProps) {
   const { theme } = useTheme();
   const router = useRouter();
@@ -26,57 +28,75 @@ export default function AdminPageHeader({
     return null;
   }
 
-  const styles = StyleSheet.create({
-    header: {
-      height: 56 + insets.top,
-      backgroundColor: theme.colors.surface,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-      paddingTop: insets.top,
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: theme.spacing.md,
-    },
-    backButton: {
-      marginRight: theme.spacing.md,
-      padding: theme.spacing.xs,
-    },
-    titleContainer: {
-      flex: 1,
-    },
-    title: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-    },
-    rightActionContainer: {
-      marginLeft: theme.spacing.md,
-    },
-  });
-
-  // Handler to go back to dashboard
-  const handleBack = () => {
-    router.push('/(tabs)/dashboard');
-  };
-
   return (
-    <View style={styles.header}>
+    <View
+      style={[
+        staticStyles.header,
+        {
+          backgroundColor: theme.colors.surfaceElevated,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.colors.cardBorder,
+          paddingTop: Platform.select({
+            ios: Math.max(insets.top, 20) + 4,
+            android: 12,
+          }),
+          ...theme.shadows.small,
+        },
+      ]}
+    >
       <TouchableOpacity
-        style={styles.backButton}
-        onPress={handleBack}
+        style={[staticStyles.backButton, { backgroundColor: theme.colors.primaryContainer, borderRadius: theme.borderRadius.sm }]}
+        onPress={() => router.push('/(tabs)/dashboard')}
         activeOpacity={0.7}
       >
-        <MaterialIcons name="home" size={24} color={theme.colors.text} />
+        <MaterialIcons name="home" size={20} color={theme.colors.primary} />
       </TouchableOpacity>
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>{title}</Text>
+
+      <View style={staticStyles.titleContainer}>
+        <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text }} numberOfLines={1}>
+          {title}
+        </Text>
+        {subtitle && (
+          <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary, marginTop: 1 }} numberOfLines={1}>
+            {subtitle}
+          </Text>
+        )}
       </View>
-      {rightAction && (
-        <View style={styles.rightActionContainer}>
+
+      {rightAction ? (
+        <View style={staticStyles.rightAction}>
           {rightAction}
         </View>
+      ) : (
+        // Spacer to keep title centered
+        <View style={staticStyles.spacer} />
       )}
     </View>
   );
 }
 
+const staticStyles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    minHeight: 56,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  titleContainer: {
+    flex: 1,
+  },
+  rightAction: {
+    marginLeft: 12,
+  },
+  spacer: {
+    width: 36,
+  },
+});

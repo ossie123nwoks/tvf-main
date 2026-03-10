@@ -4,16 +4,15 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  Pressable,
 } from 'react-native';
 import {
   Text,
-  Card,
   Button,
   TextInput,
   SegmentedButtons,
   Chip,
   IconButton,
-  Divider,
   ActivityIndicator,
   FAB,
 } from 'react-native-paper';
@@ -34,139 +33,16 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
   const { theme } = useTheme();
   const { checkPermission } = useAdminAuth();
   const router = useRouter();
-  
-  // Content type state
+
   const [contentType, setContentType] = useState<'sermons' | 'articles'>('sermons');
-  
-  // Content lists state
   const [sermons, setSermons] = useState<Sermon[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  
-  // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: theme.spacing.lg,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: theme.spacing.lg,
-    },
-    title: {
-      fontSize: 20,
-      fontWeight: '600',
-      color: theme.colors.text,
-    },
-    segmentedButtons: {
-      marginBottom: theme.spacing.lg,
-    },
-    searchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: theme.spacing.lg,
-    },
-    searchInput: {
-      flex: 1,
-      marginRight: theme.spacing.sm,
-    },
-    contentList: {
-      flex: 1,
-    },
-    contentListContent: {
-      paddingBottom: theme.spacing.xl * 2,
-    },
-    contentCard: {
-      marginBottom: theme.spacing.md,
-      backgroundColor: theme.colors.surface,
-      borderRadius: theme.borderRadius.md,
-    },
-    contentHeader: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      justifyContent: 'space-between',
-    },
-    contentInfo: {
-      flex: 1,
-      marginRight: theme.spacing.sm,
-    },
-    contentTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.xs,
-      lineHeight: 22,
-    },
-    contentMeta: {
-      fontSize: 14,
-      color: theme.colors.textSecondary,
-      marginBottom: theme.spacing.xs,
-      lineHeight: 20,
-    },
-    contentDescription: {
-      fontSize: 14,
-      color: theme.colors.textSecondary,
-      lineHeight: 20,
-      marginTop: theme.spacing.xs,
-    },
-    statusChip: {
-      alignSelf: 'flex-start',
-      marginBottom: theme.spacing.xs,
-    },
-    actionButtons: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      marginTop: theme.spacing.xs,
-    },
-    paginationContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: theme.spacing.lg,
-      marginBottom: theme.spacing.md,
-      paddingVertical: theme.spacing.md,
-    },
-    paginationButton: {
-      marginHorizontal: theme.spacing.xs,
-    },
-    emptyState: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: theme.spacing.xl * 2,
-      minHeight: 200,
-    },
-    emptyText: {
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-      textAlign: 'center',
-      marginTop: theme.spacing.md,
-      lineHeight: 24,
-    },
-    errorCard: {
-      marginBottom: theme.spacing.md,
-      backgroundColor: theme.colors.surface,
-      borderRadius: theme.borderRadius.md,
-    },
-    errorContent: {
-      padding: theme.spacing.lg,
-    },
-    fab: {
-      position: 'absolute',
-      bottom: theme.spacing.lg,
-      right: theme.spacing.lg,
-      backgroundColor: theme.colors.primary,
-    },
-  });
 
   // Load content based on current type and page
   const loadContent = async (page: number = 1, search?: string) => {
@@ -183,7 +59,7 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
         setArticles(result.articles);
         setTotalPages(result.totalPages);
       }
-      
+
       setCurrentPage(page);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load content');
@@ -192,11 +68,9 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
     }
   };
 
-  // Handle search
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     setSearchLoading(true);
-    
     try {
       await loadContent(1, query);
     } finally {
@@ -204,7 +78,6 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
     }
   };
 
-  // Handle delete content
   const handleDelete = (id: string, title: string) => {
     Alert.alert(
       'Delete Content',
@@ -223,7 +96,6 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
                 await AdminService.deleteArticle(id);
                 setArticles(prev => prev.filter(a => a.id !== id));
               }
-              
               Alert.alert('Success', 'Content deleted successfully');
             } catch (error) {
               Alert.alert('Error', 'Failed to delete content');
@@ -234,13 +106,12 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
     );
   };
 
-  // Load content on mount and when type changes
   useEffect(() => {
     loadContent(1, searchQuery);
   }, [contentType]);
 
   const currentContent = contentType === 'sermons' ? sermons : articles;
-  const canCreate = contentType === 'sermons' 
+  const canCreate = contentType === 'sermons'
     ? checkPermission('content.sermons.create')
     : checkPermission('content.articles.create');
   const canEdit = contentType === 'sermons'
@@ -251,170 +122,225 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
     : checkPermission('content.articles.delete');
 
   return (
-    <View style={styles.container}>
+    <View style={[staticStyles.container, { padding: theme.spacing.md }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Content Management</Text>
-      </View>
+      <Text style={{ ...theme.typography.headlineSmall, color: theme.colors.text, marginBottom: theme.spacing.md }}>
+        Content Management
+      </Text>
 
       {/* Content Type Selector */}
       <SegmentedButtons
         value={contentType}
         onValueChange={(value) => setContentType(value as 'sermons' | 'articles')}
         buttons={[
-          {
-            value: 'sermons',
-            label: 'Sermons',
-            icon: 'music',
-          },
-          {
-            value: 'articles',
-            label: 'Articles',
-            icon: 'text',
-          },
+          { value: 'sermons', label: 'Sermons', icon: 'music' },
+          { value: 'articles', label: 'Articles', icon: 'text' },
         ]}
-        style={styles.segmentedButtons}
+        style={{ marginBottom: theme.spacing.md }}
       />
 
       {/* Search */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          placeholder={`Search ${contentType}...`}
-          value={searchQuery}
-          onChangeText={handleSearch}
-          style={styles.searchInput}
-          right={
-            searchLoading ? (
-              <ActivityIndicator size="small" color={theme.colors.primary} />
-            ) : (
-              <TextInput.Icon icon="magnify" />
-            )
-          }
-        />
-      </View>
+      <TextInput
+        placeholder={`Search ${contentType}...`}
+        value={searchQuery}
+        onChangeText={handleSearch}
+        style={[staticStyles.searchInput, { backgroundColor: theme.colors.surfaceVariant, borderRadius: theme.borderRadius.md }]}
+        mode="outlined"
+        dense
+        outlineStyle={{ borderRadius: theme.borderRadius.md }}
+        right={
+          searchLoading ? (
+            <TextInput.Icon icon={() => <ActivityIndicator size={16} color={theme.colors.primary} />} />
+          ) : (
+            <TextInput.Icon icon="magnify" />
+          )
+        }
+      />
 
       {/* Content List */}
-      <ScrollView 
-        style={styles.contentList} 
-        contentContainerStyle={styles.contentListContent}
+      <ScrollView
+        style={staticStyles.contentList}
+        contentContainerStyle={{ paddingBottom: 80 }}
         showsVerticalScrollIndicator={false}
       >
         {loading && currentContent.length === 0 ? (
-          <View style={styles.emptyState}>
+          <View style={[staticStyles.emptyState, { padding: theme.spacing.xxl }]}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={styles.emptyText}>Loading content...</Text>
-          </View>
-        ) : error ? (
-          <Card style={styles.errorCard} elevation={1}>
-            <View style={styles.errorContent}>
-              <Text style={{ color: theme.colors.error, textAlign: 'center', marginBottom: theme.spacing.md }}>
-                {error}
-              </Text>
-              <Button 
-                mode="outlined" 
-                onPress={() => loadContent(currentPage, searchQuery)}
-                style={{ alignSelf: 'center' }}
-              >
-                Retry
-              </Button>
-            </View>
-          </Card>
-        ) : currentContent.length === 0 ? (
-          <View style={styles.emptyState}>
-            <MaterialIcons 
-              name="inbox" 
-              size={48} 
-              color={theme.colors.textSecondary} 
-            />
-            <Text style={styles.emptyText}>
-              No {contentType} found. {canCreate && 'Create your first one!'}
+            <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.md }}>
+              Loading content...
             </Text>
           </View>
+        ) : error ? (
+          <View style={[staticStyles.errorContainer, { padding: theme.spacing.lg, backgroundColor: theme.colors.errorContainer, borderRadius: theme.borderRadius.lg, marginTop: theme.spacing.md }]}>
+            <MaterialIcons name="error-outline" size={32} color={theme.colors.error} />
+            <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.error, textAlign: 'center', marginVertical: theme.spacing.sm }}>
+              {error}
+            </Text>
+            <Button
+              mode="contained"
+              onPress={() => loadContent(currentPage, searchQuery)}
+              buttonColor={theme.colors.error}
+              textColor="#FFFFFF"
+              compact
+            >
+              Retry
+            </Button>
+          </View>
+        ) : currentContent.length === 0 ? (
+          <View style={[staticStyles.emptyState, { padding: theme.spacing.xxl }]}>
+            <MaterialIcons name="inbox" size={56} color={theme.colors.textTertiary} />
+            <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.textSecondary, marginTop: theme.spacing.md, textAlign: 'center' }}>
+              No {contentType} found
+            </Text>
+            {canCreate && (
+              <Text style={{ ...theme.typography.bodySmall, color: theme.colors.textTertiary, marginTop: theme.spacing.xs }}>
+                Create your first one!
+              </Text>
+            )}
+          </View>
         ) : (
-          currentContent.map((item) => (
-            <Card key={item.id} style={styles.contentCard} elevation={2}>
-              <Card.Content style={{ padding: theme.spacing.md }}>
-                <View style={styles.contentHeader}>
-                  <View style={styles.contentInfo}>
-                    <Text style={styles.contentTitle}>{item.title}</Text>
-                    <Text style={styles.contentMeta}>
-                      {contentType === 'sermons' 
-                        ? `${(item as Sermon).preacher} • ${new Date((item as Sermon).date).toLocaleDateString()}`
-                        : `By ${(item as Article).author} • ${new Date((item as Article).created_at).toLocaleDateString()}`
-                      }
+          currentContent.map((item) => {
+            const isSermon = contentType === 'sermons';
+            const metaText = isSermon
+              ? `${(item as Sermon).preacher} • ${new Date((item as Sermon).date).toLocaleDateString()}`
+              : `By ${(item as Article).author} • ${new Date((item as Article).created_at).toLocaleDateString()}`;
+            const descText = isSermon
+              ? (item as Sermon).description || 'No description'
+              : (item as Article).excerpt || 'No excerpt';
+
+            return (
+              <Pressable
+                key={item.id}
+                onPress={() => {
+                  if (canEdit) {
+                    router.push(isSermon ? `/admin/sermon/edit/${item.id}` : `/admin/article/edit/${item.id}`);
+                  }
+                }}
+                style={({ pressed }) => [
+                  staticStyles.contentCard,
+                  {
+                    backgroundColor: theme.colors.surfaceElevated,
+                    borderRadius: theme.borderRadius.lg,
+                    borderWidth: 1,
+                    borderColor: theme.colors.cardBorder,
+                    padding: theme.spacing.md,
+                    marginTop: theme.spacing.sm,
+                    opacity: pressed && canEdit ? 0.85 : 1,
+                    ...theme.shadows.small,
+                  },
+                ]}
+              >
+                {/* Title row */}
+                <View style={staticStyles.cardHeader}>
+                  <View style={staticStyles.cardInfo}>
+                    <Text
+                      style={{ ...theme.typography.titleSmall, color: theme.colors.text }}
+                      numberOfLines={2}
+                    >
+                      {item.title}
                     </Text>
-                    <Text style={styles.contentDescription} numberOfLines={2}>
-                      {contentType === 'sermons' 
-                        ? (item as Sermon).description || 'No description available'
-                        : (item as Article).content || 'No description available'
-                      }
+                    <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary, marginTop: 2 }}>
+                      {metaText}
                     </Text>
-                    <Chip
+                  </View>
+
+                  {/* Status badge */}
+                  <View
+                    style={[
+                      staticStyles.statusBadge,
+                      {
+                        backgroundColor: item.is_published
+                          ? theme.colors.successContainer
+                          : theme.colors.warningContainer,
+                        borderRadius: theme.borderRadius.full,
+                      },
+                    ]}
+                  >
+                    <View
                       style={[
-                        styles.statusChip,
-                        { 
-                          backgroundColor: item.is_published 
-                            ? theme.colors.primary + '20' 
-                            : theme.colors.surfaceVariant 
-                        }
+                        staticStyles.statusDot,
+                        { backgroundColor: item.is_published ? theme.colors.success : theme.colors.warning },
                       ]}
-                      textStyle={{ 
-                        color: item.is_published 
-                          ? theme.colors.primary 
-                          : theme.colors.textSecondary 
+                    />
+                    <Text
+                      style={{
+                        ...theme.typography.labelSmall,
+                        color: item.is_published ? theme.colors.success : theme.colors.warning,
                       }}
                     >
                       {item.is_published ? 'Published' : 'Draft'}
-                    </Chip>
+                    </Text>
                   </View>
-                  <View style={styles.actionButtons}>
+                </View>
+
+                {/* Description */}
+                <Text
+                  style={{ ...theme.typography.bodySmall, color: theme.colors.textSecondary, marginTop: theme.spacing.xs }}
+                  numberOfLines={2}
+                >
+                  {descText}
+                </Text>
+
+                {/* Actions */}
+                <View style={[staticStyles.cardActions, { marginTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.borderLight, paddingTop: theme.spacing.xs }]}>
+                  {/* Stats */}
+                  <View style={staticStyles.statsRow}>
+                    <MaterialIcons name="visibility" size={14} color={theme.colors.textTertiary} />
+                    <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary, marginLeft: 4 }}>
+                      {item.views || 0}
+                    </Text>
+                  </View>
+
+                  {/* Action icons */}
+                  <View style={staticStyles.actionIcons}>
                     {canEdit && (
                       <IconButton
-                        icon="pencil"
-                        size={20}
+                        icon="pencil-outline"
+                        size={18}
+                        iconColor={theme.colors.primary}
                         onPress={() => {
-                          if (contentType === 'sermons') {
-                            router.push(`/admin/sermon/edit/${item.id}`);
-                          } else {
-                            router.push(`/admin/article/edit/${item.id}`);
-                          }
+                          router.push(isSermon ? `/admin/sermon/edit/${item.id}` : `/admin/article/edit/${item.id}`);
                         }}
+                        style={staticStyles.iconBtn}
                       />
                     )}
                     {canDelete && (
                       <IconButton
-                        icon="delete"
-                        size={20}
+                        icon="delete-outline"
+                        size={18}
                         iconColor={theme.colors.error}
                         onPress={() => handleDelete(item.id, item.title)}
+                        style={staticStyles.iconBtn}
                       />
                     )}
                   </View>
                 </View>
-              </Card.Content>
-            </Card>
-          ))
+              </Pressable>
+            );
+          })
         )}
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <View style={styles.paginationContainer}>
+          <View style={[staticStyles.pagination, { marginTop: theme.spacing.lg }]}>
             <Button
               mode="outlined"
               onPress={() => loadContent(currentPage - 1, searchQuery)}
               disabled={currentPage === 1}
-              style={styles.paginationButton}
+              compact
+              style={{ borderRadius: theme.borderRadius.md }}
             >
               Previous
             </Button>
-            <Text style={{ marginHorizontal: theme.spacing.md }}>
+            <Text style={{ ...theme.typography.labelMedium, color: theme.colors.textSecondary }}>
               {currentPage} of {totalPages}
             </Text>
             <Button
               mode="outlined"
               onPress={() => loadContent(currentPage + 1, searchQuery)}
               disabled={currentPage === totalPages}
-              style={styles.paginationButton}
+              compact
+              style={{ borderRadius: theme.borderRadius.md }}
             >
               Next
             </Button>
@@ -426,20 +352,85 @@ const ContentManagementSection: React.FC<ContentManagementSectionProps> = ({
       {canCreate && (
         <FAB
           icon="plus"
-          style={styles.fab}
+          style={[staticStyles.fab, { backgroundColor: theme.colors.primary, borderRadius: theme.borderRadius.lg }]}
+          color="#FFFFFF"
           onPress={() => {
-            if (contentType === 'sermons') {
-              router.push('/admin/sermon/create');
-            } else {
-              router.push('/admin/article/create');
-            }
+            router.push(contentType === 'sermons' ? '/admin/sermon/create' : '/admin/article/create');
           }}
-          label={`Create ${contentType === 'sermons' ? 'Sermon' : 'Article'}`}
+          label={`New ${contentType === 'sermons' ? 'Sermon' : 'Article'}`}
         />
       )}
-
     </View>
   );
 };
 
 export default ContentManagementSection;
+
+const staticStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  searchInput: {
+    marginBottom: 12,
+  },
+  contentList: {
+    flex: 1,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 200,
+  },
+  errorContainer: {
+    alignItems: 'center',
+  },
+  contentCard: {},
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  cardInfo: {
+    flex: 1,
+    marginRight: 8,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    gap: 4,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconBtn: {
+    margin: 0,
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+    paddingVertical: 16,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+  },
+});

@@ -8,21 +8,11 @@ import ContentManagementSection from '@/components/admin/ContentManagementSectio
 export default function ContentPage() {
   const { theme } = useTheme();
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    content: {
-      flex: 1,
-    },
-  });
-
   return (
     <AdminAuthGuard>
-      <View style={styles.container}>
+      <View style={[staticStyles.container, { backgroundColor: theme.colors.background }]}>
         <AdminPageHeader title="Content Management" />
-        <View style={styles.content}>
+        <View style={staticStyles.content}>
           <ContentManagementSection />
         </View>
       </View>
@@ -30,4 +20,11 @@ export default function ContentPage() {
   );
 }
 
-
+const staticStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
+});

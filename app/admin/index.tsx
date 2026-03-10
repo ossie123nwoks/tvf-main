@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Pressable, useWindowDimensions } from 'react-native';
-import { Text } from 'react-native-paper';
+import { View, ScrollView, StyleSheet, TouchableOpacity, Pressable, useWindowDimensions, Platform } from 'react-native';
+import { Text, Avatar } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/lib/theme/ThemeProvider';
@@ -8,6 +8,18 @@ import { AdminAuthGuard, useAdminAuth } from '@/components/admin/AdminAuthGuard'
 import { getAvailableSections } from '@/lib/admin/rolePermissions';
 import { AdminRole } from '@/types/admin';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// Section accent colors for visual differentiation
+const SECTION_COLORS: Record<string, string> = {
+  overview: '#3B82F6',    // Blue
+  content: '#10B981',     // Emerald
+  'topics-series': '#8B5CF6', // Purple
+  users: '#F59E0B',       // Amber
+  media: '#EC4899',       // Pink
+  analytics: '#06B6D4',   // Cyan
+  notifications: '#EF4444', // Red
+  carousel: '#F97316',    // Orange
+};
 
 export default function AdminIndex() {
   const { theme } = useTheme();
@@ -21,7 +33,6 @@ export default function AdminIndex() {
 
   useEffect(() => {
     if (user?.role) {
-      // Map 'admin' role to 'super_admin' for compatibility
       const mappedRole = user.role === 'admin' ? 'super_admin' : user.role;
       const sections = getAvailableSections(mappedRole as AdminRole);
       setAvailableSections(sections);
@@ -43,7 +54,6 @@ export default function AdminIndex() {
   };
 
   const handleNavigation = (sectionId: string) => {
-    // Handle nested routes
     const routeMap: Record<string, string> = {
       'overview': '/admin/overview',
       'content': '/admin/content',
@@ -53,178 +63,223 @@ export default function AdminIndex() {
       'notifications': '/admin/notifications',
       'carousel': '/admin/carousel',
     };
-    
     const route = routeMap[sectionId] || `/admin/${sectionId}`;
     router.push(route);
   };
 
-  const handleBackPress = () => {
-    router.back();
-  };
-
-  const handleHelpPress = () => {
-    // Placeholder for help functionality
-    console.log('Help pressed');
-  };
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    header: {
-      height: 56 + insets.top,
-      backgroundColor: theme.colors.surface,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-      paddingTop: insets.top,
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: theme.spacing.md,
-    },
-    backButton: {
-      marginRight: theme.spacing.md,
-      padding: theme.spacing.xs,
-    },
-    headerTitle: {
-      flex: 1,
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-      textAlign: 'center',
-    },
-    helpButton: {
-      marginLeft: theme.spacing.md,
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: theme.colors.primary + '15',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    listContainer: {
-      flex: 1,
-    },
-    listContent: {
-      paddingBottom: theme.spacing.xl * 2,
-    },
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: theme.spacing.sm,
-      backgroundColor: theme.colors.surface,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-    },
-    iconContainer: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: theme.colors.primary + '15',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: theme.spacing.md,
-    },
-    rowContent: {
-      flex: 1,
-    },
-    rowTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.xs / 2,
-    },
-    rowDescription: {
-      fontSize: 14,
-      color: theme.colors.textSecondary,
-      lineHeight: 20,
-    },
-    chevron: {
-      marginLeft: theme.spacing.sm,
-    },
-    emptyText: {
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-      textAlign: 'center',
-      padding: theme.spacing.xl,
-    },
-  });
+  const userInitials = React.useMemo(() => {
+    const f = user?.firstName?.charAt(0) || '';
+    const l = user?.lastName?.charAt(0) || '';
+    return (f + l).toUpperCase() || 'A';
+  }, [user?.firstName, user?.lastName]);
 
   return (
     <AdminAuthGuard>
-      <View style={styles.container}>
-        {/* Settings-style Header */}
-        <View style={styles.header}>
+      <View style={[staticStyles.container, { backgroundColor: theme.colors.background }]}>
+        {/* Header */}
+        <View
+          style={[
+            staticStyles.header,
+            {
+              backgroundColor: theme.colors.primary,
+              paddingTop: Platform.select({
+                ios: Math.max(insets.top, 20) + 8,
+                android: 16,
+              }),
+            },
+          ]}
+        >
           <TouchableOpacity
-            style={styles.backButton}
-            onPress={handleBackPress}
+            style={staticStyles.backButton}
+            onPress={() => router.back()}
             activeOpacity={0.7}
           >
-            <MaterialIcons
-              name="arrow-back"
-              size={24}
-              color={theme.colors.text}
-            />
+            <MaterialIcons name="arrow-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Admin Dashboard</Text>
-          <TouchableOpacity
-            style={styles.helpButton}
-            onPress={handleHelpPress}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons
-              name="help-outline"
-              size={20}
-              color={theme.colors.primary}
-            />
-          </TouchableOpacity>
+
+          <View style={staticStyles.headerCenter}>
+            <Text style={{ ...theme.typography.titleLarge, color: '#FFFFFF' }}>
+              Admin Panel
+            </Text>
+            <Text style={{ ...theme.typography.caption, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>
+              {user?.role === 'admin' ? 'Super Admin' : 'Moderator'}
+            </Text>
+          </View>
+
+          <Avatar.Text
+            size={36}
+            label={userInitials}
+            style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+            labelStyle={{ color: '#FFFFFF', ...theme.typography.labelMedium }}
+          />
         </View>
 
-        {/* List Content */}
+        {/* Section Cards */}
         <ScrollView
-          style={styles.listContainer}
-          contentContainerStyle={styles.listContent}
+          style={staticStyles.scrollView}
+          contentContainerStyle={[
+            staticStyles.scrollContent,
+            { padding: theme.spacing.md },
+          ]}
           showsVerticalScrollIndicator={false}
         >
-          {availableSections.length === 0 ? (
-            <Text style={styles.emptyText}>
-              Loading admin sections... Please wait.
+          {/* Welcome card */}
+          <View
+            style={[
+              staticStyles.welcomeCard,
+              {
+                backgroundColor: theme.colors.surfaceElevated,
+                borderRadius: theme.borderRadius.lg,
+                borderWidth: 1,
+                borderColor: theme.colors.cardBorder,
+                padding: theme.spacing.lg,
+                marginBottom: theme.spacing.lg,
+                ...theme.shadows.small,
+              },
+            ]}
+          >
+            <Text style={{ ...theme.typography.headlineSmall, color: theme.colors.text }}>
+              👋 Welcome, {user?.firstName || 'Admin'}
             </Text>
+            <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.xs }}>
+              Manage your app's content, users, and settings from here.
+            </Text>
+          </View>
+
+          {/* Section title */}
+          <Text style={{ ...theme.typography.labelLarge, color: theme.colors.textTertiary, marginBottom: theme.spacing.sm, textTransform: 'uppercase', letterSpacing: 1 }}>
+            Sections
+          </Text>
+
+          {availableSections.length === 0 ? (
+            <View style={[staticStyles.emptyContainer, { padding: theme.spacing.xl }]}>
+              <MaterialIcons name="hourglass-empty" size={48} color={theme.colors.textTertiary} />
+              <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.sm }}>
+                Loading admin sections...
+              </Text>
+            </View>
           ) : (
-            availableSections.map((section) => (
-              <Pressable
-                key={section.id}
-                onPress={() => handleNavigation(section.id)}
-                style={({ pressed }) => [
-                  styles.row,
-                  { opacity: pressed ? 0.7 : 1 }
-                ]}
-              >
-                <View style={styles.iconContainer}>
-                  <MaterialIcons
-                    name={getIconName(section.icon)}
-                    size={24}
-                    color={theme.colors.primary}
-                  />
-                </View>
-                <View style={styles.rowContent}>
-                  <Text style={styles.rowTitle}>{section.title}</Text>
-                  <Text style={styles.rowDescription} numberOfLines={2}>
-                    {section.description}
-                  </Text>
-                </View>
-                <MaterialIcons
-                  name="chevron-right"
-                  size={20}
-                  color={theme.colors.textSecondary}
-                  style={styles.chevron}
-                />
-              </Pressable>
-            ))
+            <View style={[staticStyles.grid, { gap: theme.spacing.sm }]}>
+              {availableSections.map((section) => {
+                const accentColor = SECTION_COLORS[section.id] || theme.colors.primary;
+                return (
+                  <Pressable
+                    key={section.id}
+                    onPress={() => handleNavigation(section.id)}
+                    style={({ pressed }) => [
+                      staticStyles.sectionCard,
+                      {
+                        backgroundColor: theme.colors.surfaceElevated,
+                        borderRadius: theme.borderRadius.lg,
+                        borderWidth: 1,
+                        borderColor: pressed ? accentColor + '50' : theme.colors.cardBorder,
+                        padding: theme.spacing.md,
+                        opacity: pressed ? 0.9 : 1,
+                        ...theme.shadows.small,
+                        transform: [{ scale: pressed ? 0.98 : 1 }],
+                      },
+                    ]}
+                  >
+                    {/* Icon circle */}
+                    <View
+                      style={[
+                        staticStyles.iconCircle,
+                        {
+                          backgroundColor: accentColor + '15',
+                          borderRadius: theme.borderRadius.md,
+                        },
+                      ]}
+                    >
+                      <MaterialIcons
+                        name={getIconName(section.icon)}
+                        size={24}
+                        color={accentColor}
+                      />
+                    </View>
+
+                    {/* Content */}
+                    <View style={staticStyles.sectionContent}>
+                      <Text
+                        style={{ ...theme.typography.titleSmall, color: theme.colors.text }}
+                        numberOfLines={1}
+                      >
+                        {section.title}
+                      </Text>
+                      <Text
+                        style={{ ...theme.typography.caption, color: theme.colors.textSecondary, marginTop: 2 }}
+                        numberOfLines={2}
+                      >
+                        {section.description}
+                      </Text>
+                    </View>
+
+                    {/* Chevron */}
+                    <MaterialIcons
+                      name="chevron-right"
+                      size={20}
+                      color={theme.colors.textTertiary}
+                    />
+                  </Pressable>
+                );
+              })}
+            </View>
           )}
+
+          {/* Bottom spacer */}
+          <View style={{ height: theme.spacing.xxl }} />
         </ScrollView>
       </View>
     </AdminAuthGuard>
   );
 }
+
+const staticStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  headerCenter: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {},
+  welcomeCard: {},
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  grid: {
+    flexDirection: 'column',
+  },
+  sectionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 48,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  sectionContent: {
+    flex: 1,
+    marginRight: 8,
+  },
+});

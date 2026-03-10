@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Text, Avatar } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, usePathname } from 'expo-router';
 import { useTheme } from '@/lib/theme/ThemeProvider';
@@ -8,18 +8,29 @@ import { useAdminAuth } from './AdminAuthGuard';
 import { getAvailableSections } from '@/lib/admin/rolePermissions';
 import { AdminRole } from '@/types/admin';
 
+// Section accent colors (matching the index page)
+const SECTION_COLORS: Record<string, string> = {
+  overview: '#3B82F6',
+  content: '#10B981',
+  'topics-series': '#8B5CF6',
+  users: '#F59E0B',
+  media: '#EC4899',
+  analytics: '#06B6D4',
+  notifications: '#EF4444',
+  carousel: '#F97316',
+};
+
 export default function AdminSidebar() {
   const { theme } = useTheme();
   const { user } = useAdminAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { width } = useWindowDimensions();
-  
+
   const [availableSections, setAvailableSections] = useState<any[]>([]);
 
   useEffect(() => {
     if (user?.role) {
-      // Map 'admin' role to 'super_admin' for compatibility
       const mappedRole = user.role === 'admin' ? 'super_admin' : user.role;
       const sections = getAvailableSections(mappedRole as AdminRole);
       setAvailableSections(sections);
@@ -44,13 +55,11 @@ export default function AdminSidebar() {
     if (pathname === '/admin' || pathname === '/admin/') {
       return sectionId === 'overview';
     }
-    // Handle nested routes (users/index.tsx -> /admin/users)
     const sectionPath = `/admin/${sectionId}`;
     return pathname === sectionPath || pathname.startsWith(`${sectionPath}/`);
   };
 
   const handleNavigation = (sectionId: string) => {
-    // Handle nested routes
     const routeMap: Record<string, string> = {
       'overview': '/admin/overview',
       'content': '/admin/content',
@@ -61,180 +70,149 @@ export default function AdminSidebar() {
       'notifications': '/admin/notifications',
       'carousel': '/admin/carousel',
     };
-    
     const route = routeMap[sectionId] || `/admin/${sectionId}`;
     router.push(route);
   };
 
-  const styles = StyleSheet.create({
-    sidebar: {
-      width: width >= 1024 ? 320 : 280,
-      backgroundColor: theme.colors.surface,
-      borderRightWidth: 1,
-      borderRightColor: theme.colors.border,
-    },
-    header: {
-      padding: theme.spacing.lg,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-    },
-    headerTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.xs,
-    },
-    headerSubtitle: {
-      fontSize: 14,
-      color: theme.colors.textSecondary,
-    },
-    userInfo: {
-      marginTop: theme.spacing.md,
-      paddingTop: theme.spacing.md,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border,
-    },
-    userName: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.xs,
-    },
-    roleBadge: {
-      backgroundColor: theme.colors.primary + '20',
-      paddingHorizontal: theme.spacing.sm,
-      paddingVertical: theme.spacing.xs,
-      borderRadius: theme.borderRadius.sm,
-      alignSelf: 'flex-start',
-    },
-    roleText: {
-      color: theme.colors.primary,
-      fontSize: 12,
-      fontWeight: '600',
-    },
-    scrollView: {
-      flex: 1,
-    },
-    sectionItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: theme.spacing.md,
-      borderLeftWidth: 4,
-      borderLeftColor: 'transparent',
-      minHeight: 56,
-    },
-    sectionItemActive: {
-      backgroundColor: theme.colors.primary + '10',
-      borderLeftColor: theme.colors.primary,
-    },
-    sectionIcon: {
-      marginRight: theme.spacing.md,
-      width: 24,
-      alignItems: 'center',
-    },
-    sectionContent: {
-      flex: 1,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: 2,
-    },
-    sectionDescription: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
-    },
-    homeButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: theme.spacing.md,
-      padding: theme.spacing.md,
-      backgroundColor: theme.colors.primary + '10',
-      borderRadius: theme.borderRadius.md,
-      gap: theme.spacing.sm,
-    },
-    homeButtonText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: theme.colors.primary,
-    },
-  });
+  const userInitials = React.useMemo(() => {
+    const f = user?.firstName?.charAt(0) || '';
+    const l = user?.lastName?.charAt(0) || '';
+    return (f + l).toUpperCase() || 'A';
+  }, [user?.firstName, user?.lastName]);
+
+  const sidebarWidth = width >= 1024 ? 300 : 260;
 
   return (
-    <View style={styles.sidebar}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Admin Dashboard</Text>
-        <Text style={styles.headerSubtitle}>Manage your app</Text>
-        {user && (
-          <View style={styles.userInfo}>
-            <Text style={styles.userName}>
-              {user.firstName} {user.lastName}
+    <View
+      style={[
+        staticStyles.sidebar,
+        {
+          width: sidebarWidth,
+          backgroundColor: theme.colors.surfaceElevated,
+          borderRightWidth: 1,
+          borderRightColor: theme.colors.cardBorder,
+        },
+      ]}
+    >
+      {/* Sidebar Header */}
+      <View
+        style={[
+          staticStyles.sidebarHeader,
+          {
+            backgroundColor: theme.colors.primary,
+            padding: theme.spacing.lg,
+            paddingTop: theme.spacing.xl,
+          },
+        ]}
+      >
+        <View style={staticStyles.headerRow}>
+          <Avatar.Text
+            size={42}
+            label={userInitials}
+            style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+            labelStyle={{ color: '#FFFFFF', ...theme.typography.titleMedium }}
+          />
+          <View style={staticStyles.headerInfo}>
+            <Text style={{ ...theme.typography.titleSmall, color: '#FFFFFF' }} numberOfLines={1}>
+              {user?.firstName} {user?.lastName}
             </Text>
-            <View style={styles.roleBadge}>
-              <Text style={styles.roleText}>
-                {user.role === 'admin' ? 'Super Admin' : 'Moderator'}
+            <View style={[staticStyles.roleBadge, { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: theme.borderRadius.xs }]}>
+              <Text style={{ ...theme.typography.labelSmall, color: 'rgba(255,255,255,0.9)' }}>
+                {user?.role === 'admin' ? 'Super Admin' : 'Moderator'}
               </Text>
             </View>
           </View>
-        )}
+        </View>
+
         {/* Home button */}
         <TouchableOpacity
-          style={styles.homeButton}
+          style={[staticStyles.homeButton, { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: theme.borderRadius.md }]}
           onPress={() => router.push('/(tabs)/dashboard')}
           activeOpacity={0.7}
         >
-          <MaterialIcons name="home" size={20} color={theme.colors.primary} />
-          <Text style={styles.homeButtonText}>Back to Dashboard</Text>
+          <MaterialIcons name="home" size={18} color="#FFFFFF" />
+          <Text style={{ ...theme.typography.labelMedium, color: '#FFFFFF' }}>Back to App</Text>
         </TouchableOpacity>
       </View>
-      
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Admin Home Section */}
+
+      {/* Navigation Items */}
+      <ScrollView style={staticStyles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Admin Home */}
         <TouchableOpacity
-          style={[styles.sectionItem, pathname === '/admin' && styles.sectionItemActive]}
+          style={[
+            staticStyles.navItem,
+            {
+              paddingHorizontal: theme.spacing.md,
+              paddingVertical: theme.spacing.sm + 2,
+              borderLeftWidth: 3,
+              borderLeftColor: pathname === '/admin' ? theme.colors.primary : 'transparent',
+              backgroundColor: pathname === '/admin' ? theme.colors.primaryContainer : 'transparent',
+            },
+          ]}
           onPress={() => router.push('/admin')}
           activeOpacity={0.7}
         >
-          <View style={styles.sectionIcon}>
+          <View style={[staticStyles.navIcon, { backgroundColor: (pathname === '/admin' ? theme.colors.primary : theme.colors.textTertiary) + '15', borderRadius: theme.borderRadius.sm }]}>
             <MaterialIcons
               name="apps"
-              size={24}
+              size={20}
               color={pathname === '/admin' ? theme.colors.primary : theme.colors.textSecondary}
             />
           </View>
-          <View style={styles.sectionContent}>
-            <Text style={[styles.sectionTitle, pathname === '/admin' && { color: theme.colors.primary }]}>
+          <View style={staticStyles.navContent}>
+            <Text style={{ ...theme.typography.titleSmall, color: pathname === '/admin' ? theme.colors.primary : theme.colors.text }}>
               Admin Home
             </Text>
-            <Text style={styles.sectionDescription}>View all sections</Text>
+            <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary }}>
+              All sections
+            </Text>
           </View>
         </TouchableOpacity>
+
+        {/* Divider */}
+        <View style={[staticStyles.navDivider, { backgroundColor: theme.colors.borderLight, marginHorizontal: theme.spacing.md, marginVertical: theme.spacing.xs }]} />
 
         {/* Section Items */}
         {availableSections.map((section) => {
           const active = isActive(section.id);
+          const accentColor = SECTION_COLORS[section.id] || theme.colors.primary;
           return (
             <TouchableOpacity
               key={section.id}
-              style={[styles.sectionItem, active && styles.sectionItemActive]}
+              style={[
+                staticStyles.navItem,
+                {
+                  paddingHorizontal: theme.spacing.md,
+                  paddingVertical: theme.spacing.sm + 2,
+                  borderLeftWidth: 3,
+                  borderLeftColor: active ? accentColor : 'transparent',
+                  backgroundColor: active ? accentColor + '10' : 'transparent',
+                },
+              ]}
               onPress={() => handleNavigation(section.id)}
               activeOpacity={0.7}
             >
-              <View style={styles.sectionIcon}>
+              <View style={[staticStyles.navIcon, { backgroundColor: accentColor + '15', borderRadius: theme.borderRadius.sm }]}>
                 <MaterialIcons
                   name={getIconName(section.icon)}
-                  size={24}
-                  color={active ? theme.colors.primary : theme.colors.textSecondary}
+                  size={20}
+                  color={active ? accentColor : theme.colors.textSecondary}
                 />
               </View>
-              <View style={styles.sectionContent}>
-                <Text style={[styles.sectionTitle, active && { color: theme.colors.primary }]}>
+              <View style={staticStyles.navContent}>
+                <Text
+                  style={{ ...theme.typography.titleSmall, color: active ? accentColor : theme.colors.text }}
+                  numberOfLines={1}
+                >
                   {section.title}
                 </Text>
-                <Text style={styles.sectionDescription}>{section.description}</Text>
+                <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary }} numberOfLines={1}>
+                  {section.description}
+                </Text>
               </View>
+              {active && (
+                <View style={[staticStyles.activeDot, { backgroundColor: accentColor }]} />
+              )}
             </TouchableOpacity>
           );
         })}
@@ -243,3 +221,57 @@ export default function AdminSidebar() {
   );
 }
 
+const staticStyles = StyleSheet.create({
+  sidebar: {},
+  sidebarHeader: {},
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  headerInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  roleBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginTop: 4,
+  },
+  homeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  navItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 52,
+  },
+  navIcon: {
+    width: 34,
+    height: 34,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  navContent: {
+    flex: 1,
+  },
+  navDivider: {
+    height: 1,
+  },
+  activeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
+});
