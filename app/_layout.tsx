@@ -85,6 +85,11 @@ function AppContent() {
               <Stack.Screen name="saved" />
               <Stack.Screen name="notifications" />
               <Stack.Screen name="auth" />
+              <Stack.Screen name="auth-signin" options={{ animation: 'slide_from_right' }} />
+              <Stack.Screen name="auth-signup" options={{ animation: 'slide_from_right' }} />
+              <Stack.Screen name="auth-otp" options={{ animation: 'slide_from_right' }} />
+              <Stack.Screen name="auth-profile-setup" options={{ animation: 'fade' }} />
+              <Stack.Screen name="auth-callback" />
               <Stack.Screen name="password-reset" />
               <Stack.Screen name="email-verification" />
               <Stack.Screen name="admin" />

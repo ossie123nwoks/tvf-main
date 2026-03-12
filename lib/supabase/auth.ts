@@ -559,6 +559,98 @@ export class AuthService {
   }
 
   /**
+   * Send OTP to email or phone for passwordless authentication
+   */
+  static async sendOtp(
+    emailOrPhone: string,
+    type: 'email' | 'phone'
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const options: any = {};
+      if (type === 'email') {
+        options.email = emailOrPhone;
+      } else {
+        options.phone = emailOrPhone;
+      }
+
+      const { error } = await supabase.auth.signInWithOtp(options);
+
+      if (error) {
+        return { success: false, error: this.getErrorMessage(error.message) };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Send OTP error:', error);
+      return { success: false, error: 'An unexpected error occurred while sending OTP' };
+    }
+  }
+
+  /**
+   * Verify OTP code for passwordless authentication
+   */
+  static async verifyOtpCode(
+    emailOrPhone: string,
+    token: string,
+    type: 'email' | 'phone'
+  ): Promise<AuthSuccess | AuthError> {
+    try {
+      const options: any = {
+        token,
+        type: type === 'email' ? 'email' : 'sms',
+      };
+
+      if (type === 'email') {
+        options.email = emailOrPhone;
+      } else {
+        options.phone = emailOrPhone;
+      }
+
+      const { data, error } = await supabase.auth.verifyOtp(options);
+
+      if (error) {
+        return {
+          code: error.message,
+          message: this.getErrorMessage(error.message),
+        };
+      }
+
+      if (!data.user || !data.session) {
+        return {
+          code: 'OTP_VERIFICATION_FAILED',
+          message: 'Failed to verify OTP. Please try again.',
+        };
+      }
+
+      // Fetch complete user data
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      let user: User;
+      if (userError || !userData) {
+        user = this.transformSupabaseUser(data.user);
+      } else {
+        user = this.transformSupabaseUserWithCustomData(data.user, userData);
+      }
+
+      return {
+        message: 'OTP verified successfully',
+        user,
+        session: this.transformSupabaseSession(data.session),
+      };
+    } catch (error) {
+      console.error('Verify OTP error:', error);
+      return {
+        code: 'UNKNOWN_ERROR',
+        message: 'An unexpected error occurred during OTP verification',
+      };
+    }
+  }
+
+  /**
    * Sign in with Google using native Google Sign-In
    * This method uses @react-native-google-signin/google-signin for native authentication
    * and then authenticates with Supabase using signInWithIdToken

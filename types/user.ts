@@ -144,3 +144,25 @@ export interface OAuthFlowResult {
 export interface GoogleAuthOptions {
   skipBrowserRedirect?: boolean;
 }
+
+/**
+ * OTP Authentication types
+ */
+export interface OtpRequest {
+  emailOrPhone: string;
+  type: 'email' | 'phone';
+}
+
+export interface OtpVerification {
+  emailOrPhone: string;
+  token: string;
+  type: 'email' | 'phone';
+}
+
+export interface ProfileSetupData {
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string;
+}
+
+export type AuthFlowType = 'signin' | 'signup';

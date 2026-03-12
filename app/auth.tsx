@@ -1,25 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, Button, Card, useTheme as usePaperTheme, ActivityIndicator } from 'react-native-paper';
+import React, { useEffect, useRef } from 'react';
+import {
+  View,
+  StyleSheet,
+  Animated,
+  Dimensions,
+  StatusBar,
+} from 'react-native';
+import { Text, ActivityIndicator } from 'react-native-paper';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { useRouter } from 'expo-router';
-import { SignInScreen } from '@/components/auth/SignInScreen';
-import { SignUpScreen } from '@/components/auth/SignUpScreen';
+import { AuthButton } from '@/components/auth/AuthButton';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 
-type AuthMode = 'signin' | 'signup';
+const { width, height } = Dimensions.get('window');
 
-export default function Auth() {
-  const { theme } = useTheme();
-  const { user, isAuthenticated, loading } = useAuth();
+export default function AuthWelcome() {
+  const { theme, isDark } = useTheme();
+  const { isAuthenticated, user, loading } = useAuth();
   const router = useRouter();
-  const [authMode, setAuthMode] = useState<AuthMode>('signin');
 
-  // Redirect based on authentication and verification status
+  // Animations
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(40)).current;
+  const logoScale = useRef(new Animated.Value(0.8)).current;
+  const buttonFade = useRef(new Animated.Value(0)).current;
+  const buttonSlide = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    // Staggered entrance animation
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(logoScale, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(buttonFade, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(buttonSlide, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  }, []);
+
+  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
-      // If email is not verified, redirect to verification screen
       if (!user.isEmailVerified) {
         router.replace('/email-verification');
       } else {
@@ -28,173 +74,272 @@ export default function Auth() {
     }
   }, [isAuthenticated, user, router]);
 
-  // Don't render auth screen if already authenticated and verified
   if (isAuthenticated && user && user.isEmailVerified) {
     return null;
   }
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    scrollView: {
-      flex: 1,
-    },
-    header: {
-      paddingTop: theme.spacing.xl * 3, // More top padding like reference
-      paddingBottom: theme.spacing.xl,
-      paddingHorizontal: theme.spacing.lg,
-      alignItems: 'center',
-      backgroundColor: theme.colors.primary,
-      minHeight: 120, // Ensure consistent header height
-    },
-    headerTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: '#FFFFFF',
-      textAlign: 'center',
-      marginBottom: theme.spacing.sm,
-      marginTop: theme.spacing.lg,
-    },
-    headerSubtitle: {
-      fontSize: 16,
-      color: '#FFFFFF',
-      textAlign: 'center',
-      opacity: 0.9,
-    },
-    content: {
-      flex: 1,
-      padding: theme.spacing.xl,
-      paddingTop: theme.spacing.xl * 3, // More top padding to center content better
-      justifyContent: 'center', // Center content vertically
-    },
-    modeToggle: {
-      flexDirection: 'row',
-      marginBottom: theme.spacing.lg,
-      backgroundColor: theme.colors.surface,
-      borderRadius: theme.spacing.sm,
-      padding: theme.spacing.xs,
-    },
-    modeButton: {
-      flex: 1,
-      borderRadius: theme.spacing.sm,
-    },
-    modeButtonActive: {
-      backgroundColor: theme.colors.primary,
-    },
-    modeButtonInactive: {
-      backgroundColor: 'transparent',
-    },
-    modeButtonText: {
-      color: theme.colors.primary,
-    },
-    modeButtonTextActive: {
-      color: '#FFFFFF',
-    },
-    footer: {
-      padding: theme.spacing.lg,
-      alignItems: 'center',
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border,
-    },
-    footerText: {
-      color: theme.colors.textSecondary,
-      textAlign: 'center',
-      marginBottom: theme.spacing.md,
-    },
-    termsText: {
-      color: theme.colors.textSecondary,
-      fontSize: 12,
-      textAlign: 'center',
-      lineHeight: 16,
-    },
-  });
-
-  const handleSwitchToSignUp = () => {
-    setAuthMode('signup');
-  };
-
-  const handleSwitchToSignIn = () => {
-    setAuthMode('signin');
-  };
-
-  const handleForgotPassword = () => {
-    // TODO: Implement forgot password functionality
-    console.log('Forgot password pressed');
-  };
-
   if (loading) {
     return (
-      <View style={styles.container}>
-        <View style={styles.content}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-        </View>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
+          Loading...
+        </Text>
       </View>
     );
   }
 
   return (
     <ErrorBoundary>
-      <View style={styles.container}>
-        {/* Mode Toggle */}
-        <View style={styles.content}>
-          <View style={styles.modeToggle}>
-            <Button
-              mode={authMode === 'signin' ? 'contained' : 'text'}
-              onPress={handleSwitchToSignIn}
-              style={[
-                styles.modeButton,
-                authMode === 'signin' ? styles.modeButtonActive : styles.modeButtonInactive,
-              ]}
-              labelStyle={
-                authMode === 'signin' ? styles.modeButtonTextActive : styles.modeButtonText
-              }
-            >
-              Sign In
-            </Button>
-            <Button
-              mode={authMode === 'signup' ? 'contained' : 'text'}
-              onPress={handleSwitchToSignUp}
-              style={[
-                styles.modeButton,
-                authMode === 'signup' ? styles.modeButtonActive : styles.modeButtonInactive,
-              ]}
-              labelStyle={
-                authMode === 'signup' ? styles.modeButtonTextActive : styles.modeButtonText
-              }
-            >
-              Sign Up
-            </Button>
-          </View>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <StatusBar
+          barStyle={isDark ? 'light-content' : 'dark-content'}
+          backgroundColor="transparent"
+          translucent
+        />
 
-          {/* Auth Forms */}
-          <ScrollView 
-            style={styles.scrollView} 
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        {/* Decorative top section */}
+        <View style={[styles.heroSection, { backgroundColor: theme.colors.primary }]}>
+          <View style={[styles.heroOverlay, { backgroundColor: theme.colors.primaryDark }]} />
+          
+          {/* Decorative circles */}
+          <View style={[styles.decorCircle1, { backgroundColor: theme.colors.primaryLight, opacity: 0.15 }]} />
+          <View style={[styles.decorCircle2, { backgroundColor: theme.colors.accent, opacity: 0.08 }]} />
+
+          {/* Logo / Branding */}
+          <Animated.View
+            style={[
+              styles.logoContainer,
+              {
+                opacity: fadeAnim,
+                transform: [{ scale: logoScale }],
+              },
+            ]}
           >
-            {authMode === 'signin' ? (
-              <SignInScreen
-                onSwitchToSignUp={handleSwitchToSignUp}
-                onForgotPassword={handleForgotPassword}
-              />
-            ) : (
-              <SignUpScreen onSwitchToSignIn={handleSwitchToSignIn} />
-            )}
-          </ScrollView>
+            <View style={[styles.logoCircle, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
+              <Ionicons name="heart" size={44} color="#FFFFFF" />
+            </View>
+            <Text style={styles.churchName}>TRUEVINE</Text>
+            <Text style={styles.churchSubname}>FELLOWSHIP</Text>
+          </Animated.View>
         </View>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Welcome to TRUEVINE FELLOWSHIP Church</Text>
-          <Text style={styles.termsText}>
-            By signing up, you agree to our Terms of Service and Privacy Policy. Your account will
-            be created and you'll have access to all church content, sermons, articles, and
-            personalized features.
-          </Text>
+        {/* Content Section */}
+        <View style={styles.contentSection}>
+          <Animated.View
+            style={[
+              styles.textContainer,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
+          >
+            <Text style={[styles.welcomeTitle, { color: theme.colors.text }]}>
+              Welcome Home
+            </Text>
+            <Text style={[styles.welcomeSubtitle, { color: theme.colors.textSecondary }]}>
+              Connect with your church family, access sermons, and grow in faith — all in one place.
+            </Text>
+          </Animated.View>
+
+          {/* Feature highlights */}
+          <Animated.View
+            style={[
+              styles.featuresContainer,
+              {
+                opacity: buttonFade,
+                transform: [{ translateY: buttonSlide }],
+              },
+            ]}
+          >
+            <View style={styles.featureRow}>
+              <FeatureChip icon="musical-notes" label="Sermons" theme={theme} />
+              <FeatureChip icon="book" label="Articles" theme={theme} />
+              <FeatureChip icon="people" label="Community" theme={theme} />
+            </View>
+          </Animated.View>
+
+          {/* Action Buttons */}
+          <Animated.View
+            style={[
+              styles.buttonsContainer,
+              {
+                opacity: buttonFade,
+                transform: [{ translateY: buttonSlide }],
+              },
+            ]}
+          >
+            <AuthButton
+              title="Sign In"
+              onPress={() => router.push('/auth-signin')}
+              variant="primary"
+              icon="log-in-outline"
+            />
+            <View style={styles.buttonSpacer} />
+            <AuthButton
+              title="Create Account"
+              onPress={() => router.push('/auth-signup')}
+              variant="outline"
+              icon="person-add-outline"
+            />
+          </Animated.View>
+
+          {/* Footer */}
+          <Animated.View style={[styles.footer, { opacity: buttonFade }]}>
+            <Text style={[styles.footerText, { color: theme.colors.textTertiary }]}>
+              By continuing, you agree to our Terms of Service{'\n'}and Privacy Policy
+            </Text>
+          </Animated.View>
         </View>
       </View>
     </ErrorBoundary>
   );
 }
+
+// Feature chip component
+function FeatureChip({
+  icon,
+  label,
+  theme,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  theme: any;
+}) {
+  return (
+    <View style={[chipStyles.container, { backgroundColor: theme.colors.surfaceVariant }]}>
+      <Ionicons name={icon} size={16} color={theme.colors.primary} />
+      <Text style={[chipStyles.text, { color: theme.colors.textSecondary }]}>{label}</Text>
+    </View>
+  );
+}
+
+const chipStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    gap: 6,
+  },
+  text: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+});
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 15,
+  },
+  heroSection: {
+    height: height * 0.38,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.3,
+  },
+  decorCircle1: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    top: -40,
+    right: -60,
+  },
+  decorCircle2: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    bottom: -30,
+    left: -50,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  logoCircle: {
+    width: 88,
+    height: 88,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  churchName: {
+    fontSize: 30,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 4,
+  },
+  churchSubname: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.8)',
+    letterSpacing: 6,
+    marginTop: 4,
+  },
+  contentSection: {
+    flex: 1,
+    paddingHorizontal: 28,
+    paddingTop: 32,
+    justifyContent: 'space-between',
+  },
+  textContainer: {
+    alignItems: 'center',
+  },
+  welcomeTitle: {
+    fontSize: 30,
+    fontWeight: '700',
+    textAlign: 'center',
+    letterSpacing: -0.5,
+    marginBottom: 12,
+  },
+  welcomeSubtitle: {
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 23,
+    maxWidth: 320,
+  },
+  featuresContainer: {
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  buttonsContainer: {
+    gap: 0,
+  },
+  buttonSpacer: {
+    height: 12,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingBottom: 24,
+    paddingTop: 16,
+  },
+  footerText: {
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+});

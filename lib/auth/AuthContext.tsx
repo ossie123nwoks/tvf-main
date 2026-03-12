@@ -25,6 +25,8 @@ import {
   ChangePasswordRequest,
   DeleteAccountRequest,
   OnboardingData,
+  OtpRequest,
+  OtpVerification,
 } from '@/types/user';
 
 interface AuthContextType extends AuthState {
@@ -55,6 +57,10 @@ interface AuthContextType extends AuthState {
   updateOnboardingData: (
     onboardingData: OnboardingData
   ) => Promise<{ success: boolean; error?: string }>;
+
+  // OTP methods
+  sendOtp: (emailOrPhone: string, type: 'email' | 'phone') => Promise<{ success: boolean; error?: string }>;
+  verifyOtp: (emailOrPhone: string, token: string, type: 'email' | 'phone') => Promise<AuthSuccess | AuthError>;
 
   // Utility methods
   clearError: () => void;
@@ -832,6 +838,58 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  // Send OTP
+  const sendOtp = useCallback(async (emailOrPhone: string, type: 'email' | 'phone') => {
+    try {
+      setAuthState(prev => ({ ...prev, loading: true, error: null }));
+      const result = await AuthService.sendOtp(emailOrPhone, type);
+      setAuthState(prev => ({ ...prev, loading: false }));
+      if (!result.success) {
+        setAuthState(prev => ({ ...prev, error: result.error || null }));
+      }
+      return result;
+    } catch (error) {
+      console.error('Send OTP error in context:', error);
+      setAuthState(prev => ({
+        ...prev,
+        loading: false,
+        error: 'An unexpected error occurred',
+      }));
+      return { success: false, error: 'An unexpected error occurred' };
+    }
+  }, []);
+
+  // Verify OTP
+  const verifyOtp = useCallback(async (
+    emailOrPhone: string,
+    token: string,
+    type: 'email' | 'phone'
+  ): Promise<AuthSuccess | AuthError> => {
+    try {
+      setAuthState(prev => ({ ...prev, loading: true, error: null }));
+      const result = await AuthService.verifyOtpCode(emailOrPhone, token, type);
+      if ('code' in result) {
+        setAuthState(prev => ({ ...prev, loading: false, error: result.message }));
+        return result;
+      } else {
+        setAuthState({
+          user: result.user,
+          session: result.session || null,
+          loading: false,
+          error: null,
+          isAuthenticated: true,
+          isInitialized: true,
+        });
+        return result;
+      }
+    } catch (error) {
+      console.error('Verify OTP error in context:', error);
+      const errorMessage = 'An unexpected error occurred during OTP verification';
+      setAuthState(prev => ({ ...prev, loading: false, error: errorMessage }));
+      return { code: 'UNKNOWN_ERROR', message: errorMessage };
+    }
+  }, []);
+
   // Check if user is verified
   const isUserVerified = useCallback(() => {
     return authState.user?.isEmailVerified || false;
@@ -851,6 +909,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     changePassword,
     deleteAccount,
     updateOnboardingData,
+    sendOtp,
+    verifyOtp,
     clearError,
     refreshUser,
     isUserVerified,
