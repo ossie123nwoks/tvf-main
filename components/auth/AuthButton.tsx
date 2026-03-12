@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import {
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   View,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,12 +33,72 @@ export const AuthButton: React.FC<AuthButtonProps> = ({
 }) => {
   const { theme } = useTheme();
 
+  // Press animation refs
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const elevationAnim = useRef(new Animated.Value(0)).current;
+  const iconSlideAnim = useRef(new Animated.Value(0)).current;
+
+  const handlePressIn = useCallback(() => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 0.965,
+        tension: 300,
+        friction: 10,
+        useNativeDriver: true,
+      }),
+      Animated.timing(elevationAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [scaleAnim, elevationAnim]);
+
+  const handlePressOut = useCallback(() => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 200,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+      Animated.timing(elevationAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [scaleAnim, elevationAnim]);
+
+  // Micro-interaction: slide icon on press
+  const handlePress = useCallback(() => {
+    if (disabled || loading) return;
+    // Quick icon nudge animation
+    if (icon && iconPosition === 'right') {
+      Animated.sequence([
+        Animated.timing(iconSlideAnim, {
+          toValue: 4,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+        Animated.spring(iconSlideAnim, {
+          toValue: 0,
+          tension: 300,
+          friction: 6,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+    onPress();
+  }, [onPress, disabled, loading, icon, iconPosition, iconSlideAnim]);
+
   const getButtonStyle = () => {
     const base: any = {
       borderRadius: 14,
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
       flexDirection: 'row' as const,
+      overflow: 'hidden' as const,
     };
 
     switch (size) {
@@ -119,47 +180,91 @@ export const AuthButton: React.FC<AuthButtonProps> = ({
     variant === 'primary' ? theme.colors.onPrimary : theme.colors.primary;
   const iconSize = size === 'small' ? 16 : size === 'medium' ? 18 : 20;
 
+  // Shadow interpolation for depth effect on press
+  const shadowOpacity = elevationAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [variant === 'primary' ? 0.15 : 0.05, 0.05],
+  });
+  const shadowTranslateY = elevationAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [3, 1],
+  });
+
   return (
-    <TouchableOpacity
-      style={getButtonStyle()}
-      onPress={onPress}
-      disabled={disabled || loading}
-      activeOpacity={0.8}
-      accessibilityLabel={title}
-      accessibilityRole="button"
-      accessibilityState={{ disabled: disabled || loading }}
+    <Animated.View
+      style={[
+        {
+          transform: [
+            { scale: scaleAnim },
+            { translateY: shadowTranslateY },
+          ],
+          opacity: scaleAnim, // subtle opacity shift on press
+        },
+        variant === 'primary' && {
+          shadowColor: theme.colors.primary,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: shadowOpacity as unknown as number,
+          shadowRadius: 12,
+          elevation: 4,
+        },
+      ]}
     >
-      {loading ? (
-        <ActivityIndicator
-          size="small"
-          color={
-            variant === 'primary'
-              ? theme.colors.onPrimary
-              : theme.colors.primary
-          }
-        />
-      ) : (
-        <View style={styles.content}>
-          {icon && iconPosition === 'left' && (
-            <Ionicons
-              name={icon}
-              size={iconSize}
-              color={iconColor}
-              style={styles.iconLeft}
+      <Pressable
+        style={getButtonStyle()}
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled || loading}
+        accessibilityLabel={title}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: disabled || loading }}
+        android_ripple={
+          variant === 'primary'
+            ? { color: 'rgba(255,255,255,0.2)', borderless: false }
+            : { color: theme.colors.ripple, borderless: false }
+        }
+      >
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator
+              size="small"
+              color={
+                variant === 'primary'
+                  ? theme.colors.onPrimary
+                  : theme.colors.primary
+              }
             />
-          )}
-          <Text style={getTextStyle()}>{title}</Text>
-          {icon && iconPosition === 'right' && (
-            <Ionicons
-              name={icon}
-              size={iconSize}
-              color={iconColor}
-              style={styles.iconRight}
-            />
-          )}
-        </View>
-      )}
-    </TouchableOpacity>
+            <Text style={[getTextStyle(), styles.loadingText]}>
+              Please wait...
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.content}>
+            {icon && iconPosition === 'left' && (
+              <Ionicons
+                name={icon}
+                size={iconSize}
+                color={iconColor}
+                style={styles.iconLeft}
+              />
+            )}
+            <Text style={getTextStyle()}>{title}</Text>
+            {icon && iconPosition === 'right' && (
+              <Animated.View
+                style={{ transform: [{ translateX: iconSlideAnim }] }}
+              >
+                <Ionicons
+                  name={icon}
+                  size={iconSize}
+                  color={iconColor}
+                  style={styles.iconRight}
+                />
+              </Animated.View>
+            )}
+          </View>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 };
 
@@ -174,6 +279,14 @@ const styles = StyleSheet.create({
   },
   iconRight: {
     marginLeft: 8,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  loadingText: {
+    marginLeft: 4,
   },
 });
 

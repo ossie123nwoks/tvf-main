@@ -7,6 +7,8 @@ import {
   Platform,
   Animated,
   TouchableOpacity,
+  Dimensions,
+  Easing,
 } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,8 +20,182 @@ import { OTPInput } from '@/components/auth/OTPInput';
 import { AuthButton } from '@/components/auth/AuthButton';
 import type { AuthFlowType } from '@/types/user';
 
-const RESEND_COOLDOWN = 60; // seconds
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const RESEND_COOLDOWN = 60;
+const NUM_PARTICLES = 12;
 
+// ─── Particle burst for success celebration ───
+function SuccessParticles({
+  visible,
+  color,
+}: {
+  visible: boolean;
+  color: string;
+}) {
+  const particles = useRef(
+    Array.from({ length: NUM_PARTICLES }, () => ({
+      translateX: new Animated.Value(0),
+      translateY: new Animated.Value(0),
+      scale: new Animated.Value(0),
+      opacity: new Animated.Value(0),
+      angle: Math.random() * Math.PI * 2,
+      distance: 50 + Math.random() * 80,
+      size: 4 + Math.random() * 6,
+    }))
+  ).current;
+
+  useEffect(() => {
+    if (!visible) return;
+    const animations = particles.map((p) => {
+      const endX = Math.cos(p.angle) * p.distance;
+      const endY = Math.sin(p.angle) * p.distance;
+      return Animated.parallel([
+        Animated.sequence([
+          Animated.timing(p.opacity, {
+            toValue: 1,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+          Animated.timing(p.opacity, {
+            toValue: 0,
+            duration: 600,
+            delay: 200,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.timing(p.scale, {
+          toValue: 1,
+          duration: 300,
+          easing: Easing.out(Easing.back(2)),
+          useNativeDriver: true,
+        }),
+        Animated.timing(p.translateX, {
+          toValue: endX,
+          duration: 800,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(p.translateY, {
+          toValue: endY,
+          duration: 800,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]);
+    });
+    Animated.stagger(30, animations).start();
+  }, [visible]);
+
+  if (!visible) return null;
+
+  return (
+    <View style={particleStyles.container} pointerEvents="none">
+      {particles.map((p, i) => (
+        <Animated.View
+          key={i}
+          style={[
+            particleStyles.dot,
+            {
+              width: p.size,
+              height: p.size,
+              borderRadius: p.size / 2,
+              backgroundColor: i % 3 === 0 ? color : i % 3 === 1 ? '#FFD700' : '#64DFDF',
+              opacity: p.opacity,
+              transform: [
+                { translateX: p.translateX },
+                { translateY: p.translateY },
+                { scale: p.scale },
+              ],
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
+const particleStyles = StyleSheet.create({
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dot: {
+    position: 'absolute',
+  },
+});
+
+// ─── Progress dots (step indicator) ───
+function ProgressDots({
+  total,
+  filled,
+  theme,
+}: {
+  total: number;
+  filled: number;
+  theme: any;
+}) {
+  const dotAnims = useRef(
+    Array.from({ length: total }, () => new Animated.Value(0))
+  ).current;
+
+  useEffect(() => {
+    dotAnims.forEach((anim, i) => {
+      Animated.spring(anim, {
+        toValue: i < filled ? 1 : 0,
+        tension: 300,
+        friction: 8,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [filled]);
+
+  return (
+    <View style={progressStyles.container}>
+      {dotAnims.map((anim, i) => {
+        const scale = anim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, 1.3],
+        });
+        const backgroundColor = anim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [theme.colors.border, theme.colors.primary],
+        });
+        return (
+          <Animated.View
+            key={i}
+            style={[
+              progressStyles.dot,
+              {
+                backgroundColor: backgroundColor as any,
+                transform: [{ scale }],
+              },
+            ]}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
+const progressStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+});
+
+// ──────────────────────────────────────────────
+// MAIN OTP SCREEN
+// ──────────────────────────────────────────────
 export default function OTPScreen() {
   const { theme } = useTheme();
   const router = useRouter();
@@ -43,54 +219,142 @@ export default function OTPScreen() {
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
+  const bannerSlide = useRef(new Animated.Value(-20)).current;
+  const bannerFade = useRef(new Animated.Value(0)).current;
+
+  // Success celebration
   const successScale = useRef(new Animated.Value(0)).current;
   const successOpacity = useRef(new Animated.Value(0)).current;
+  const successIconRotate = useRef(new Animated.Value(0)).current;
+  const successRingScale = useRef(new Animated.Value(0.5)).current;
+  const successRingOpacity = useRef(new Animated.Value(0)).current;
+  const progressValue = useRef(new Animated.Value(0)).current;
+  const [showParticles, setShowParticles] = useState(false);
+
+  // Verifying spinner
+  const spinAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Screen entrance
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 400,
+        duration: 350,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 400,
+        duration: 350,
+        easing: Easing.out(Easing.back(1.2)),
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Sent banner slides in after a delay
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(bannerSlide, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.back(1.5)),
+          useNativeDriver: true,
+        }),
+        Animated.timing(bannerFade, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 400);
   }, []);
 
-  // Resend cooldown timer
+  // Resend cooldown
   useEffect(() => {
     if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      const timer = setTimeout(
+        () => setResendCooldown(resendCooldown - 1),
+        1000
+      );
       return () => clearTimeout(timer);
     }
   }, [resendCooldown]);
 
-  // Auto-verify when all 6 digits are entered
+  // Auto-verify when 6 digits entered
   useEffect(() => {
     if (otpCode.length === 6 && !isVerifying && !isSuccess) {
       handleVerifyOtp();
     }
   }, [otpCode]);
 
+  // Spin animation for verifying state
+  useEffect(() => {
+    if (isVerifying) {
+      Animated.loop(
+        Animated.timing(spinAnim, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      ).start();
+    } else {
+      spinAnim.setValue(0);
+    }
+  }, [isVerifying]);
+
   const playSuccessAnimation = useCallback(() => {
-    Animated.parallel([
-      Animated.spring(successScale, {
-        toValue: 1,
-        tension: 50,
-        friction: 3,
+    setShowParticles(true);
+
+    Animated.sequence([
+      // Ring expands first
+      Animated.parallel([
+        Animated.spring(successRingScale, {
+          toValue: 1,
+          tension: 100,
+          friction: 5,
+          useNativeDriver: true,
+        }),
+        Animated.timing(successRingOpacity, {
+          toValue: 0.15,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]),
+      // Then icon pops in
+      Animated.parallel([
+        Animated.spring(successScale, {
+          toValue: 1,
+          tension: 150,
+          friction: 4,
+          useNativeDriver: true,
+        }),
+        Animated.timing(successOpacity, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(successIconRotate, {
+          toValue: 1,
+          duration: 500,
+          easing: Easing.out(Easing.back(1.5)),
+          useNativeDriver: true,
+        }),
+      ]),
+      // Ring fades
+      Animated.timing(successRingOpacity, {
+        toValue: 0.05,
+        duration: 400,
         useNativeDriver: true,
       }),
-      Animated.timing(successOpacity, {
+      // Progress bar
+      Animated.timing(progressValue, {
         toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
+        duration: 1200,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: false,
       }),
     ]).start();
-  }, [successScale, successOpacity]);
+  }, []);
 
   const handleVerifyOtp = async () => {
     if (otpCode.length !== 6) {
@@ -102,19 +366,21 @@ export default function OTPScreen() {
     setError('');
 
     try {
-      const result = await AuthService.verifyOtpCode(emailOrPhone, otpCode, type);
+      const result = await AuthService.verifyOtpCode(
+        emailOrPhone,
+        otpCode,
+        type
+      );
 
       if ('code' in result) {
-        // Error
         setError(result.message);
         setOtpCode('');
         setIsVerifying(false);
       } else {
-        // Success
         setIsSuccess(true);
+        setIsVerifying(false);
         playSuccessAnimation();
 
-        // Navigate after animation
         setTimeout(() => {
           if (flow === 'signup') {
             router.replace({
@@ -124,7 +390,7 @@ export default function OTPScreen() {
           } else {
             router.replace('/(tabs)/dashboard');
           }
-        }, 1500);
+        }, 2200);
       }
     } catch (err) {
       setError('Verification failed. Please try again.');
@@ -135,7 +401,6 @@ export default function OTPScreen() {
 
   const handleResendOtp = async () => {
     if (resendCooldown > 0 || isResending) return;
-
     setIsResending(true);
     setError('');
 
@@ -157,10 +422,8 @@ export default function OTPScreen() {
     if (type === 'email') {
       const [name, domain] = emailOrPhone.split('@');
       if (!name || !domain) return emailOrPhone;
-      const masked = name.slice(0, 2) + '***';
-      return `${masked}@${domain}`;
+      return `${name.slice(0, 2)}***@${domain}`;
     }
-    // Phone: show last 4 digits
     return '•••••' + emailOrPhone.slice(-4);
   };
 
@@ -172,10 +435,40 @@ export default function OTPScreen() {
       : `${secs}s`;
   };
 
-  // Success overlay
+  const iconRotateInterpolate = successIconRotate.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['-30deg', '0deg'],
+  });
+
+  const progressWidth = progressValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  });
+
+  // ─── SUCCESS CELEBRATION SCREEN ───
   if (isSuccess) {
     return (
-      <View style={[styles.successContainer, { backgroundColor: theme.colors.background }]}>
+      <View
+        style={[
+          styles.successContainer,
+          { backgroundColor: theme.colors.background },
+        ]}
+      >
+        {/* Expanding ring */}
+        <Animated.View
+          style={[
+            styles.successRing,
+            {
+              borderColor: theme.colors.success,
+              opacity: successRingOpacity,
+              transform: [{ scale: successRingScale }],
+            },
+          ]}
+        />
+
+        {/* Particle burst */}
+        <SuccessParticles visible={showParticles} color={theme.colors.success} />
+
         <Animated.View
           style={[
             styles.successContent,
@@ -185,32 +478,58 @@ export default function OTPScreen() {
             },
           ]}
         >
-          <View
+          <Animated.View
             style={[
               styles.successIconContainer,
-              { backgroundColor: theme.colors.successContainer },
+              {
+                backgroundColor: theme.colors.successContainer,
+                transform: [{ rotate: iconRotateInterpolate }],
+              },
             ]}
           >
-            <Ionicons name="checkmark-circle" size={64} color={theme.colors.success} />
-          </View>
+            <Ionicons
+              name="checkmark-circle"
+              size={64}
+              color={theme.colors.success}
+            />
+          </Animated.View>
           <Text style={[styles.successTitle, { color: theme.colors.text }]}>
             Verified!
           </Text>
-          <Text style={[styles.successSubtitle, { color: theme.colors.textSecondary }]}>
+          <Text
+            style={[
+              styles.successSubtitle,
+              { color: theme.colors.textSecondary },
+            ]}
+          >
             {flow === 'signup'
-              ? 'Account created. Let\'s set up your profile!'
+              ? "Account created. Let's set up your profile!"
               : 'Welcome back! Redirecting...'}
           </Text>
-          <ActivityIndicator
-            size="small"
-            color={theme.colors.primary}
-            style={styles.successSpinner}
-          />
+
+          {/* Animated progress bar */}
+          <View
+            style={[
+              styles.progressBarBg,
+              { backgroundColor: theme.colors.border },
+            ]}
+          >
+            <Animated.View
+              style={[
+                styles.progressBarFill,
+                {
+                  backgroundColor: theme.colors.success,
+                  width: progressWidth as any,
+                },
+              ]}
+            />
+          </View>
         </Animated.View>
       </View>
     );
   }
 
+  // ─── MAIN OTP ENTRY SCREEN ───
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
@@ -247,13 +566,36 @@ export default function OTPScreen() {
             icon="shield-checkmark-outline"
           />
 
-          {/* OTP Sent confirmation */}
-          <View style={[styles.sentBanner, { backgroundColor: theme.colors.successContainer }]}>
-            <Ionicons name="checkmark-circle" size={18} color={theme.colors.success} />
-            <Text style={[styles.sentBannerText, { color: theme.colors.success }]}>
-              Code sent to {type === 'email' ? 'your email' : 'your phone'}
+          {/* Progress dots */}
+          <ProgressDots
+            total={6}
+            filled={otpCode.replace(/\s/g, '').length}
+            theme={theme}
+          />
+
+          {/* Sent confirmation banner */}
+          <Animated.View
+            style={[
+              styles.sentBanner,
+              {
+                backgroundColor: theme.colors.successContainer,
+                opacity: bannerFade,
+                transform: [{ translateY: bannerSlide }],
+              },
+            ]}
+          >
+            <Ionicons
+              name="checkmark-circle"
+              size={18}
+              color={theme.colors.success}
+            />
+            <Text
+              style={[styles.sentBannerText, { color: theme.colors.success }]}
+            >
+              Code sent to{' '}
+              {type === 'email' ? 'your email' : 'your phone'}
             </Text>
-          </View>
+          </Animated.View>
 
           {/* OTP Input */}
           <OTPInput
@@ -267,6 +609,38 @@ export default function OTPScreen() {
             disabled={isVerifying}
             autoFocus
           />
+
+          {/* Verifying indicator */}
+          {isVerifying && (
+            <View style={styles.verifyingRow}>
+              <Animated.View
+                style={{
+                  transform: [
+                    {
+                      rotate: spinAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ['0deg', '360deg'],
+                      }),
+                    },
+                  ],
+                }}
+              >
+                <Ionicons
+                  name="sync"
+                  size={18}
+                  color={theme.colors.primary}
+                />
+              </Animated.View>
+              <Text
+                style={[
+                  styles.verifyingText,
+                  { color: theme.colors.primary },
+                ]}
+              >
+                Verifying your code...
+              </Text>
+            </View>
+          )}
 
           {/* Verify Button */}
           <View style={styles.buttonContainer}>
@@ -283,24 +657,53 @@ export default function OTPScreen() {
           <View style={styles.resendContainer}>
             {resendCooldown > 0 ? (
               <View style={styles.resendTimerRow}>
-                <Ionicons name="time-outline" size={16} color={theme.colors.textTertiary} />
-                <Text style={[styles.resendTimerText, { color: theme.colors.textTertiary }]}>
-                  Resend code in {formatTime(resendCooldown)}
+                <Ionicons
+                  name="time-outline"
+                  size={16}
+                  color={theme.colors.textTertiary}
+                />
+                <Text
+                  style={[
+                    styles.resendTimerText,
+                    { color: theme.colors.textTertiary },
+                  ]}
+                >
+                  Resend code in{' '}
+                  <Text style={{ fontWeight: '700' }}>
+                    {formatTime(resendCooldown)}
+                  </Text>
                 </Text>
               </View>
             ) : (
               <TouchableOpacity
-                style={styles.resendButton}
+                style={[
+                  styles.resendButton,
+                  {
+                    backgroundColor: theme.colors.primaryContainer,
+                  },
+                ]}
                 onPress={handleResendOtp}
                 disabled={isResending}
                 activeOpacity={0.7}
               >
                 {isResending ? (
-                  <ActivityIndicator size="small" color={theme.colors.primary} />
+                  <ActivityIndicator
+                    size="small"
+                    color={theme.colors.primary}
+                  />
                 ) : (
                   <View style={styles.resendRow}>
-                    <Ionicons name="refresh" size={16} color={theme.colors.primary} />
-                    <Text style={[styles.resendText, { color: theme.colors.primary }]}>
+                    <Ionicons
+                      name="refresh"
+                      size={16}
+                      color={theme.colors.primary}
+                    />
+                    <Text
+                      style={[
+                        styles.resendText,
+                        { color: theme.colors.primary },
+                      ]}
+                    >
                       Resend Code
                     </Text>
                   </View>
@@ -309,10 +712,24 @@ export default function OTPScreen() {
             )}
           </View>
 
-          {/* Help text */}
-          <View style={[styles.helpContainer, { backgroundColor: theme.colors.surfaceVariant }]}>
-            <Ionicons name="information-circle-outline" size={18} color={theme.colors.textSecondary} />
-            <Text style={[styles.helpText, { color: theme.colors.textSecondary }]}>
+          {/* Help section */}
+          <View
+            style={[
+              styles.helpContainer,
+              { backgroundColor: theme.colors.surfaceVariant },
+            ]}
+          >
+            <Ionicons
+              name="information-circle-outline"
+              size={18}
+              color={theme.colors.textSecondary}
+            />
+            <Text
+              style={[
+                styles.helpText,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
               Can't find the code? Check your spam folder or try resending.
             </Text>
           </View>
@@ -323,26 +740,16 @@ export default function OTPScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 32,
-  },
+  container: { flex: 1 },
+  scrollView: { flex: 1 },
+  scrollContent: { flexGrow: 1, paddingBottom: 32 },
   backButton: {
     paddingTop: Platform.OS === 'ios' ? 56 : 44,
     paddingHorizontal: 20,
     paddingBottom: 8,
     alignSelf: 'flex-start',
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
+  content: { flex: 1, paddingHorizontal: 24 },
   sentBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -351,38 +758,34 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     gap: 10,
   },
-  sentBannerText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  buttonContainer: {
-    marginTop: 8,
-  },
-  resendContainer: {
+  sentBannerText: { fontSize: 13, fontWeight: '600' },
+  verifyingRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 24,
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
   },
+  verifyingText: { fontSize: 14, fontWeight: '600' },
+  buttonContainer: { marginTop: 8 },
+  resendContainer: { alignItems: 'center', marginTop: 24 },
   resendTimerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  resendTimerText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
+  resendTimerText: { fontSize: 14, fontWeight: '500' },
   resendButton: {
-    padding: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 24,
   },
   resendRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  resendText: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
+  resendText: { fontSize: 15, fontWeight: '600' },
   helpContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -391,20 +794,25 @@ const styles = StyleSheet.create({
     marginTop: 24,
     gap: 10,
   },
-  helpText: {
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  // Success overlay styles
+  helpText: { flex: 1, fontSize: 13, lineHeight: 19 },
+
+  // ─── Success styles ───
   successContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  successRing: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 3,
+  },
   successContent: {
     alignItems: 'center',
     paddingHorizontal: 40,
+    zIndex: 1,
   },
   successIconContainer: {
     width: 120,
@@ -415,16 +823,25 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   successTitle: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 30,
+    fontWeight: '800',
     marginBottom: 8,
+    letterSpacing: -0.5,
   },
   successSubtitle: {
     fontSize: 15,
     textAlign: 'center',
     lineHeight: 22,
+    marginBottom: 28,
   },
-  successSpinner: {
-    marginTop: 24,
+  progressBarBg: {
+    width: SCREEN_WIDTH * 0.5,
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 2,
   },
 });
