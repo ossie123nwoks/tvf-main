@@ -40,11 +40,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     permissions: [
       'INTERNET',
       'ACCESS_NETWORK_STATE',
-      'READ_EXTERNAL_STORAGE',
-      'WRITE_EXTERNAL_STORAGE',
       'VIBRATE',
       'RECEIVE_BOOT_COMPLETED',
-      'SCHEDULE_EXACT_ALARM',
     ],
      googleServicesFile: './google-services.json',
     intentFilters: [

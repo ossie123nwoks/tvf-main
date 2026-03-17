@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   ScrollView,
@@ -10,6 +10,7 @@ import {
   Image,
   Platform,
   RefreshControl,
+  BackHandler,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Avatar, useTheme as usePaperTheme, IconButton, Button, ActivityIndicator } from 'react-native-paper';
@@ -47,6 +48,30 @@ export default function DashboardScreen() {
   const [articlesError, setArticlesError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const { width: screenWidth } = useWindowDimensions();
+
+  // Android back button handler — confirm before exiting the app
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const backAction = () => {
+      Alert.alert(
+        'Exit App',
+        'Are you sure you want to exit TRUEVINE FELLOWSHIP?',
+        [
+          { text: 'Cancel', onPress: () => null, style: 'cancel' },
+          { text: 'Exit', onPress: () => BackHandler.exitApp() },
+        ]
+      );
+      return true; // Prevent default back behavior
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   // Sermon filter state
   const [sermonFilter, setSermonFilter] = useState<'all' | 'this_week' | 'last_week' | 'last_2_months'>('all');

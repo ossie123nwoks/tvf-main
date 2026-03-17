@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import { ThemeProvider, useTheme } from '@/lib/theme/ThemeProvider';
 import { AuthProvider, useAuth } from '@/lib/auth/AuthContext';
@@ -76,6 +77,7 @@ function AppContent() {
   return (
     <AuthProvider>
       <PaperProvider theme={paperTheme}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <PushNotificationInitializer>
           <DeepLinkingInitializer>
             <Stack screenOptions={{ headerShown: false }}>
