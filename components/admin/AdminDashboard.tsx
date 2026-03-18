@@ -34,9 +34,7 @@ interface AdminDashboardProps {
   initialSection?: string;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({
-  initialSection = 'overview'
-}) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialSection = 'overview' }) => {
   const { theme } = useTheme();
   const { user } = useAdminAuth();
   const { width } = useWindowDimensions();
@@ -55,7 +53,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const updatedSections = availableSections.map(section => ({
         ...section,
         component: section.id,
-        isExpanded: false
+        isExpanded: false,
       }));
       setSections(updatedSections);
     }
@@ -88,14 +86,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const getSectionRoute = (sectionId: string): string => {
     const routeMap: Record<string, string> = {
-      'overview': '/admin/overview',
-      'content': '/admin/content',
+      overview: '/admin/overview',
+      content: '/admin/content',
       'topics-series': '/admin/topics-series',
-      'users': '/admin/users',
-      'media': '/admin/media',
-      'analytics': '/admin/analytics',
-      'notifications': '/admin/notifications',
-      'carousel': '/admin/carousel',
+      users: '/admin/users',
+      media: '/admin/media',
+      analytics: '/admin/analytics',
+      notifications: '/admin/notifications',
+      carousel: '/admin/carousel',
     };
     return routeMap[sectionId] || `/admin/${sectionId}`;
   };
@@ -143,9 +141,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <MaterialIcons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <View style={staticStyles.headerCenter}>
-          <Text style={{ ...theme.typography.titleLarge, color: '#FFFFFF' }}>
-            Admin Panel
-          </Text>
+          <Text style={{ ...theme.typography.titleLarge, color: '#FFFFFF' }}>Admin Panel</Text>
         </View>
         <Avatar.Text
           size={36}
@@ -164,12 +160,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         {sections.length === 0 ? (
           <View style={[staticStyles.emptyState, { padding: theme.spacing.xl }]}>
             <MaterialIcons name="hourglass-empty" size={48} color={theme.colors.textTertiary} />
-            <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.sm }}>
+            <Text
+              style={{
+                ...theme.typography.bodyMedium,
+                color: theme.colors.textSecondary,
+                marginTop: theme.spacing.sm,
+              }}
+            >
               Loading admin sections...
             </Text>
           </View>
         ) : (
-          sections.map((section) => {
+          sections.map(section => {
             const accentColor = SECTION_COLORS[section.id] || theme.colors.primary;
             return (
               <Pressable
@@ -189,12 +191,31 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   },
                 ]}
               >
-                <View style={[staticStyles.iconCircle, { backgroundColor: accentColor + '15', borderRadius: theme.borderRadius.md }]}>
+                <View
+                  style={[
+                    staticStyles.iconCircle,
+                    { backgroundColor: accentColor + '15', borderRadius: theme.borderRadius.md },
+                  ]}
+                >
                   <MaterialIcons name={getIconName(section.icon)} size={24} color={accentColor} />
                 </View>
                 <View style={staticStyles.sectionContent}>
-                  <Text style={{ ...theme.typography.titleSmall, color: theme.colors.text }} numberOfLines={1}>{section.title}</Text>
-                  <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary, marginTop: 2 }} numberOfLines={2}>{section.description}</Text>
+                  <Text
+                    style={{ ...theme.typography.titleSmall, color: theme.colors.text }}
+                    numberOfLines={1}
+                  >
+                    {section.title}
+                  </Text>
+                  <Text
+                    style={{
+                      ...theme.typography.caption,
+                      color: theme.colors.textSecondary,
+                      marginTop: 2,
+                    }}
+                    numberOfLines={2}
+                  >
+                    {section.description}
+                  </Text>
                 </View>
                 <MaterialIcons name="chevron-right" size={20} color={theme.colors.textTertiary} />
               </Pressable>

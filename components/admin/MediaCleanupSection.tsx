@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Alert,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import {
   Text,
   Card,
@@ -43,9 +38,7 @@ interface UsageStats {
   usageRate: number;
 }
 
-const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
-  onCleanupComplete,
-}) => {
+const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({ onCleanupComplete }) => {
   const { theme } = useTheme();
 
   // State management
@@ -268,7 +261,10 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
           onPress: async () => {
             try {
               setCleanupInProgress(true);
-              const result = await AdminService.cleanupUnusedMediaFiles(cleanupOlderThanDays, false);
+              const result = await AdminService.cleanupUnusedMediaFiles(
+                cleanupOlderThanDays,
+                false
+              );
 
               Alert.alert(
                 'Cleanup Complete',
@@ -355,9 +351,7 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
       <Card style={styles.cleanupCard}>
         <View style={styles.cleanupHeader}>
           <Text style={{ fontSize: 16, fontWeight: '600' }}>Cleanup Preview</Text>
-          <Chip mode="outlined">
-            {cleanupOlderThanDays} days
-          </Chip>
+          <Chip mode="outlined">{cleanupOlderThanDays} days</Chip>
         </View>
 
         <View style={styles.cleanupContent}>
@@ -365,7 +359,9 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
             Files older than {cleanupOlderThanDays} days that are not being used:
           </Text>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.sm }}>
+          <View
+            style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.sm }}
+          >
             <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.colors.primary }}>
               {cleanupResult.count}
             </Text>
@@ -377,7 +373,7 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
           {cleanupResult.count > 0 && (
             <View style={styles.fileList}>
               <ScrollView showsVerticalScrollIndicator={false}>
-                {cleanupResult.filesToDelete.slice(0, 10).map((file) => (
+                {cleanupResult.filesToDelete.slice(0, 10).map(file => (
                   <View key={file.id} style={styles.fileItem}>
                     <MaterialIcons
                       name={getFileIcon(file.mimeType)}
@@ -395,7 +391,13 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
                   </View>
                 ))}
                 {cleanupResult.count > 10 && (
-                  <Text style={{ textAlign: 'center', color: theme.colors.textSecondary, marginTop: theme.spacing.sm }}>
+                  <Text
+                    style={{
+                      textAlign: 'center',
+                      color: theme.colors.textSecondary,
+                      marginTop: theme.spacing.sm,
+                    }}
+                  >
                     ... and {cleanupResult.count - 10} more files
                   </Text>
                 )}
@@ -405,11 +407,7 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
         </View>
 
         <View style={styles.cleanupActions}>
-          <Button
-            mode="outlined"
-            onPress={() => setShowCleanupModal(true)}
-            icon="cog"
-          >
+          <Button mode="outlined" onPress={() => setShowCleanupModal(true)} icon="cog">
             Settings
           </Button>
           <Button
@@ -438,11 +436,11 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
 
           <View style={styles.modalSection}>
             <Text style={styles.modalSectionTitle}>Cleanup Age</Text>
-            <Text style={styles.modalText}>
-              Delete unused files older than:
-            </Text>
-            <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.sm }}>
-              {[7, 14, 30, 60, 90].map((days) => (
+            <Text style={styles.modalText}>Delete unused files older than:</Text>
+            <View
+              style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.sm }}
+            >
+              {[7, 14, 30, 60, 90].map(days => (
                 <Chip
                   key={days}
                   selected={cleanupOlderThanDays === days}
@@ -461,7 +459,13 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
             </Text>
           </View>
 
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: theme.spacing.lg }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              marginTop: theme.spacing.lg,
+            }}
+          >
             <Button mode="outlined" onPress={() => setShowCleanupModal(false)}>
               Cancel
             </Button>
@@ -499,12 +503,7 @@ const MediaCleanupSection: React.FC<MediaCleanupSectionProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Media Cleanup</Text>
-        <Button
-          mode="outlined"
-          onPress={loadUsageStats}
-          icon="refresh"
-          compact
-        >
+        <Button mode="outlined" onPress={loadUsageStats} icon="refresh" compact>
           Refresh
         </Button>
       </View>

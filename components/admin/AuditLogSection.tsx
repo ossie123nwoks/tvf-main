@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  RefreshControl,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import {
   Text,
   Card,
@@ -57,11 +52,9 @@ interface AuditLogSectionProps {
   onLogSelect?: (log: AuditLog) => void;
 }
 
-const AuditLogSection: React.FC<AuditLogSectionProps> = ({
-  onLogSelect,
-}) => {
+const AuditLogSection: React.FC<AuditLogSectionProps> = ({ onLogSelect }) => {
   const { theme } = useTheme();
-  
+
   // State management
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,16 +63,16 @@ const AuditLogSection: React.FC<AuditLogSectionProps> = ({
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  
+
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedActionType, setSelectedActionType] = useState<string>('all');
   const [selectedTimeRange, setSelectedTimeRange] = useState<'7d' | '30d' | '90d' | 'all'>('7d');
   const [showFilters, setShowFilters] = useState(false);
-  
+
   // Activity summary
   const [activitySummary, setActivitySummary] = useState<ActivitySummary | null>(null);
-  
+
   // Modal state
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
   const [logDetailsModal, setLogDetailsModal] = useState(false);
@@ -332,27 +325,43 @@ const AuditLogSection: React.FC<AuditLogSectionProps> = ({
 
   const getActionIcon = (actionType: string) => {
     switch (actionType) {
-      case 'user_role_changed': return 'account-switch';
-      case 'content_created': return 'plus';
-      case 'content_updated': return 'pencil';
-      case 'content_deleted': return 'delete';
-      case 'user_created': return 'account-plus';
-      case 'user_updated': return 'account-edit';
-      case 'notification_sent': return 'bell';
-      default: return 'information';
+      case 'user_role_changed':
+        return 'account-switch';
+      case 'content_created':
+        return 'plus';
+      case 'content_updated':
+        return 'pencil';
+      case 'content_deleted':
+        return 'delete';
+      case 'user_created':
+        return 'account-plus';
+      case 'user_updated':
+        return 'account-edit';
+      case 'notification_sent':
+        return 'bell';
+      default:
+        return 'information';
     }
   };
 
   const getActionColor = (actionType: string) => {
     switch (actionType) {
-      case 'user_role_changed': return theme.colors.warning;
-      case 'content_created': return theme.colors.success;
-      case 'content_updated': return theme.colors.info;
-      case 'content_deleted': return theme.colors.error;
-      case 'user_created': return theme.colors.success;
-      case 'user_updated': return theme.colors.info;
-      case 'notification_sent': return theme.colors.primary;
-      default: return theme.colors.textSecondary;
+      case 'user_role_changed':
+        return theme.colors.warning;
+      case 'content_created':
+        return theme.colors.success;
+      case 'content_updated':
+        return theme.colors.info;
+      case 'content_deleted':
+        return theme.colors.error;
+      case 'user_created':
+        return theme.colors.success;
+      case 'user_updated':
+        return theme.colors.info;
+      case 'notification_sent':
+        return theme.colors.primary;
+      default:
+        return theme.colors.textSecondary;
     }
   };
 
@@ -360,7 +369,7 @@ const AuditLogSection: React.FC<AuditLogSectionProps> = ({
     const date = new Date(timestamp);
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) return 'Just now';
     if (diffInHours < 24) return `${diffInHours}h ago`;
     if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
@@ -368,11 +377,7 @@ const AuditLogSection: React.FC<AuditLogSectionProps> = ({
   };
 
   const renderLogCard = (log: AuditLog) => (
-    <Card
-      key={log.id}
-      style={styles.logCard}
-      onPress={() => handleLogPress(log)}
-    >
+    <Card key={log.id} style={styles.logCard} onPress={() => handleLogPress(log)}>
       <Card.Content>
         <View style={styles.logHeader}>
           <View style={styles.logInfo}>
@@ -391,9 +396,7 @@ const AuditLogSection: React.FC<AuditLogSectionProps> = ({
                 >
                   {log.action_type.replace('_', ' ').toUpperCase()}
                 </Chip>
-                <Text style={styles.logTimestamp}>
-                  {formatTimestamp(log.created_at)}
-                </Text>
+                <Text style={styles.logTimestamp}>{formatTimestamp(log.created_at)}</Text>
               </View>
               {log.admin_user && (
                 <Text style={styles.logUser}>
@@ -411,18 +414,22 @@ const AuditLogSection: React.FC<AuditLogSectionProps> = ({
     if (!showFilters) return null;
 
     const actionTypes = [
-      'all', 'user_role_changed', 'content_created', 'content_updated', 
-      'content_deleted', 'user_created', 'user_updated', 'notification_sent'
+      'all',
+      'user_role_changed',
+      'content_created',
+      'content_updated',
+      'content_deleted',
+      'user_created',
+      'user_updated',
+      'notification_sent',
     ];
 
     return (
       <View style={styles.filtersContainer}>
-        <Text style={{ marginBottom: theme.spacing.sm, fontWeight: '600' }}>
-          Filters
-        </Text>
+        <Text style={{ marginBottom: theme.spacing.sm, fontWeight: '600' }}>Filters</Text>
         <View style={styles.filterChips}>
           <Text style={{ marginRight: theme.spacing.sm, alignSelf: 'center' }}>Action Type:</Text>
-          {actionTypes.map((actionType) => (
+          {actionTypes.map(actionType => (
             <Chip
               key={actionType}
               selected={selectedActionType === actionType}
@@ -435,7 +442,7 @@ const AuditLogSection: React.FC<AuditLogSectionProps> = ({
         </View>
         <View style={styles.filterChips}>
           <Text style={{ marginRight: theme.spacing.sm, alignSelf: 'center' }}>Time Range:</Text>
-          {(['7d', '30d', '90d', 'all'] as const).map((range) => (
+          {(['7d', '30d', '90d', 'all'] as const).map(range => (
             <Chip
               key={range}
               selected={selectedTimeRange === range}
@@ -462,7 +469,7 @@ const AuditLogSection: React.FC<AuditLogSectionProps> = ({
         >
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Audit Log Details</Text>
-            
+
             <View style={styles.modalSection}>
               <Text style={styles.modalSectionTitle}>Action</Text>
               <Text style={styles.modalText}>{selectedLog.description}</Text>
@@ -476,7 +483,8 @@ const AuditLogSection: React.FC<AuditLogSectionProps> = ({
               {selectedLog.admin_user ? (
                 <Text style={styles.modalText}>
                   {selectedLog.admin_user.first_name} {selectedLog.admin_user.last_name}
-                  {'\n'}{selectedLog.admin_user.email}
+                  {'\n'}
+                  {selectedLog.admin_user.email}
                 </Text>
               ) : (
                 <Text style={styles.modalText}>Unknown</Text>
@@ -488,7 +496,8 @@ const AuditLogSection: React.FC<AuditLogSectionProps> = ({
                 <Text style={styles.modalSectionTitle}>Target User</Text>
                 <Text style={styles.modalText}>
                   {selectedLog.target_user.first_name} {selectedLog.target_user.last_name}
-                  {'\n'}{selectedLog.target_user.email}
+                  {'\n'}
+                  {selectedLog.target_user.email}
                 </Text>
               </View>
             )}
@@ -511,8 +520,8 @@ const AuditLogSection: React.FC<AuditLogSectionProps> = ({
               </View>
             )}
 
-            <Button 
-              mode="contained" 
+            <Button
+              mode="contained"
               onPress={() => setLogDetailsModal(false)}
               style={{ marginTop: theme.spacing.lg }}
             >
@@ -549,12 +558,7 @@ const AuditLogSection: React.FC<AuditLogSectionProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Audit Logs</Text>
-        <Button
-          mode="outlined"
-          onPress={() => setShowFilters(!showFilters)}
-          icon="filter"
-          compact
-        >
+        <Button mode="outlined" onPress={() => setShowFilters(!showFilters)} icon="filter" compact>
           Filters
         </Button>
       </View>
@@ -588,23 +592,17 @@ const AuditLogSection: React.FC<AuditLogSectionProps> = ({
       {/* Audit Logs List */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       >
         {logs.length === 0 ? (
           <View style={styles.emptyContainer}>
-          <MaterialIcons
-            name="timeline"
-            size={64}
-            color={theme.colors.textSecondary}
-          />
+            <MaterialIcons name="timeline" size={64} color={theme.colors.textSecondary} />
             <Text style={styles.emptyText}>No audit logs found</Text>
           </View>
         ) : (
           <>
             {logs.map(renderLogCard)}
-            
+
             {hasMore && (
               <Button
                 mode="outlined"

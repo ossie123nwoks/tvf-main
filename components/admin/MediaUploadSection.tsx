@@ -1,12 +1,5 @@
 import React, { useState, useRef } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Alert,
-  Platform,
-  Dimensions,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, Platform, Dimensions } from 'react-native';
 import {
   Text,
   Card,
@@ -250,7 +243,10 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
       if (type === 'image') {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (permissionResult.status !== 'granted') {
-          Alert.alert('Permission Required', 'Please grant permission to access your photo library.');
+          Alert.alert(
+            'Permission Required',
+            'Please grant permission to access your photo library.'
+          );
           return;
         }
 
@@ -317,32 +313,39 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
         const fileId = `file_${Date.now()}_${index}`;
 
         // Initialize progress tracking
-        setUploadProgress(prev => [...prev, {
-          fileId,
-          filename: file.name,
-          progress: 0,
-          status: 'uploading',
-        }]);
+        setUploadProgress(prev => [
+          ...prev,
+          {
+            fileId,
+            filename: file.name,
+            progress: 0,
+            status: 'uploading',
+          },
+        ]);
 
         try {
           // Simulate file upload with progress
           const uploadResult = await simulateFileUpload(file, fileId);
 
           // Update progress to completed
-          setUploadProgress(prev => prev.map(p =>
-            p.fileId === fileId
-              ? { ...p, progress: 100, status: 'completed' }
-              : p
-          ));
+          setUploadProgress(prev =>
+            prev.map(p => (p.fileId === fileId ? { ...p, progress: 100, status: 'completed' } : p))
+          );
 
           return uploadResult;
         } catch (err) {
           // Update progress to error
-          setUploadProgress(prev => prev.map(p =>
-            p.fileId === fileId
-              ? { ...p, status: 'error', error: err instanceof Error ? err.message : 'Upload failed' }
-              : p
-          ));
+          setUploadProgress(prev =>
+            prev.map(p =>
+              p.fileId === fileId
+                ? {
+                    ...p,
+                    status: 'error',
+                    error: err instanceof Error ? err.message : 'Upload failed',
+                  }
+                : p
+            )
+          );
           throw err;
         }
       });
@@ -393,17 +396,17 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
             usageCount: 0,
             metadata: {
               duration: file.type.startsWith('video/') ? 120 : undefined,
-              dimensions: file.type.startsWith('image/') ? { width: 1920, height: 1080 } : undefined,
+              dimensions: file.type.startsWith('image/')
+                ? { width: 1920, height: 1080 }
+                : undefined,
             },
           };
 
           resolve(mediaFile);
         } else {
-          setUploadProgress(prev => prev.map(p =>
-            p.fileId === fileId
-              ? { ...p, progress: Math.round(progress) }
-              : p
-          ));
+          setUploadProgress(prev =>
+            prev.map(p => (p.fileId === fileId ? { ...p, progress: Math.round(progress) } : p))
+          );
         }
       }, 200);
     });
@@ -434,16 +437,8 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
               </View>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <IconButton
-                icon="eye"
-                size={20}
-                onPress={() => handlePreviewFile(file)}
-              />
-              <IconButton
-                icon="delete"
-                size={20}
-                onPress={() => removeFile(index)}
-              />
+              <IconButton icon="eye" size={20} onPress={() => handlePreviewFile(file)} />
+              <IconButton icon="delete" size={20} onPress={() => removeFile(index)} />
             </View>
           </View>
 
@@ -476,10 +471,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
         <View style={styles.previewContent}>
           <View style={styles.previewHeader}>
             <Text style={styles.previewTitle}>File Preview</Text>
-            <IconButton
-              icon="close"
-              onPress={() => setShowPreview(false)}
-            />
+            <IconButton icon="close" onPress={() => setShowPreview(false)} />
           </View>
 
           {previewFile && (
@@ -538,9 +530,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
         <Text style={styles.uploadText}>
           {uploading ? 'Uploading Files...' : 'Select Files to Upload'}
         </Text>
-        <Text style={styles.uploadSubtext}>
-          Choose images, videos, audio files, or documents
-        </Text>
+        <Text style={styles.uploadSubtext}>Choose images, videos, audio files, or documents</Text>
 
         {!uploading && (
           <View style={styles.uploadButtons}>
@@ -580,7 +570,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
           <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: theme.spacing.md }}>
             Upload Progress
           </Text>
-          {uploadProgress.map((progress) => (
+          {uploadProgress.map(progress => (
             <Card key={progress.fileId} style={styles.fileItem}>
               <Card.Content>
                 <View style={styles.fileHeader}>
@@ -626,18 +616,10 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
       {/* Upload Actions */}
       {selectedFiles.length > 0 && !uploading && (
         <View style={styles.uploadActions}>
-          <Button
-            mode="outlined"
-            onPress={() => setSelectedFiles([])}
-            icon="delete-sweep"
-          >
+          <Button mode="outlined" onPress={() => setSelectedFiles([])} icon="delete-sweep">
             Clear All
           </Button>
-          <Button
-            mode="contained"
-            onPress={uploadFiles}
-            icon="upload"
-          >
+          <Button mode="contained" onPress={uploadFiles} icon="upload">
             Upload {selectedFiles.length} Files
           </Button>
         </View>

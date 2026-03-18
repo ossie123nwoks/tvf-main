@@ -58,6 +58,7 @@ export interface AdminActivity {
 export interface ContentFormData {
   title: string;
   description?: string;
+  excerpt?: string;
   content?: string;
   preacher?: string;
   author?: string;

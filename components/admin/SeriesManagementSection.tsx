@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Alert,
-  FlatList,
-  Image,
-  RefreshControl,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, FlatList, Image, RefreshControl } from 'react-native';
 import {
   Text,
   Card,
@@ -43,9 +35,7 @@ interface SeriesManagementSectionProps {
   onNavigate?: (section: string) => void;
 }
 
-const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
-  onNavigate
-}) => {
+const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({ onNavigate }) => {
   const { theme } = useTheme();
   const { checkPermission } = useAdminAuth();
   const router = useRouter();
@@ -272,10 +262,11 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
 
       // Filter by search query
       const filteredSeries = search
-        ? mockSeries.filter(series =>
-          series.name.toLowerCase().includes(search.toLowerCase()) ||
-          series.description?.toLowerCase().includes(search.toLowerCase())
-        )
+        ? mockSeries.filter(
+            series =>
+              series.name.toLowerCase().includes(search.toLowerCase()) ||
+              series.description?.toLowerCase().includes(search.toLowerCase())
+          )
         : mockSeries;
 
       setSeries(filteredSeries);
@@ -329,7 +320,10 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
     try {
       setSermonsLoading(true);
       setSermonsError(null);
-      const sermonsData = await AdminService.getSermonsForAssignment(200, sermonSearchQuery || undefined);
+      const sermonsData = await AdminService.getSermonsForAssignment(
+        200,
+        sermonSearchQuery || undefined
+      );
       setSermons(sermonsData);
     } catch (err) {
       setSermonsError(err instanceof Error ? err.message : 'Failed to load sermons');
@@ -356,11 +350,17 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
       await AdminService.assignSermonToSeries(sermonId, seriesId);
 
       // Update local state
-      setSermons(prev => prev.map(sermon =>
-        sermon.id === sermonId
-          ? { ...sermon, series_id: seriesId || undefined, series: seriesId ? allSeries.find(s => s.id === seriesId) : undefined }
-          : sermon
-      ));
+      setSermons(prev =>
+        prev.map(sermon =>
+          sermon.id === sermonId
+            ? {
+                ...sermon,
+                series_id: seriesId || undefined,
+                series: seriesId ? allSeries.find(s => s.id === seriesId) : undefined,
+              }
+            : sermon
+        )
+      );
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Failed to assign series');
     } finally {
@@ -410,33 +410,21 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
       ) : sermonsError ? (
         <Card style={styles.sermonCard}>
           <Card.Content>
-            <Text style={{ color: theme.colors.error, textAlign: 'center' }}>
-              {sermonsError}
-            </Text>
-            <Button
-              mode="outlined"
-              onPress={loadSermons}
-              style={{ marginTop: theme.spacing.md }}
-            >
+            <Text style={{ color: theme.colors.error, textAlign: 'center' }}>{sermonsError}</Text>
+            <Button mode="outlined" onPress={loadSermons} style={{ marginTop: theme.spacing.md }}>
               Retry
             </Button>
           </Card.Content>
         </Card>
       ) : sermons.length === 0 ? (
         <View style={styles.emptyState}>
-          <MaterialIcons
-            name="music-note"
-            size={48}
-            color={theme.colors.textSecondary}
-          />
-          <Text style={styles.emptyText}>
-            No sermons found.
-          </Text>
+          <MaterialIcons name="music-note" size={48} color={theme.colors.textSecondary} />
+          <Text style={styles.emptyText}>No sermons found.</Text>
         </View>
       ) : (
         <FlatList
           data={sermons}
-          keyExtractor={(item) => item.id}
+          keyExtractor={item => item.id}
           renderItem={({ item: sermon }) => (
             <Card style={styles.sermonCard} elevation={2}>
               <Card.Content style={styles.sermonCardContent}>
@@ -466,10 +454,10 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
                   <CustomDropdown
                     options={[
                       { id: 'none', label: 'No Series', value: null },
-                      ...allSeries.map(s => ({ id: s.id, label: s.name, value: s.id }))
+                      ...allSeries.map(s => ({ id: s.id, label: s.name, value: s.id })),
                     ]}
                     selectedValue={sermon.series_id || null}
-                    onSelect={(value) => handleSeriesAssignment(sermon.id, value)}
+                    onSelect={value => handleSeriesAssignment(sermon.id, value)}
                     placeholder="Select Series"
                     variant="light"
                   />
@@ -477,9 +465,7 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
               </Card.Content>
             </Card>
           )}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           contentContainerStyle={{ paddingBottom: theme.spacing.xl }}
         />
       )}
@@ -497,7 +483,7 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
       <View style={styles.tabContainer}>
         <SegmentedButtons
           value={activeTab}
-          onValueChange={(value) => setActiveTab(value as 'manage' | 'assign')}
+          onValueChange={value => setActiveTab(value as 'manage' | 'assign')}
           buttons={[
             { value: 'manage', label: 'Manage Series' },
             { value: 'assign', label: 'Assign Sermons' },
@@ -540,7 +526,13 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
             ) : error ? (
               <Card style={styles.errorCard} elevation={1}>
                 <View style={styles.errorContent}>
-                  <Text style={{ color: theme.colors.error, textAlign: 'center', marginBottom: theme.spacing.md }}>
+                  <Text
+                    style={{
+                      color: theme.colors.error,
+                      textAlign: 'center',
+                      marginBottom: theme.spacing.md,
+                    }}
+                  >
                     {error}
                   </Text>
                   <Button
@@ -554,17 +546,13 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
               </Card>
             ) : series.length === 0 ? (
               <View style={styles.emptyState}>
-                <MaterialIcons
-                  name="book"
-                  size={48}
-                  color={theme.colors.textSecondary}
-                />
+                <MaterialIcons name="book" size={48} color={theme.colors.textSecondary} />
                 <Text style={styles.emptyText}>
                   No series found. {canCreate && 'Create your first one!'}
                 </Text>
               </View>
             ) : (
-              series.map((seriesItem) => (
+              series.map(seriesItem => (
                 <Card key={seriesItem.id} style={styles.seriesCard} elevation={2}>
                   <Card.Content style={{ padding: theme.spacing.md }}>
                     <View style={styles.seriesHeader}>
@@ -582,7 +570,8 @@ const SeriesManagementSection: React.FC<SeriesManagementSectionProps> = ({
                           <Text style={styles.seriesDescription}>{seriesItem.description}</Text>
                         )}
                         <Text style={styles.seriesMeta}>
-                          {seriesItem.sermon_count || 0} sermons • Created {new Date(seriesItem.created_at).toLocaleDateString()}
+                          {seriesItem.sermon_count || 0} sermons • Created{' '}
+                          {new Date(seriesItem.created_at).toLocaleDateString()}
                         </Text>
                       </View>
                       <View style={styles.actionButtons}>

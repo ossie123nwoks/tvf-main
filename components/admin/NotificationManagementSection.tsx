@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Alert,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import {
   Text,
   Card,
@@ -53,23 +48,27 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
   onNotificationSent,
 }) => {
   const { theme } = useTheme();
-  
+
   // State management
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
-  
+
   // Notification form state
   const [notificationTitle, setNotificationTitle] = useState('');
   const [notificationBody, setNotificationBody] = useState('');
-  const [notificationType, setNotificationType] = useState<'general' | 'sermon' | 'article' | 'event' | 'announcement'>('general');
-  const [targetAudience, setTargetAudience] = useState<'all' | 'members' | 'admins' | 'moderators' | 'custom'>('all');
+  const [notificationType, setNotificationType] = useState<
+    'general' | 'sermon' | 'article' | 'event' | 'announcement'
+  >('general');
+  const [targetAudience, setTargetAudience] = useState<
+    'all' | 'members' | 'admins' | 'moderators' | 'custom'
+  >('all');
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [scheduleNotification, setScheduleNotification] = useState(false);
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
-  
+
   // Modal state
   const [showComposeModal, setShowComposeModal] = useState(false);
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
@@ -87,7 +86,7 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
     {
       id: '2',
       title: 'Weekly Announcements',
-      body: 'Check out this week\'s announcements and upcoming events.',
+      body: "Check out this week's announcements and upcoming events.",
       type: 'announcement',
       targetAudience: 'all',
     },
@@ -101,7 +100,7 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
     {
       id: '4',
       title: 'Event Reminder',
-      body: 'Don\'t forget about our upcoming event this weekend!',
+      body: "Don't forget about our upcoming event this weekend!",
       type: 'event',
       targetAudience: 'members',
     },
@@ -359,9 +358,14 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
           type: notificationType,
           timestamp: new Date().toISOString(),
         },
-        categoryId: notificationType === 'sermon' ? 'content' : 
-                    notificationType === 'article' ? 'content' : 
-                    notificationType === 'event' ? 'reminder' : 'general',
+        categoryId:
+          notificationType === 'sermon'
+            ? 'content'
+            : notificationType === 'article'
+              ? 'content'
+              : notificationType === 'event'
+                ? 'reminder'
+                : 'general',
         sound: true,
         badge: 1,
       };
@@ -404,19 +408,24 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
         } else if (targetAudience === 'admins') {
           result = await pushNotificationService.sendNotificationByRole('admin', notificationData);
         } else if (targetAudience === 'moderators') {
-          result = await pushNotificationService.sendNotificationByRole('moderator', notificationData);
+          result = await pushNotificationService.sendNotificationByRole(
+            'moderator',
+            notificationData
+          );
         }
 
         // Show result with detailed feedback
         if (result.sent > 0) {
-          const skippedMsg = result.skipped && result.skipped > 0 ? `\nSkipped (no token): ${result.skipped}` : '';
+          const skippedMsg =
+            result.skipped && result.skipped > 0 ? `\nSkipped (no token): ${result.skipped}` : '';
           const failedMsg = result.failed > 0 ? `\nFailed: ${result.failed}` : '';
           Alert.alert(
-            'Success', 
+            'Success',
             `Notification sent successfully!\nSent: ${result.sent}${failedMsg}${skippedMsg}`
           );
         } else {
-          const skippedMsg = result.skipped && result.skipped > 0 ? `\nSkipped (no token): ${result.skipped}` : '';
+          const skippedMsg =
+            result.skipped && result.skipped > 0 ? `\nSkipped (no token): ${result.skipped}` : '';
           const failedMsg = result.failed > 0 ? `\nFailed: ${result.failed}` : '';
           Alert.alert(
             'Warning',
@@ -446,7 +455,7 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
       setScheduleNotification(false);
       setScheduledDate('');
       setScheduledTime('');
-      
+
       if (onNotificationSent) {
         onNotificationSent(notificationData);
       }
@@ -487,11 +496,16 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'sermon': return theme.colors.primary;
-      case 'article': return theme.colors.secondary;
-      case 'event': return theme.colors.warning;
-      case 'announcement': return theme.colors.info;
-      default: return theme.colors.textSecondary;
+      case 'sermon':
+        return theme.colors.primary;
+      case 'article':
+        return theme.colors.secondary;
+      case 'event':
+        return theme.colors.warning;
+      case 'announcement':
+        return theme.colors.info;
+      default:
+        return theme.colors.textSecondary;
     }
   };
 
@@ -500,10 +514,7 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
     return (
       <Card
         key={template.id}
-        style={[
-          styles.templateCard,
-          isLastInRow && styles.templateCardLastInRow
-        ]}
+        style={[styles.templateCard, isLastInRow && styles.templateCardLastInRow]}
         onPress={() => handleTemplateSelect(template)}
         elevation={2}
       >
@@ -527,7 +538,7 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
       >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Compose Notification</Text>
-          
+
           <ScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.formSection}>
               <Text style={styles.formLabel}>Title</Text>
@@ -556,7 +567,7 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
             <View style={styles.formSection}>
               <Text style={styles.formLabel}>Type</Text>
               <RadioButton.Group
-                onValueChange={(value) => setNotificationType(value as any)}
+                onValueChange={value => setNotificationType(value as any)}
                 value={notificationType}
               >
                 <View style={styles.radioGroup}>
@@ -587,7 +598,7 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
             <View style={styles.formSection}>
               <Text style={styles.formLabel}>Target Audience</Text>
               <RadioButton.Group
-                onValueChange={(value) => setTargetAudience(value as any)}
+                onValueChange={value => setTargetAudience(value as any)}
                 value={targetAudience}
               >
                 <View style={styles.radioGroup}>
@@ -623,20 +634,14 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
                   onPress={() => setShowUserSelectionModal(true)}
                   style={{ marginBottom: theme.spacing.sm }}
                 >
-                  {selectedUsers.size > 0 
-                    ? `${selectedUsers.size} users selected` 
-                    : 'Select Users'
-                  }
+                  {selectedUsers.size > 0 ? `${selectedUsers.size} users selected` : 'Select Users'}
                 </Button>
               </View>
             )}
 
             <View style={styles.formSection}>
               <View style={styles.radioOption}>
-                <Switch
-                  value={scheduleNotification}
-                  onValueChange={setScheduleNotification}
-                />
+                <Switch value={scheduleNotification} onValueChange={setScheduleNotification} />
                 <Text style={styles.radioText}>Schedule for later</Text>
               </View>
             </View>
@@ -689,8 +694,14 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
       >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Select Users</Text>
-          
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: theme.spacing.md }}>
+
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              marginBottom: theme.spacing.md,
+            }}
+          >
             <Button mode="outlined" onPress={selectAllUsers} compact>
               Select All
             </Button>
@@ -700,13 +711,10 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
           </View>
 
           <ScrollView style={styles.userSelectionContainer}>
-            {users.map((user) => (
+            {users.map(user => (
               <View
                 key={user.id}
-                style={[
-                  styles.userItem,
-                  selectedUsers.has(user.id) && styles.selectedUser,
-                ]}
+                style={[styles.userItem, selectedUsers.has(user.id) && styles.selectedUser]}
                 onTouchEnd={() => toggleUserSelection(user.id)}
               >
                 <Avatar.Text
@@ -749,7 +757,7 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
       >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Notification Templates</Text>
-          
+
           <ScrollView>
             <View style={styles.templatesGrid}>
               {templates.map((template, index) => renderTemplateCard(template, index))}
@@ -813,27 +821,17 @@ const NotificationManagementSection: React.FC<NotificationManagementSectionProps
       </Button>
 
       {/* Quick Templates */}
-      <Text style={styles.sectionTitle}>
-        Quick Templates
-      </Text>
+      <Text style={styles.sectionTitle}>Quick Templates</Text>
       <View style={styles.templatesGrid}>
         {templates.slice(0, 4).map((template, index) => renderTemplateCard(template, index))}
       </View>
 
       {/* Recent Notifications Placeholder */}
       <View style={styles.recentNotifications}>
-        <Text style={styles.sectionTitle}>
-          Recent Notifications
-        </Text>
+        <Text style={styles.sectionTitle}>Recent Notifications</Text>
         <View style={styles.emptyContainer}>
-          <MaterialIcons
-            name="notifications-off"
-            size={64}
-            color={theme.colors.textSecondary}
-          />
-          <Text style={styles.emptyText}>
-            No recent notifications sent
-          </Text>
+          <MaterialIcons name="notifications-off" size={64} color={theme.colors.textSecondary} />
+          <Text style={styles.emptyText}>No recent notifications sent</Text>
         </View>
       </View>
 

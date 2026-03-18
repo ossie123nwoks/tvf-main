@@ -5,7 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
-import AdminPageHeader from '@/components/admin/AdminPageHeader';
+import { HeaderBar } from '@/components/admin/ui';
 
 const MANAGEMENT_CARDS = [
   {
@@ -15,11 +15,7 @@ const MANAGEMENT_CARDS = [
     icon: 'label' as const,
     route: '/admin/topics-management',
     color: '#8B5CF6',
-    features: [
-      'Create custom topics',
-      'Assign colors and icons',
-      'Set display order',
-    ],
+    features: ['Create custom topics', 'Assign colors and icons', 'Set display order'],
   },
   {
     id: 'series',
@@ -28,11 +24,7 @@ const MANAGEMENT_CARDS = [
     icon: 'collections-bookmark' as const,
     route: '/admin/series-management',
     color: '#3B82F6',
-    features: [
-      'Create sermon series',
-      'Set date ranges',
-      'Add series artwork',
-    ],
+    features: ['Create sermon series', 'Set date ranges', 'Add series artwork'],
   },
 ];
 
@@ -43,7 +35,7 @@ export default function TopicsSeriesPage() {
   return (
     <AdminAuthGuard>
       <View style={[staticStyles.container, { backgroundColor: theme.colors.background }]}>
-        <AdminPageHeader title="Topics & Series" />
+        <HeaderBar title="Topics & Series" backButton />
 
         <ScrollView
           style={staticStyles.scrollView}
@@ -51,15 +43,27 @@ export default function TopicsSeriesPage() {
           showsVerticalScrollIndicator={false}
         >
           {/* Page title */}
-          <Text style={{ ...theme.typography.headlineSmall, color: theme.colors.text, marginBottom: theme.spacing.xs }}>
+          <Text
+            style={{
+              ...theme.typography.headlineSmall,
+              color: theme.colors.text,
+              marginBottom: theme.spacing.xs,
+            }}
+          >
             Topics & Series
           </Text>
-          <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginBottom: theme.spacing.lg }}>
+          <Text
+            style={{
+              ...theme.typography.bodyMedium,
+              color: theme.colors.textSecondary,
+              marginBottom: theme.spacing.lg,
+            }}
+          >
             Organize your content to help users discover related material.
           </Text>
 
           {/* Management Cards */}
-          {MANAGEMENT_CARDS.map((card) => (
+          {MANAGEMENT_CARDS.map(card => (
             <Pressable
               key={card.id}
               onPress={() => router.push(card.route)}
@@ -94,7 +98,13 @@ export default function TopicsSeriesPage() {
                   <Text style={{ ...theme.typography.titleLarge, color: theme.colors.text }}>
                     {card.title}
                   </Text>
-                  <Text style={{ ...theme.typography.bodySmall, color: theme.colors.textSecondary, marginTop: 2 }}>
+                  <Text
+                    style={{
+                      ...theme.typography.bodySmall,
+                      color: theme.colors.textSecondary,
+                      marginTop: 2,
+                    }}
+                  >
                     {card.description}
                   </Text>
                 </View>
@@ -102,11 +112,27 @@ export default function TopicsSeriesPage() {
               </View>
 
               {/* Features */}
-              <View style={[staticStyles.featuresContainer, { marginTop: theme.spacing.md, paddingTop: theme.spacing.md, borderTopWidth: 1, borderTopColor: theme.colors.borderLight }]}>
+              <View
+                style={[
+                  staticStyles.featuresContainer,
+                  {
+                    marginTop: theme.spacing.md,
+                    paddingTop: theme.spacing.md,
+                    borderTopWidth: 1,
+                    borderTopColor: theme.colors.borderLight,
+                  },
+                ]}
+              >
                 {card.features.map((feature, idx) => (
                   <View key={idx} style={staticStyles.featureRow}>
                     <MaterialIcons name="check-circle" size={16} color={card.color} />
-                    <Text style={{ ...theme.typography.bodySmall, color: theme.colors.textSecondary, marginLeft: 8 }}>
+                    <Text
+                      style={{
+                        ...theme.typography.bodySmall,
+                        color: theme.colors.textSecondary,
+                        marginLeft: 8,
+                      }}
+                    >
                       {feature}
                     </Text>
                   </View>

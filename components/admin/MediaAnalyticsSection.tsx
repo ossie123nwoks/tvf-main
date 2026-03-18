@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Dimensions,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import {
   Text,
   Card,
@@ -50,17 +45,16 @@ interface OptimizationRecommendation {
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
-const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({
-  onOptimizationAction,
-}) => {
+const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({ onOptimizationAction }) => {
   const { theme } = useTheme();
-  
+
   // State management
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
   const [recommendations, setRecommendations] = useState<OptimizationRecommendation[]>([]);
-  const [selectedRecommendation, setSelectedRecommendation] = useState<OptimizationRecommendation | null>(null);
+  const [selectedRecommendation, setSelectedRecommendation] =
+    useState<OptimizationRecommendation | null>(null);
   const [showRecommendationModal, setShowRecommendationModal] = useState(false);
 
   const styles = StyleSheet.create({
@@ -231,10 +225,10 @@ const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({
     try {
       setLoading(true);
       setError(null);
-      
+
       const stats = await AdminService.getMediaUsageStats();
       setUsageStats(stats);
-      
+
       // Generate recommendations based on stats
       const recs = generateRecommendations(stats);
       setRecommendations(recs);
@@ -251,7 +245,8 @@ const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({
     const recs: OptimizationRecommendation[] = [];
 
     // Storage optimization recommendations
-    if (stats.unusedSize > 100 * 1024 * 1024) { // 100MB
+    if (stats.unusedSize > 100 * 1024 * 1024) {
+      // 100MB
       recs.push({
         id: 'cleanup-unused',
         type: 'storage',
@@ -282,14 +277,16 @@ const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({
         id: 'optimize-images',
         type: 'performance',
         title: 'Optimize Image Files',
-        description: 'You have many image files. Consider compressing them to reduce storage usage.',
+        description:
+          'You have many image files. Consider compressing them to reduce storage usage.',
         impact: 'medium',
         effort: 'medium',
         action: 'optimize',
       });
     }
 
-    if (stats.totalSize > 1024 * 1024 * 1024) { // 1GB
+    if (stats.totalSize > 1024 * 1024 * 1024) {
+      // 1GB
       recs.push({
         id: 'archive-old-files',
         type: 'storage',
@@ -335,19 +332,27 @@ const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({
 
   const getImpactColor = (impact: string) => {
     switch (impact) {
-      case 'high': return theme.colors.error;
-      case 'medium': return theme.colors.warning;
-      case 'low': return theme.colors.success;
-      default: return theme.colors.textSecondary;
+      case 'high':
+        return theme.colors.error;
+      case 'medium':
+        return theme.colors.warning;
+      case 'low':
+        return theme.colors.success;
+      default:
+        return theme.colors.textSecondary;
     }
   };
 
   const getEffortColor = (effort: string) => {
     switch (effort) {
-      case 'easy': return theme.colors.success;
-      case 'medium': return theme.colors.warning;
-      case 'hard': return theme.colors.error;
-      default: return theme.colors.textSecondary;
+      case 'easy':
+        return theme.colors.success;
+      case 'medium':
+        return theme.colors.warning;
+      case 'hard':
+        return theme.colors.error;
+      default:
+        return theme.colors.textSecondary;
     }
   };
 
@@ -398,7 +403,10 @@ const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({
         </Card>
         <Card style={styles.statCard}>
           <Text style={styles.statNumber}>
-            {usageStats.totalFiles > 0 ? (usageStats.usedFiles / usageStats.totalFiles * 100).toFixed(1) : 0}%
+            {usageStats.totalFiles > 0
+              ? ((usageStats.usedFiles / usageStats.totalFiles) * 100).toFixed(1)
+              : 0}
+            %
           </Text>
           <Text style={styles.statLabel}>Efficiency</Text>
         </Card>
@@ -414,11 +422,7 @@ const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({
         <Text style={styles.chartTitle}>Files by Type</Text>
         <View style={styles.typeStatsContainer}>
           {Object.entries(usageStats.typeStats).map(([type, count]) => (
-            <Chip
-              key={type}
-              mode="outlined"
-              style={styles.typeStatChip}
-            >
+            <Chip key={type} mode="outlined" style={styles.typeStatChip}>
               {type}: {count}
             </Chip>
           ))}
@@ -435,7 +439,7 @@ const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({
         <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: theme.spacing.md }}>
           Optimization Recommendations
         </Text>
-        {recommendations.map((recommendation) => (
+        {recommendations.map(recommendation => (
           <Card key={recommendation.id} style={styles.recommendationCard}>
             <Card.Content>
               <View style={styles.recommendationHeader}>
@@ -443,25 +447,29 @@ const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({
                 <View style={styles.recommendationChips}>
                   <Chip
                     mode="outlined"
-                    style={[styles.impactChip, { borderColor: getImpactColor(recommendation.impact) }]}
+                    style={[
+                      styles.impactChip,
+                      { borderColor: getImpactColor(recommendation.impact) },
+                    ]}
                     textStyle={{ color: getImpactColor(recommendation.impact), fontSize: 10 }}
                   >
                     {recommendation.impact.toUpperCase()}
                   </Chip>
                   <Chip
                     mode="outlined"
-                    style={[styles.effortChip, { borderColor: getEffortColor(recommendation.effort) }]}
+                    style={[
+                      styles.effortChip,
+                      { borderColor: getEffortColor(recommendation.effort) },
+                    ]}
                     textStyle={{ color: getEffortColor(recommendation.effort), fontSize: 10 }}
                   >
                     {recommendation.effort.toUpperCase()}
                   </Chip>
                 </View>
               </View>
-              
-              <Text style={styles.recommendationDescription}>
-                {recommendation.description}
-              </Text>
-              
+
+              <Text style={styles.recommendationDescription}>{recommendation.description}</Text>
+
               {recommendation.potentialSavings && (
                 <View style={styles.savingsContainer}>
                   <Text style={styles.savingsText}>
@@ -469,7 +477,7 @@ const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({
                   </Text>
                 </View>
               )}
-              
+
               <View style={styles.recommendationActions}>
                 <Text style={{ fontSize: 12, color: theme.colors.textSecondary }}>
                   {recommendation.type.toUpperCase()} • {recommendation.effort.toUpperCase()} EFFORT
@@ -501,7 +509,7 @@ const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({
         >
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{selectedRecommendation.title}</Text>
-            
+
             <View style={styles.modalSection}>
               <Text style={styles.modalSectionTitle}>Description</Text>
               <Text style={styles.modalText}>{selectedRecommendation.description}</Text>
@@ -510,7 +518,8 @@ const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({
             <View style={styles.modalSection}>
               <Text style={styles.modalSectionTitle}>Impact</Text>
               <Text style={styles.modalText}>
-                {selectedRecommendation.impact.toUpperCase()} impact • {selectedRecommendation.effort.toUpperCase()} effort
+                {selectedRecommendation.impact.toUpperCase()} impact •{' '}
+                {selectedRecommendation.effort.toUpperCase()} effort
               </Text>
             </View>
 
@@ -523,11 +532,20 @@ const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({
               </View>
             )}
 
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: theme.spacing.lg }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginTop: theme.spacing.lg,
+              }}
+            >
               <Button mode="outlined" onPress={() => setShowRecommendationModal(false)}>
                 Cancel
               </Button>
-              <Button mode="contained" onPress={() => executeRecommendation(selectedRecommendation)}>
+              <Button
+                mode="contained"
+                onPress={() => executeRecommendation(selectedRecommendation)}
+              >
                 Execute
               </Button>
             </View>
@@ -562,12 +580,7 @@ const MediaAnalyticsSection: React.FC<MediaAnalyticsSectionProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Media Analytics</Text>
-        <Button
-          mode="outlined"
-          onPress={loadAnalytics}
-          icon="refresh"
-          compact
-        >
+        <Button mode="outlined" onPress={loadAnalytics} icon="refresh" compact>
           Refresh
         </Button>
       </View>

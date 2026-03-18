@@ -92,12 +92,7 @@ export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({
     return (
       <View style={styles.container}>
         <Card style={styles.card}>
-          <MaterialIcons
-            name="lock"
-            size={60}
-            color={theme.colors.error}
-            style={styles.icon}
-          />
+          <MaterialIcons name="lock" size={60} color={theme.colors.error} style={styles.icon} />
           <Text style={styles.title}>Authentication Required</Text>
           <Text style={styles.message}>
             {fallbackMessage || 'Please sign in to access the admin dashboard'}
@@ -134,15 +129,9 @@ export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({
             You don't have administrative privileges to access this section.
           </Text>
           <View style={styles.roleInfo}>
-            <Text style={styles.roleText}>
-              Current role: {user.role || 'None'}
-            </Text>
+            <Text style={styles.roleText}>Current role: {user.role || 'None'}</Text>
           </View>
-          <Button
-            mode="outlined"
-            onPress={() => router.back()}
-            style={styles.button}
-          >
+          <Button mode="outlined" onPress={() => router.back()} style={styles.button}>
             Go Back
           </Button>
         </Card>
@@ -158,26 +147,13 @@ export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({
       return (
         <View style={styles.container}>
           <Card style={styles.card}>
-            <MaterialIcons
-              name="shield"
-              size={60}
-              color={theme.colors.error}
-              style={styles.icon}
-            />
+            <MaterialIcons name="shield" size={60} color={theme.colors.error} style={styles.icon} />
             <Text style={styles.title}>Insufficient Permissions</Text>
-            <Text style={styles.message}>
-              This section requires {requiredRole} role or higher.
-            </Text>
+            <Text style={styles.message}>This section requires {requiredRole} role or higher.</Text>
             <View style={styles.roleInfo}>
-              <Text style={styles.roleText}>
-                Current role: {user.role}
-              </Text>
+              <Text style={styles.roleText}>Current role: {user.role}</Text>
             </View>
-            <Button
-              mode="outlined"
-              onPress={() => router.back()}
-              style={styles.button}
-            >
+            <Button mode="outlined" onPress={() => router.back()} style={styles.button}>
               Go Back
             </Button>
           </Card>
@@ -213,11 +189,7 @@ export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({
                 Required permissions: {requiredPermissions.join(', ')}
               </Text>
             </View>
-            <Button
-              mode="outlined"
-              onPress={() => router.back()}
-              style={styles.button}
-            >
+            <Button mode="outlined" onPress={() => router.back()} style={styles.button}>
               Go Back
             </Button>
           </Card>

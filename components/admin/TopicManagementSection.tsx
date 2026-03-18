@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Alert,
-  FlatList,
-  Image,
-  RefreshControl,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, FlatList, Image, RefreshControl } from 'react-native';
 import {
   Text,
   Card,
@@ -42,9 +34,7 @@ interface TopicManagementSectionProps {
   onNavigate?: (section: string) => void;
 }
 
-const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
-  onNavigate
-}) => {
+const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({ onNavigate }) => {
   const { theme } = useTheme();
   const { checkPermission } = useAdminAuth();
   const router = useRouter();
@@ -271,10 +261,11 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
 
       // Filter by search query
       const filteredTopics = search
-        ? mockTopics.filter(topic =>
-          topic.name.toLowerCase().includes(search.toLowerCase()) ||
-          topic.description?.toLowerCase().includes(search.toLowerCase())
-        )
+        ? mockTopics.filter(
+            topic =>
+              topic.name.toLowerCase().includes(search.toLowerCase()) ||
+              topic.description?.toLowerCase().includes(search.toLowerCase())
+          )
         : mockTopics;
 
       setTopics(filteredTopics);
@@ -328,7 +319,10 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
     try {
       setSermonsLoading(true);
       setSermonsError(null);
-      const sermonsData = await AdminService.getSermonsForAssignment(200, sermonSearchQuery || undefined);
+      const sermonsData = await AdminService.getSermonsForAssignment(
+        200,
+        sermonSearchQuery || undefined
+      );
       setSermons(sermonsData);
     } catch (err) {
       setSermonsError(err instanceof Error ? err.message : 'Failed to load sermons');
@@ -355,14 +349,16 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
       await AdminService.assignSermonToTopics(sermonId, topicIds);
 
       // Update local state
-      setSermons(prev => prev.map(sermon =>
-        sermon.id === sermonId
-          ? {
-            ...sermon,
-            topics: allTopics.filter(t => topicIds.includes(t.id))
-          }
-          : sermon
-      ));
+      setSermons(prev =>
+        prev.map(sermon =>
+          sermon.id === sermonId
+            ? {
+                ...sermon,
+                topics: allTopics.filter(t => topicIds.includes(t.id)),
+              }
+            : sermon
+        )
+      );
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Failed to assign topics');
     } finally {
@@ -412,33 +408,21 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
       ) : sermonsError ? (
         <Card style={styles.sermonCard}>
           <Card.Content>
-            <Text style={{ color: theme.colors.error, textAlign: 'center' }}>
-              {sermonsError}
-            </Text>
-            <Button
-              mode="outlined"
-              onPress={loadSermons}
-              style={{ marginTop: theme.spacing.md }}
-            >
+            <Text style={{ color: theme.colors.error, textAlign: 'center' }}>{sermonsError}</Text>
+            <Button mode="outlined" onPress={loadSermons} style={{ marginTop: theme.spacing.md }}>
               Retry
             </Button>
           </Card.Content>
         </Card>
       ) : sermons.length === 0 ? (
         <View style={styles.emptyState}>
-          <MaterialIcons
-            name="music-note"
-            size={48}
-            color={theme.colors.textSecondary}
-          />
-          <Text style={styles.emptyText}>
-            No sermons found.
-          </Text>
+          <MaterialIcons name="music-note" size={48} color={theme.colors.textSecondary} />
+          <Text style={styles.emptyText}>No sermons found.</Text>
         </View>
       ) : (
         <FlatList
           data={sermons}
-          keyExtractor={(item) => item.id}
+          keyExtractor={item => item.id}
           renderItem={({ item: sermon }) => {
             const currentTopicIds = (sermon.topics || []).map(t => t.id);
             return (
@@ -466,11 +450,7 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
                       </Text>
                       {currentTopicIds.length > 0 && (
                         <View style={styles.topicsBadge}>
-                          <Chip
-                            icon="label"
-                            compact
-                            style={{ alignSelf: 'flex-start' }}
-                          >
+                          <Chip icon="label" compact style={{ alignSelf: 'flex-start' }}>
                             {currentTopicIds.length} topic{currentTopicIds.length !== 1 ? 's' : ''}
                           </Chip>
                         </View>
@@ -481,7 +461,7 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
                     <CustomDropdown
                       options={allTopics.map(t => ({ id: t.id, label: t.name, value: t.id }))}
                       selectedValues={currentTopicIds}
-                      onMultiSelect={(values) => handleTopicsAssignment(sermon.id, values)}
+                      onMultiSelect={values => handleTopicsAssignment(sermon.id, values)}
                       placeholder="Select Topics"
                       variant="dark"
                       multiSelect={true}
@@ -491,9 +471,7 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
               </Card>
             );
           }}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           contentContainerStyle={{ paddingBottom: theme.spacing.xl }}
         />
       )}
@@ -511,7 +489,7 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
       <View style={styles.tabContainer}>
         <SegmentedButtons
           value={activeTab}
-          onValueChange={(value) => setActiveTab(value as 'manage' | 'assign')}
+          onValueChange={value => setActiveTab(value as 'manage' | 'assign')}
           buttons={[
             { value: 'manage', label: 'Manage Topics' },
             { value: 'assign', label: 'Assign Sermons' },
@@ -554,7 +532,13 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
             ) : error ? (
               <Card style={styles.errorCard} elevation={1}>
                 <View style={styles.errorContent}>
-                  <Text style={{ color: theme.colors.error, textAlign: 'center', marginBottom: theme.spacing.md }}>
+                  <Text
+                    style={{
+                      color: theme.colors.error,
+                      textAlign: 'center',
+                      marginBottom: theme.spacing.md,
+                    }}
+                  >
                     {error}
                   </Text>
                   <Button
@@ -568,17 +552,13 @@ const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({
               </Card>
             ) : topics.length === 0 ? (
               <View style={styles.emptyState}>
-                <MaterialIcons
-                  name="label-outline"
-                  size={48}
-                  color={theme.colors.textSecondary}
-                />
+                <MaterialIcons name="label-outline" size={48} color={theme.colors.textSecondary} />
                 <Text style={styles.emptyText}>
                   No topics found. {canCreate && 'Create your first one!'}
                 </Text>
               </View>
             ) : (
-              topics.map((topic) => (
+              topics.map(topic => (
                 <Card key={topic.id} style={styles.topicCard} elevation={2}>
                   <Card.Content style={{ padding: theme.spacing.md }}>
                     <View style={styles.topicHeader}>

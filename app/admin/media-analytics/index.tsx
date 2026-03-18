@@ -1,33 +1,16 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Appbar } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import MediaAnalyticsSection from '@/components/admin/MediaAnalyticsSection';
 import { useRouter } from 'expo-router';
+import { HeaderBar } from '@/components/admin/ui';
 
 export default function MediaAnalyticsPage() {
   const { theme } = useTheme();
   const router = useRouter();
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    header: {
-      backgroundColor: theme.colors.surface,
-      elevation: 4,
-    },
-    content: {
-      flex: 1,
-      padding: theme.spacing.md,
-    },
-  });
-
   const handleOptimizationAction = (action: string, data: any) => {
-    console.log('Optimization action:', action, data);
-    
     switch (action) {
       case 'cleanup':
         router.push('/admin/media-cleanup');
@@ -36,11 +19,9 @@ export default function MediaAnalyticsPage() {
         router.push('/admin/media');
         break;
       case 'optimize':
-        // Handle image optimization
         console.log('Image optimization not implemented yet');
         break;
       case 'archive':
-        // Handle file archiving
         console.log('File archiving not implemented yet');
         break;
       case 'organize':
@@ -53,11 +34,8 @@ export default function MediaAnalyticsPage() {
 
   return (
     <AdminAuthGuard>
-      <View style={styles.container}>
-        <Appbar.Header style={styles.header}>
-          <Appbar.BackAction onPress={() => router.back()} />
-          <Appbar.Content title="Media Analytics" />
-        </Appbar.Header>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <HeaderBar title="Media Analytics" backButton />
         <View style={styles.content}>
           <MediaAnalyticsSection onOptimizationAction={handleOptimizationAction} />
         </View>
@@ -65,3 +43,13 @@ export default function MediaAnalyticsPage() {
     </AdminAuthGuard>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+});

@@ -1,41 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Pressable, useWindowDimensions, Platform } from 'react-native';
-import { Text, Avatar } from 'react-native-paper';
+import { View, StyleSheet, Pressable } from 'react-native';
+import { Text } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { AdminAuthGuard, useAdminAuth } from '@/components/admin/AdminAuthGuard';
 import { getAvailableSections } from '@/lib/admin/rolePermissions';
 import { AdminRole } from '@/types/admin';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AdminLayout, HeaderBar, DashboardCard, EmptyState, Skeleton } from '@/components/admin/ui';
 
-// Section accent colors for visual differentiation
 const SECTION_COLORS: Record<string, string> = {
-  overview: '#3B82F6',    // Blue
-  content: '#10B981',     // Emerald
-  'topics-series': '#8B5CF6', // Purple
-  users: '#F59E0B',       // Amber
-  media: '#EC4899',       // Pink
-  analytics: '#06B6D4',   // Cyan
-  notifications: '#EF4444', // Red
-  carousel: '#F97316',    // Orange
+  overview: '#3B82F6',
+  content: '#10B981',
+  'topics-series': '#8B5CF6',
+  users: '#F59E0B',
+  media: '#EC4899',
+  analytics: '#06B6D4',
+  notifications: '#EF4444',
+  carousel: '#F97316',
 };
 
 export default function AdminIndex() {
   const { theme } = useTheme();
   const { user } = useAdminAuth();
   const router = useRouter();
-  const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
-  const isTablet = width >= 768;
 
   const [availableSections, setAvailableSections] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user?.role) {
       const mappedRole = user.role === 'admin' ? 'super_admin' : user.role;
       const sections = getAvailableSections(mappedRole as AdminRole);
       setAvailableSections(sections);
+      setLoading(false);
     }
   }, [user?.role]);
 
@@ -55,231 +53,169 @@ export default function AdminIndex() {
 
   const handleNavigation = (sectionId: string) => {
     const routeMap: Record<string, string> = {
-      'overview': '/admin/overview',
-      'content': '/admin/content',
+      overview: '/admin/overview',
+      content: '/admin/content',
       'topics-series': '/admin/topics-series',
-      'users': '/admin/users',
-      'analytics': '/admin/analytics',
-      'notifications': '/admin/notifications',
-      'carousel': '/admin/carousel',
+      users: '/admin/users',
+      media: '/admin/media',
+      analytics: '/admin/analytics',
+      notifications: '/admin/notifications',
+      carousel: '/admin/carousel',
     };
     const route = routeMap[sectionId] || `/admin/${sectionId}`;
     router.push(route);
   };
 
-  const userInitials = React.useMemo(() => {
-    const f = user?.firstName?.charAt(0) || '';
-    const l = user?.lastName?.charAt(0) || '';
-    return (f + l).toUpperCase() || 'A';
-  }, [user?.firstName, user?.lastName]);
-
   return (
     <AdminAuthGuard>
-      <View style={[staticStyles.container, { backgroundColor: theme.colors.background }]}>
-        {/* Header */}
-        <View
-          style={[
-            staticStyles.header,
-            {
-              backgroundColor: theme.colors.primary,
-              paddingTop: Platform.select({
-                ios: Math.max(insets.top, 20) + 8,
-                android: 16,
-              }),
-            },
-          ]}
-        >
-          <TouchableOpacity
-            style={staticStyles.backButton}
-            onPress={() => router.back()}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="arrow-back" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+      <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <HeaderBar
+          title="Admin Dashboard"
+          subtitle={user?.role === 'admin' ? 'Super Admin' : 'Moderator'}
+          backButton
+        />
 
-          <View style={staticStyles.headerCenter}>
-            <Text style={{ ...theme.typography.titleLarge, color: '#FFFFFF' }}>
-              Admin Panel
+        <View style={styles.content}>
+          <DashboardCard style={styles.welcomeCard}>
+            <Text style={{ ...theme.typography.headlineMedium, color: theme.colors.text }}>
+              Welcome back, {user?.firstName || 'Admin'} 👋
             </Text>
-            <Text style={{ ...theme.typography.caption, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>
-              {user?.role === 'admin' ? 'Super Admin' : 'Moderator'}
+            <Text
+              style={{
+                ...theme.typography.bodyMedium,
+                color: theme.colors.textSecondary,
+                marginTop: 4,
+              }}
+            >
+              Manage app content, users, media, and settings from this central dashboard.
             </Text>
-          </View>
+          </DashboardCard>
 
-          <Avatar.Text
-            size={36}
-            label={userInitials}
-            style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-            labelStyle={{ color: '#FFFFFF', ...theme.typography.labelMedium }}
-          />
-        </View>
-
-        {/* Section Cards */}
-        <ScrollView
-          style={staticStyles.scrollView}
-          contentContainerStyle={[
-            staticStyles.scrollContent,
-            { padding: theme.spacing.md },
-          ]}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Welcome card */}
-          <View
+          <Text
             style={[
-              staticStyles.welcomeCard,
-              {
-                backgroundColor: theme.colors.surfaceElevated,
-                borderRadius: theme.borderRadius.lg,
-                borderWidth: 1,
-                borderColor: theme.colors.cardBorder,
-                padding: theme.spacing.lg,
-                marginBottom: theme.spacing.lg,
-                ...theme.shadows.small,
-              },
+              styles.sectionTitle,
+              { ...theme.typography.titleMedium, color: theme.colors.textSecondary },
             ]}
           >
-            <Text style={{ ...theme.typography.headlineSmall, color: theme.colors.text }}>
-              👋 Welcome, {user?.firstName || 'Admin'}
-            </Text>
-            <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.xs }}>
-              Manage your app's content, users, and settings from here.
-            </Text>
-          </View>
-
-          {/* Section title */}
-          <Text style={{ ...theme.typography.labelLarge, color: theme.colors.textTertiary, marginBottom: theme.spacing.sm, textTransform: 'uppercase', letterSpacing: 1 }}>
-            Sections
+            Available Modules
           </Text>
 
-          {availableSections.length === 0 ? (
-            <View style={[staticStyles.emptyContainer, { padding: theme.spacing.xl }]}>
-              <MaterialIcons name="hourglass-empty" size={48} color={theme.colors.textTertiary} />
-              <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.sm }}>
-                Loading admin sections...
-              </Text>
+          {loading ? (
+            <View style={styles.grid}>
+              {[1, 2, 3, 4].map(i => (
+                <View key={i} style={styles.skeletonCard}>
+                  <Skeleton width={48} height={48} borderRadius={12} style={{ marginRight: 16 }} />
+                  <View style={{ flex: 1 }}>
+                    <Skeleton width="60%" height={20} style={{ marginBottom: 8 }} />
+                    <Skeleton width="80%" height={14} />
+                  </View>
+                </View>
+              ))}
             </View>
+          ) : availableSections.length === 0 ? (
+            <EmptyState
+              icon="lock-outline"
+              title="No Access"
+              description="You do not have permission to view any admin modules."
+            />
           ) : (
-            <View style={[staticStyles.grid, { gap: theme.spacing.sm }]}>
-              {availableSections.map((section) => {
+            <View style={styles.grid}>
+              {availableSections.map(section => {
                 const accentColor = SECTION_COLORS[section.id] || theme.colors.primary;
                 return (
                   <Pressable
                     key={section.id}
                     onPress={() => handleNavigation(section.id)}
                     style={({ pressed }) => [
-                      staticStyles.sectionCard,
+                      styles.sectionCard,
                       {
                         backgroundColor: theme.colors.surfaceElevated,
-                        borderRadius: theme.borderRadius.lg,
-                        borderWidth: 1,
-                        borderColor: pressed ? accentColor + '50' : theme.colors.cardBorder,
-                        padding: theme.spacing.md,
+                        borderColor: pressed ? accentColor : theme.colors.cardBorder,
+                        transform: [{ scale: pressed ? 0.98 : 1 }],
                         opacity: pressed ? 0.9 : 1,
                         ...theme.shadows.small,
-                        transform: [{ scale: pressed ? 0.98 : 1 }],
                       },
                     ]}
                   >
-                    {/* Icon circle */}
-                    <View
-                      style={[
-                        staticStyles.iconCircle,
-                        {
-                          backgroundColor: accentColor + '15',
-                          borderRadius: theme.borderRadius.md,
-                        },
-                      ]}
-                    >
+                    <View style={[styles.iconCircle, { backgroundColor: accentColor + '15' }]}>
                       <MaterialIcons
                         name={getIconName(section.icon)}
-                        size={24}
+                        size={28}
                         color={accentColor}
                       />
                     </View>
-
-                    {/* Content */}
-                    <View style={staticStyles.sectionContent}>
+                    <View style={styles.sectionContent}>
                       <Text
-                        style={{ ...theme.typography.titleSmall, color: theme.colors.text }}
+                        style={{ ...theme.typography.titleMedium, color: theme.colors.text }}
                         numberOfLines={1}
                       >
                         {section.title}
                       </Text>
                       <Text
-                        style={{ ...theme.typography.caption, color: theme.colors.textSecondary, marginTop: 2 }}
+                        style={{
+                          ...theme.typography.bodySmall,
+                          color: theme.colors.textSecondary,
+                          marginTop: 4,
+                        }}
                         numberOfLines={2}
                       >
                         {section.description}
                       </Text>
                     </View>
-
-                    {/* Chevron */}
-                    <MaterialIcons
-                      name="chevron-right"
-                      size={20}
-                      color={theme.colors.textTertiary}
-                    />
+                    <MaterialIcons name="chevron-right" size={24} color={theme.colors.border} />
                   </Pressable>
                 );
               })}
             </View>
           )}
-
-          {/* Bottom spacer */}
-          <View style={{ height: theme.spacing.xxl }} />
-        </ScrollView>
+        </View>
       </View>
     </AdminAuthGuard>
   );
 }
 
-const staticStyles = StyleSheet.create({
-  container: {
-    flex: 1,
+const styles = StyleSheet.create({
+  content: {
+    padding: 16,
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+  welcomeCard: {
+    marginBottom: 24,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+    elevation: 0,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  headerCenter: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {},
-  welcomeCard: {},
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  sectionTitle: {
+    marginBottom: 16,
+    marginLeft: 4,
   },
   grid: {
-    flexDirection: 'column',
+    gap: 12,
   },
   sectionCard: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  skeletonCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
   },
   iconCircle: {
-    width: 48,
-    height: 48,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 16,
   },
   sectionContent: {
     flex: 1,
-    marginRight: 8,
+    marginRight: 16,
   },
 });

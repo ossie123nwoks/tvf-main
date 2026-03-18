@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Dimensions,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import {
   Text,
   Card,
@@ -40,18 +35,18 @@ interface UserAnalyticsSectionProps {
 
 const { width } = Dimensions.get('window');
 
-const UserAnalyticsSection: React.FC<UserAnalyticsSectionProps> = ({
-  onUserSelect,
-}) => {
+const UserAnalyticsSection: React.FC<UserAnalyticsSectionProps> = ({ onUserSelect }) => {
   const { theme } = useTheme();
-  
+
   // State management
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTimeRange, setSelectedTimeRange] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
-  const [sortBy, setSortBy] = useState<'activity' | 'sermons' | 'articles' | 'downloads'>('activity');
-  
+  const [sortBy, setSortBy] = useState<'activity' | 'sermons' | 'articles' | 'downloads'>(
+    'activity'
+  );
+
   // Analytics data
   const [analytics, setAnalytics] = useState({
     totalUsers: 0,
@@ -274,32 +269,42 @@ const UserAnalyticsSection: React.FC<UserAnalyticsSectionProps> = ({
 
       // Calculate analytics
       const totalUsers = result.users.length;
-      const activeUsers = result.users.filter(user => 
-        user.engagement && user.engagement.lastActivityAt && 
-        new Date(user.engagement.lastActivityAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      const activeUsers = result.users.filter(
+        user =>
+          user.engagement &&
+          user.engagement.lastActivityAt &&
+          new Date(user.engagement.lastActivityAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       ).length;
 
-      const totalSermonsListened = result.users.reduce((sum, user) => 
-        sum + (user.engagement?.totalSermonsListened || 0), 0
+      const totalSermonsListened = result.users.reduce(
+        (sum, user) => sum + (user.engagement?.totalSermonsListened || 0),
+        0
       );
-      const totalArticlesRead = result.users.reduce((sum, user) => 
-        sum + (user.engagement?.totalArticlesRead || 0), 0
+      const totalArticlesRead = result.users.reduce(
+        (sum, user) => sum + (user.engagement?.totalArticlesRead || 0),
+        0
       );
-      const totalDownloads = result.users.reduce((sum, user) => 
-        sum + (user.engagement?.totalDownloads || 0), 0
+      const totalDownloads = result.users.reduce(
+        (sum, user) => sum + (user.engagement?.totalDownloads || 0),
+        0
       );
 
-      const averageSessionDuration = result.users.reduce((sum, user) => 
-        sum + (user.engagement?.averageSessionDuration || 0), 0
-      ) / totalUsers;
+      const averageSessionDuration =
+        result.users.reduce(
+          (sum, user) => sum + (user.engagement?.averageSessionDuration || 0),
+          0
+        ) / totalUsers;
 
       // Sort users by selected criteria
       const sortedUsers = [...result.users].sort((a, b) => {
         if (!a.engagement || !b.engagement) return 0;
-        
+
         switch (sortBy) {
           case 'activity':
-            return new Date(b.engagement.lastActivityAt).getTime() - new Date(a.engagement.lastActivityAt).getTime();
+            return (
+              new Date(b.engagement.lastActivityAt).getTime() -
+              new Date(a.engagement.lastActivityAt).getTime()
+            );
           case 'sermons':
             return b.engagement.totalSermonsListened - a.engagement.totalSermonsListened;
           case 'articles':
@@ -377,7 +382,7 @@ const UserAnalyticsSection: React.FC<UserAnalyticsSectionProps> = ({
                   #{index + 1} {user.first_name} {user.last_name}
                 </Text>
                 <Text style={styles.userEmail}>{user.email}</Text>
-                
+
                 {user.engagement && (
                   <View style={styles.engagementStats}>
                     <View style={styles.engagementItem}>
@@ -393,9 +398,7 @@ const UserAnalyticsSection: React.FC<UserAnalyticsSectionProps> = ({
                       <Text style={styles.engagementLabel}>Articles</Text>
                     </View>
                     <View style={styles.engagementItem}>
-                      <Text style={styles.engagementNumber}>
-                        {user.engagement.totalDownloads}
-                      </Text>
+                      <Text style={styles.engagementNumber}>{user.engagement.totalDownloads}</Text>
                       <Text style={styles.engagementLabel}>Downloads</Text>
                     </View>
                     <View style={styles.engagementItem}>
@@ -450,12 +453,7 @@ const UserAnalyticsSection: React.FC<UserAnalyticsSectionProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>User Analytics</Text>
-        <Button
-          mode="outlined"
-          onPress={loadUsersWithAnalytics}
-          icon="refresh"
-          compact
-        >
+        <Button mode="outlined" onPress={loadUsersWithAnalytics} icon="refresh" compact>
           Refresh
         </Button>
       </View>
@@ -463,7 +461,7 @@ const UserAnalyticsSection: React.FC<UserAnalyticsSectionProps> = ({
       {/* Controls */}
       <View style={styles.controls}>
         <Text style={styles.controlLabel}>Time Range:</Text>
-        {(['7d', '30d', '90d', 'all'] as const).map((range) => (
+        {(['7d', '30d', '90d', 'all'] as const).map(range => (
           <Chip
             key={range}
             selected={selectedTimeRange === range}
@@ -474,9 +472,9 @@ const UserAnalyticsSection: React.FC<UserAnalyticsSectionProps> = ({
             {range === 'all' ? 'All Time' : range}
           </Chip>
         ))}
-        
+
         <Text style={styles.controlLabelSpacer}>Sort by:</Text>
-        {(['activity', 'sermons', 'articles', 'downloads'] as const).map((sort) => (
+        {(['activity', 'sermons', 'articles', 'downloads'] as const).map(sort => (
           <Chip
             key={sort}
             selected={sortBy === sort}
@@ -523,7 +521,9 @@ const UserAnalyticsSection: React.FC<UserAnalyticsSectionProps> = ({
         </Card>
         <Card style={styles.statCard} elevation={2}>
           <View style={styles.statCardContent}>
-            <Text style={styles.statNumber}>{formatDuration(analytics.averageSessionDuration)}</Text>
+            <Text style={styles.statNumber}>
+              {formatDuration(analytics.averageSessionDuration)}
+            </Text>
             <Text style={styles.statLabel}>Avg Session</Text>
           </View>
         </Card>
@@ -532,17 +532,13 @@ const UserAnalyticsSection: React.FC<UserAnalyticsSectionProps> = ({
       {/* Top Users */}
       <Card style={styles.chartContainer} elevation={2}>
         <Text style={styles.chartTitle}>Top Users by Engagement</Text>
-        <ScrollView 
+        <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.chartScrollContent}
         >
           {analytics.topUsers.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <MaterialIcons
-                name="analytics"
-                size={64}
-                color={theme.colors.textSecondary}
-              />
+              <MaterialIcons name="analytics" size={64} color={theme.colors.textSecondary} />
               <Text style={styles.emptyText}>No user data available</Text>
             </View>
           ) : (

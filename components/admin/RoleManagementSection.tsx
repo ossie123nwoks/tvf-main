@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Alert,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import {
   Text,
   Card,
@@ -43,9 +38,7 @@ interface RoleManagementSectionProps {
   onUserSelect?: (user: User) => void;
 }
 
-const RoleManagementSection: React.FC<RoleManagementSectionProps> = ({
-  onUserSelect,
-}) => {
+const RoleManagementSection: React.FC<RoleManagementSectionProps> = ({ onUserSelect }) => {
   const { theme } = useTheme();
 
   // State management
@@ -249,9 +242,7 @@ const RoleManagementSection: React.FC<RoleManagementSectionProps> = ({
       });
 
       // Update local state
-      setUsers(prev => prev.map(u =>
-        u.id === user.id ? { ...u, role: newRole } : u
-      ));
+      setUsers(prev => prev.map(u => (u.id === user.id ? { ...u, role: newRole } : u)));
 
       setRoleChangeModal(false);
       setSelectedUserForRoleChange(null);
@@ -290,9 +281,9 @@ const RoleManagementSection: React.FC<RoleManagementSectionProps> = ({
       });
 
       // Update local state
-      setUsers(prev => prev.map(user =>
-        selectedUsers.has(user.id) ? { ...user, role: newRole } : user
-      ));
+      setUsers(prev =>
+        prev.map(user => (selectedUsers.has(user.id) ? { ...user, role: newRole } : user))
+      );
 
       setSelectedUsers(new Set());
       setBulkActionMode(false);
@@ -323,19 +314,27 @@ const RoleManagementSection: React.FC<RoleManagementSectionProps> = ({
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'admin': return theme.colors.primary;
-      case 'moderator': return theme.colors.secondary;
-      case 'member': return theme.colors.textSecondary;
-      default: return theme.colors.textSecondary;
+      case 'admin':
+        return theme.colors.primary;
+      case 'moderator':
+        return theme.colors.secondary;
+      case 'member':
+        return theme.colors.textSecondary;
+      default:
+        return theme.colors.textSecondary;
     }
   };
 
   const getRoleDisplayName = (role: string) => {
     switch (role) {
-      case 'admin': return 'Super Admin';
-      case 'moderator': return 'Moderator';
-      case 'member': return 'Member';
-      default: return role;
+      case 'admin':
+        return 'Super Admin';
+      case 'moderator':
+        return 'Moderator';
+      case 'member':
+        return 'Member';
+      default:
+        return role;
     }
   };
 
@@ -348,20 +347,19 @@ const RoleManagementSection: React.FC<RoleManagementSectionProps> = ({
       >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>
-            Change Role for {selectedUserForRoleChange?.first_name} {selectedUserForRoleChange?.last_name}
+            Change Role for {selectedUserForRoleChange?.first_name}{' '}
+            {selectedUserForRoleChange?.last_name}
           </Text>
 
           <RadioButton.Group
-            onValueChange={(value) => setNewRole(value as AdminRole)}
+            onValueChange={value => setNewRole(value as AdminRole)}
             value={newRole}
           >
             <View style={styles.roleOption}>
               <RadioButton value="member" />
               <View style={styles.roleOptionText}>
                 <Text>Member</Text>
-                <Text style={styles.permissionDescription}>
-                  Basic user access
-                </Text>
+                <Text style={styles.permissionDescription}>Basic user access</Text>
               </View>
             </View>
 
@@ -379,20 +377,26 @@ const RoleManagementSection: React.FC<RoleManagementSectionProps> = ({
               <RadioButton value="super_admin" />
               <View style={styles.roleOptionText}>
                 <Text>Super Admin</Text>
-                <Text style={styles.permissionDescription}>
-                  Full access to all features
-                </Text>
+                <Text style={styles.permissionDescription}>Full access to all features</Text>
               </View>
             </View>
           </RadioButton.Group>
 
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: theme.spacing.lg }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              marginTop: theme.spacing.lg,
+            }}
+          >
             <Button mode="outlined" onPress={() => setRoleChangeModal(false)}>
               Cancel
             </Button>
             <Button
               mode="contained"
-              onPress={() => selectedUserForRoleChange && handleRoleChange(selectedUserForRoleChange, newRole)}
+              onPress={() =>
+                selectedUserForRoleChange && handleRoleChange(selectedUserForRoleChange, newRole)
+              }
             >
               Update Role
             </Button>
@@ -416,7 +420,8 @@ const RoleManagementSection: React.FC<RoleManagementSectionProps> = ({
         >
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              Permissions for {selectedUserForPermissions.first_name} {selectedUserForPermissions.last_name}
+              Permissions for {selectedUserForPermissions.first_name}{' '}
+              {selectedUserForPermissions.last_name}
             </Text>
 
             <Text style={{ marginBottom: theme.spacing.md, color: theme.colors.textSecondary }}>
@@ -424,7 +429,7 @@ const RoleManagementSection: React.FC<RoleManagementSectionProps> = ({
             </Text>
 
             <ScrollView style={{ maxHeight: 300 }}>
-              {permissions.map((permission) => (
+              {permissions.map(permission => (
                 <View key={permission.id} style={styles.permissionItem}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.permissionName}>{permission.name}</Text>
@@ -454,10 +459,7 @@ const RoleManagementSection: React.FC<RoleManagementSectionProps> = ({
     return (
       <Card
         key={user.id}
-        style={[
-          styles.userCard,
-          isSelected && styles.selectedUser,
-        ]}
+        style={[styles.userCard, isSelected && styles.selectedUser]}
         onPress={() => {
           if (bulkActionMode) {
             toggleUserSelection(user.id);
@@ -551,7 +553,7 @@ const RoleManagementSection: React.FC<RoleManagementSectionProps> = ({
       <View style={styles.header}>
         <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Role Management</Text>
         <Button
-          mode={bulkActionMode ? "contained" : "outlined"}
+          mode={bulkActionMode ? 'contained' : 'outlined'}
           onPress={() => {
             setBulkActionMode(!bulkActionMode);
             if (bulkActionMode) {
@@ -606,9 +608,7 @@ const RoleManagementSection: React.FC<RoleManagementSectionProps> = ({
       {bulkActionMode && (
         <View style={styles.bulkActions}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={{ marginRight: theme.spacing.md }}>
-              {selectedUsers.size} selected
-            </Text>
+            <Text style={{ marginRight: theme.spacing.md }}>{selectedUsers.size} selected</Text>
             <Button mode="outlined" onPress={selectAllUsers}>
               Select All
             </Button>
@@ -619,25 +619,13 @@ const RoleManagementSection: React.FC<RoleManagementSectionProps> = ({
 
           {selectedUsers.size > 0 && (
             <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-              <Button
-                mode="outlined"
-                onPress={() => handleBulkRoleChange('member')}
-                compact
-              >
+              <Button mode="outlined" onPress={() => handleBulkRoleChange('member')} compact>
                 Make Members
               </Button>
-              <Button
-                mode="outlined"
-                onPress={() => handleBulkRoleChange('moderator')}
-                compact
-              >
+              <Button mode="outlined" onPress={() => handleBulkRoleChange('moderator')} compact>
                 Make Moderators
               </Button>
-              <Button
-                mode="outlined"
-                onPress={() => handleBulkRoleChange('super_admin')}
-                compact
-              >
+              <Button mode="outlined" onPress={() => handleBulkRoleChange('super_admin')} compact>
                 Make Admins
               </Button>
             </View>
@@ -649,14 +637,8 @@ const RoleManagementSection: React.FC<RoleManagementSectionProps> = ({
       <ScrollView showsVerticalScrollIndicator={false}>
         {users.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <MaterialIcons
-              name="people-outline"
-              size={64}
-              color={theme.colors.textSecondary}
-            />
-            <Text style={styles.emptyText}>
-              No users found for the selected role
-            </Text>
+            <MaterialIcons name="people-outline" size={64} color={theme.colors.textSecondary} />
+            <Text style={styles.emptyText}>No users found for the selected role</Text>
           </View>
         ) : (
           users.map(renderUserCard)

@@ -61,14 +61,14 @@ export default function AdminSidebar() {
 
   const handleNavigation = (sectionId: string) => {
     const routeMap: Record<string, string> = {
-      'overview': '/admin/overview',
-      'content': '/admin/content',
+      overview: '/admin/overview',
+      content: '/admin/content',
       'topics-series': '/admin/topics-series',
-      'users': '/admin/users',
-      'media': '/admin/media',
-      'analytics': '/admin/analytics',
-      'notifications': '/admin/notifications',
-      'carousel': '/admin/carousel',
+      users: '/admin/users',
+      media: '/admin/media',
+      analytics: '/admin/analytics',
+      notifications: '/admin/notifications',
+      carousel: '/admin/carousel',
     };
     const route = routeMap[sectionId] || `/admin/${sectionId}`;
     router.push(route);
@@ -116,7 +116,12 @@ export default function AdminSidebar() {
             <Text style={{ ...theme.typography.titleSmall, color: '#FFFFFF' }} numberOfLines={1}>
               {user?.firstName} {user?.lastName}
             </Text>
-            <View style={[staticStyles.roleBadge, { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: theme.borderRadius.xs }]}>
+            <View
+              style={[
+                staticStyles.roleBadge,
+                { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: theme.borderRadius.xs },
+              ]}
+            >
               <Text style={{ ...theme.typography.labelSmall, color: 'rgba(255,255,255,0.9)' }}>
                 {user?.role === 'admin' ? 'Super Admin' : 'Moderator'}
               </Text>
@@ -126,7 +131,10 @@ export default function AdminSidebar() {
 
         {/* Home button */}
         <TouchableOpacity
-          style={[staticStyles.homeButton, { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: theme.borderRadius.md }]}
+          style={[
+            staticStyles.homeButton,
+            { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: theme.borderRadius.md },
+          ]}
           onPress={() => router.push('/(tabs)/dashboard')}
           activeOpacity={0.7}
         >
@@ -146,13 +154,23 @@ export default function AdminSidebar() {
               paddingVertical: theme.spacing.sm + 2,
               borderLeftWidth: 3,
               borderLeftColor: pathname === '/admin' ? theme.colors.primary : 'transparent',
-              backgroundColor: pathname === '/admin' ? theme.colors.primaryContainer : 'transparent',
+              backgroundColor:
+                pathname === '/admin' ? theme.colors.primaryContainer : 'transparent',
             },
           ]}
           onPress={() => router.push('/admin')}
           activeOpacity={0.7}
         >
-          <View style={[staticStyles.navIcon, { backgroundColor: (pathname === '/admin' ? theme.colors.primary : theme.colors.textTertiary) + '15', borderRadius: theme.borderRadius.sm }]}>
+          <View
+            style={[
+              staticStyles.navIcon,
+              {
+                backgroundColor:
+                  (pathname === '/admin' ? theme.colors.primary : theme.colors.textTertiary) + '15',
+                borderRadius: theme.borderRadius.sm,
+              },
+            ]}
+          >
             <MaterialIcons
               name="apps"
               size={20}
@@ -160,7 +178,12 @@ export default function AdminSidebar() {
             />
           </View>
           <View style={staticStyles.navContent}>
-            <Text style={{ ...theme.typography.titleSmall, color: pathname === '/admin' ? theme.colors.primary : theme.colors.text }}>
+            <Text
+              style={{
+                ...theme.typography.titleSmall,
+                color: pathname === '/admin' ? theme.colors.primary : theme.colors.text,
+              }}
+            >
               Admin Home
             </Text>
             <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary }}>
@@ -170,10 +193,19 @@ export default function AdminSidebar() {
         </TouchableOpacity>
 
         {/* Divider */}
-        <View style={[staticStyles.navDivider, { backgroundColor: theme.colors.borderLight, marginHorizontal: theme.spacing.md, marginVertical: theme.spacing.xs }]} />
+        <View
+          style={[
+            staticStyles.navDivider,
+            {
+              backgroundColor: theme.colors.borderLight,
+              marginHorizontal: theme.spacing.md,
+              marginVertical: theme.spacing.xs,
+            },
+          ]}
+        />
 
         {/* Section Items */}
-        {availableSections.map((section) => {
+        {availableSections.map(section => {
           const active = isActive(section.id);
           const accentColor = SECTION_COLORS[section.id] || theme.colors.primary;
           return (
@@ -192,7 +224,12 @@ export default function AdminSidebar() {
               onPress={() => handleNavigation(section.id)}
               activeOpacity={0.7}
             >
-              <View style={[staticStyles.navIcon, { backgroundColor: accentColor + '15', borderRadius: theme.borderRadius.sm }]}>
+              <View
+                style={[
+                  staticStyles.navIcon,
+                  { backgroundColor: accentColor + '15', borderRadius: theme.borderRadius.sm },
+                ]}
+              >
                 <MaterialIcons
                   name={getIconName(section.icon)}
                   size={20}
@@ -201,12 +238,18 @@ export default function AdminSidebar() {
               </View>
               <View style={staticStyles.navContent}>
                 <Text
-                  style={{ ...theme.typography.titleSmall, color: active ? accentColor : theme.colors.text }}
+                  style={{
+                    ...theme.typography.titleSmall,
+                    color: active ? accentColor : theme.colors.text,
+                  }}
                   numberOfLines={1}
                 >
                   {section.title}
                 </Text>
-                <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary }} numberOfLines={1}>
+                <Text
+                  style={{ ...theme.typography.caption, color: theme.colors.textTertiary }}
+                  numberOfLines={1}
+                >
                   {section.description}
                 </Text>
               </View>

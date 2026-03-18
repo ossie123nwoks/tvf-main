@@ -1,34 +1,19 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Appbar } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import MediaMetadataSection from '@/components/admin/MediaMetadataSection';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { HeaderBar } from '@/components/admin/ui';
 
 export default function MediaMetadataPage() {
   const { theme } = useTheme();
   const router = useRouter();
   const { fileId } = useLocalSearchParams();
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    header: {
-      backgroundColor: theme.colors.surface,
-      elevation: 4,
-    },
-    content: {
-      flex: 1,
-      padding: theme.spacing.md,
-    },
-  });
-
   // Mock file data - in real app, this would be fetched based on fileId
   const mockFile = {
-    id: fileId as string || '1',
+    id: (fileId as string) || '1',
     filename: 'sermon_thumbnail.jpg',
     originalName: 'sermon_thumbnail.jpg',
     mimeType: 'image/jpeg',
@@ -47,7 +32,6 @@ export default function MediaMetadataPage() {
 
   const handleMetadataUpdate = (file: any) => {
     console.log('Metadata updated:', file);
-    // Handle metadata update
   };
 
   const handleClose = () => {
@@ -56,11 +40,8 @@ export default function MediaMetadataPage() {
 
   return (
     <AdminAuthGuard>
-      <View style={styles.container}>
-        <Appbar.Header style={styles.header}>
-          <Appbar.BackAction onPress={handleClose} />
-          <Appbar.Content title="File Metadata" />
-        </Appbar.Header>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <HeaderBar title="File Metadata" backButton />
         <View style={styles.content}>
           <MediaMetadataSection
             file={mockFile}
@@ -72,3 +53,13 @@ export default function MediaMetadataPage() {
     </AdminAuthGuard>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+});

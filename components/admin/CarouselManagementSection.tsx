@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Alert,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, Image, TouchableOpacity } from 'react-native';
 import {
   Text,
   Card,
@@ -96,7 +89,7 @@ const CarouselManagementSection: React.FC = () => {
   const handleImagePick = async () => {
     try {
       setUploading(true);
-      
+
       // Pick image from library
       const pickResult = await ImageUploadService.pickImage({
         quality: 0.9,
@@ -110,7 +103,7 @@ const CarouselManagementSection: React.FC = () => {
       }
 
       const asset = pickResult.assets[0];
-      
+
       // Generate filename
       const timestamp = Date.now();
       const fileName = `carousel_${timestamp}.jpg`;
@@ -174,27 +167,23 @@ const CarouselManagementSection: React.FC = () => {
   };
 
   const handleDelete = (id: string) => {
-    Alert.alert(
-      'Delete Carousel Image',
-      'Are you sure you want to delete this carousel image?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await AdminService.deleteCarouselImage(id);
-              Alert.alert('Success', 'Carousel image deleted successfully');
-              loadCarouselImages();
-            } catch (err) {
-              console.error('Failed to delete carousel image:', err);
-              Alert.alert('Error', 'Failed to delete carousel image');
-            }
-          },
+    Alert.alert('Delete Carousel Image', 'Are you sure you want to delete this carousel image?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await AdminService.deleteCarouselImage(id);
+            Alert.alert('Success', 'Carousel image deleted successfully');
+            loadCarouselImages();
+          } catch (err) {
+            console.error('Failed to delete carousel image:', err);
+            Alert.alert('Error', 'Failed to delete carousel image');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleToggleActive = async (image: CarouselImage) => {
@@ -397,18 +386,11 @@ const CarouselManagementSection: React.FC = () => {
         </Button>
       </View>
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {carouselImages.length === 0 ? (
           <Card style={styles.emptyCard} elevation={1}>
             <View style={styles.emptyCardContent}>
-              <MaterialIcons
-                name="image"
-                size={64}
-                color={theme.colors.textSecondary}
-              />
+              <MaterialIcons name="image" size={64} color={theme.colors.textSecondary} />
               <Text style={styles.emptyText}>
                 No carousel images yet. Add your first image to get started.
               </Text>
@@ -419,21 +401,13 @@ const CarouselManagementSection: React.FC = () => {
             <Card key={image.id} style={styles.imageCard} elevation={2}>
               <View style={styles.imageCardContent}>
                 <View style={styles.imageContainer}>
-                  <Image
-                    source={{ uri: image.image_url }}
-                    style={styles.image}
-                  />
+                  <Image source={{ uri: image.image_url }} style={styles.image} />
                 </View>
                 <View style={styles.imageInfo}>
-                  <Text style={styles.imageTitle}>
-                    {image.title || `Image ${index + 1}`}
-                  </Text>
-                  {image.description && (
-                    <Text style={styles.imageMeta}>{image.description}</Text>
-                  )}
+                  <Text style={styles.imageTitle}>{image.title || `Image ${index + 1}`}</Text>
+                  {image.description && <Text style={styles.imageMeta}>{image.description}</Text>}
                   <Text style={styles.imageMeta}>
-                    Order: {image.display_order} •{' '}
-                    {image.is_active ? 'Active' : 'Inactive'}
+                    Order: {image.display_order} • {image.is_active ? 'Active' : 'Inactive'}
                   </Text>
                 </View>
                 <View style={styles.imageActions}>
@@ -481,9 +455,7 @@ const CarouselManagementSection: React.FC = () => {
 
       <Portal>
         <Dialog visible={showDialog} onDismiss={() => setShowDialog(false)}>
-          <Dialog.Title>
-            {editingImage ? 'Edit Carousel Image' : 'Add Carousel Image'}
-          </Dialog.Title>
+          <Dialog.Title>{editingImage ? 'Edit Carousel Image' : 'Add Carousel Image'}</Dialog.Title>
           <Dialog.Content style={styles.dialogContent}>
             <View style={styles.formField}>
               <Button
@@ -498,10 +470,7 @@ const CarouselManagementSection: React.FC = () => {
               </Button>
               {imageUrl ? (
                 <View style={styles.imagePreview}>
-                  <Image
-                    source={{ uri: imageUrl }}
-                    style={styles.previewImage}
-                  />
+                  <Image source={{ uri: imageUrl }} style={styles.previewImage} />
                 </View>
               ) : null}
             </View>
@@ -536,14 +505,20 @@ const CarouselManagementSection: React.FC = () => {
             <TextInput
               label="Display Order"
               value={displayOrder.toString()}
-              onChangeText={(text) => setDisplayOrder(parseInt(text) || 0)}
+              onChangeText={text => setDisplayOrder(parseInt(text) || 0)}
               style={styles.formField}
               mode="outlined"
               keyboardType="numeric"
             />
 
             <View style={styles.formField}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
                 <Text>Active</Text>
                 <Switch value={isActive} onValueChange={setIsActive} />
               </View>
@@ -574,4 +549,3 @@ const CarouselManagementSection: React.FC = () => {
 };
 
 export default CarouselManagementSection;
-

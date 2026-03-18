@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Alert,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import {
   Text,
   Card,
@@ -314,12 +309,7 @@ const MediaMetadataSection: React.FC<MediaMetadataSectionProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <Text style={{ fontSize: 18, fontWeight: 'bold' }}>File Metadata</Text>
-        {onClose && (
-          <IconButton
-            icon="close"
-            onPress={onClose}
-          />
-        )}
+        {onClose && <IconButton icon="close" onPress={onClose} />}
       </View>
 
       {/* File Info */}
@@ -373,10 +363,7 @@ const MediaMetadataSection: React.FC<MediaMetadataSectionProps> = ({
 
           <View style={styles.switchContainer}>
             <Text style={styles.switchLabel}>File is being used</Text>
-            <Switch
-              value={isUsed}
-              onValueChange={setIsUsed}
-            />
+            <Switch value={isUsed} onValueChange={setIsUsed} />
           </View>
         </Card.Content>
       </Card>
@@ -407,11 +394,7 @@ const MediaMetadataSection: React.FC<MediaMetadataSectionProps> = ({
               placeholder="Add tag"
               style={{ flex: 1 }}
             />
-            <Button
-              mode="outlined"
-              onPress={addTag}
-              disabled={!newTag.trim()}
-            >
+            <Button mode="outlined" onPress={addTag} disabled={!newTag.trim()}>
               Add
             </Button>
           </View>
@@ -428,16 +411,18 @@ const MediaMetadataSection: React.FC<MediaMetadataSectionProps> = ({
               <View key={key} style={styles.metadataItem}>
                 <Text style={styles.metadataKey}>{key}</Text>
                 <Text style={styles.metadataValue}>{String(value)}</Text>
-                <IconButton
-                  icon="delete"
-                  size={16}
-                  onPress={() => removeCustomMetadata(key)}
-                />
+                <IconButton icon="delete" size={16} onPress={() => removeCustomMetadata(key)} />
               </View>
             ))}
 
             {Object.keys(customMetadata).length === 0 && (
-              <Text style={{ textAlign: 'center', color: theme.colors.textSecondary, fontStyle: 'italic' }}>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  color: theme.colors.textSecondary,
+                  fontStyle: 'italic',
+                }}
+              >
                 No custom metadata
               </Text>
             )}
@@ -511,7 +496,8 @@ const MediaMetadataSection: React.FC<MediaMetadataSectionProps> = ({
               <View style={styles.metadataItem}>
                 <Text style={styles.metadataKey}>Duration</Text>
                 <Text style={styles.metadataValue}>
-                  {Math.floor(file.metadata.duration / 60)}:{(file.metadata.duration % 60).toString().padStart(2, '0')}
+                  {Math.floor(file.metadata.duration / 60)}:
+                  {(file.metadata.duration % 60).toString().padStart(2, '0')}
                 </Text>
               </View>
             )}
@@ -521,19 +507,10 @@ const MediaMetadataSection: React.FC<MediaMetadataSectionProps> = ({
 
       {/* Actions */}
       <View style={styles.actions}>
-        <Button
-          mode="outlined"
-          onPress={onClose}
-          disabled={saving}
-        >
+        <Button mode="outlined" onPress={onClose} disabled={saving}>
           Cancel
         </Button>
-        <Button
-          mode="contained"
-          onPress={handleSave}
-          loading={saving}
-          disabled={saving}
-        >
+        <Button mode="contained" onPress={handleSave} loading={saving} disabled={saving}>
           {saving ? 'Saving...' : 'Save Changes'}
         </Button>
       </View>

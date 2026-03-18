@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
-import AdminPageHeader from '@/components/admin/AdminPageHeader';
+import { HeaderBar } from '@/components/admin/ui';
 import CarouselManagementSection from '@/components/admin/CarouselManagementSection';
 
 export default function CarouselPage() {
@@ -11,7 +11,7 @@ export default function CarouselPage() {
   return (
     <AdminAuthGuard>
       <View style={[staticStyles.container, { backgroundColor: theme.colors.background }]}>
-        <AdminPageHeader title="Carousel Management" />
+        <HeaderBar title="Carousel Management" />
         <View style={staticStyles.content}>
           <CarouselManagementSection />
         </View>
