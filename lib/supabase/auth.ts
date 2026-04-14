@@ -19,6 +19,14 @@ import {
   OnboardingData,
 } from '@/types/user';
 
+// ─── Play Store Review: Test OTP Configuration ───
+// These constants enable Google Play Store reviewers to log in
+// without needing to receive a real OTP email.
+// Controlled via EXPO_PUBLIC_TEST_OTP_ENABLED env variable.
+const TEST_OTP_ENABLED = process.env.EXPO_PUBLIC_TEST_OTP_ENABLED === 'true';
+const TEST_OTP_EMAIL = 'playstore-reviewer@truevine.app';
+const TEST_OTP_CODE = '123456';
+
 export class AuthService {
   /**
    * Sign up a new user
@@ -566,6 +574,16 @@ export class AuthService {
     type: 'email' | 'phone'
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      // Play Store Review: Skip real OTP delivery for test account
+      if (
+        TEST_OTP_ENABLED &&
+        type === 'email' &&
+        emailOrPhone.toLowerCase() === TEST_OTP_EMAIL
+      ) {
+        console.log('[Test OTP] Skipping real OTP delivery for test account');
+        return { success: true };
+      }
+
       const options: any = {};
       if (type === 'email') {
         options.email = emailOrPhone;
@@ -595,6 +613,85 @@ export class AuthService {
     type: 'email' | 'phone'
   ): Promise<AuthSuccess | AuthError> {
     try {
+      // Play Store Review: Verify test OTP via Edge Function
+      // The Edge Function uses the admin API to generate a real session
+      // for the test account, bypassing the need for a real OTP email.
+      if (
+        TEST_OTP_ENABLED &&
+        type === 'email' &&
+        emailOrPhone.toLowerCase() === TEST_OTP_EMAIL &&
+        token === TEST_OTP_CODE
+      ) {
+        console.log('[Test OTP] Authenticating test account via Edge Function');
+
+        try {
+          const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+          const response = await fetch(
+            `${supabaseUrl}/functions/v1/test-otp-login`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: TEST_OTP_EMAIL,
+                otp_code: TEST_OTP_CODE,
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('[Test OTP] Edge Function error:', errorData);
+            return {
+              code: 'TEST_OTP_FAILED',
+              message: 'Test login failed. Please try again.',
+            };
+          }
+
+          const sessionData = await response.json();
+
+          // Set the session on the Supabase client
+          const { data: setSessionData, error: setSessionError } =
+            await supabase.auth.setSession({
+              access_token: sessionData.access_token,
+              refresh_token: sessionData.refresh_token,
+            });
+
+          if (setSessionError || !setSessionData.user || !setSessionData.session) {
+            console.error('[Test OTP] Failed to set session:', setSessionError);
+            return {
+              code: 'TEST_OTP_SESSION_FAILED',
+              message: 'Failed to establish session. Please try again.',
+            };
+          }
+
+          // Fetch complete user data
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', setSessionData.user.id)
+            .single();
+
+          let user: User;
+          if (userError || !userData) {
+            user = this.transformSupabaseUser(setSessionData.user);
+          } else {
+            user = this.transformSupabaseUserWithCustomData(setSessionData.user, userData);
+          }
+
+          return {
+            message: 'OTP verified successfully',
+            user,
+            session: this.transformSupabaseSession(setSessionData.session),
+          };
+        } catch (testOtpError) {
+          console.error('[Test OTP] Unexpected error:', testOtpError);
+          return {
+            code: 'TEST_OTP_ERROR',
+            message: 'Test login encountered an error. Please try again.',
+          };
+        }
+      }
+
       const options: any = {
         token,
         type: type === 'email' ? 'email' : 'sms',
