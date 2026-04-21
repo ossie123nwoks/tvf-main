@@ -5,6 +5,8 @@ import {
   TextInput,
   Animated,
   Platform,
+  Pressable,
+  Easing,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,29 +30,18 @@ export const OTPInput: React.FC<OTPInputProps> = ({
   autoFocus = true,
 }) => {
   const { theme } = useTheme();
-  const inputRefs = useRef<(TextInput | null)[]>([]);
-  const [focusedIndex, setFocusedIndex] = useState<number | null>(
-    autoFocus ? 0 : null
-  );
+  const hiddenInputRef = useRef<TextInput>(null);
+  const [isFocused, setIsFocused] = useState(false);
 
-  // ─── Animation refs ───
+  // ─── Animations ───
   const shakeAnim = useRef(new Animated.Value(0)).current;
-  const pulseAnims = useRef(
-    Array.from({ length }, () => new Animated.Value(1))
-  ).current;
-  // Staggered entrance: each cell drops in
   const entranceAnims = useRef(
     Array.from({ length }, () => new Animated.Value(0))
   ).current;
   const entranceSlides = useRef(
     Array.from({ length }, () => new Animated.Value(-12))
   ).current;
-  // Focus glow (opacity of the glow ring)
-  const glowAnim = useRef(new Animated.Value(0)).current;
-  // Completion celebration
   const completionScale = useRef(new Animated.Value(1)).current;
-  const completionGlow = useRef(new Animated.Value(0)).current;
-  // Cursor blink for focused cell
   const cursorAnim = useRef(new Animated.Value(1)).current;
 
   const digits = value
@@ -79,16 +70,16 @@ export const OTPInput: React.FC<OTPInputProps> = ({
     Animated.stagger(0, animations).start();
   }, []);
 
-  // ─── Auto-focus first input ───
+  // ─── Auto-focus hidden input ───
   useEffect(() => {
-    if (autoFocus && inputRefs.current[0]) {
+    if (autoFocus && hiddenInputRef.current) {
       setTimeout(() => {
-        inputRefs.current[0]?.focus();
-      }, length * 60 + 300); // wait for entrance animation
+        hiddenInputRef.current?.focus();
+      }, length * 60 + 300);
     }
   }, [autoFocus, length]);
 
-  // ─── Cursor blink loop ───
+  // ─── Cursor blink ───
   useEffect(() => {
     const blinkLoop = Animated.loop(
       Animated.sequence([
@@ -107,15 +98,6 @@ export const OTPInput: React.FC<OTPInputProps> = ({
     blinkLoop.start();
     return () => blinkLoop.stop();
   }, [cursorAnim]);
-
-  // ─── Focus glow animation ───
-  useEffect(() => {
-    Animated.timing(glowAnim, {
-      toValue: focusedIndex !== null ? 1 : 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  }, [focusedIndex, glowAnim]);
 
   // ─── Shake on error ───
   useEffect(() => {
@@ -155,25 +137,17 @@ export const OTPInput: React.FC<OTPInputProps> = ({
     }
   }, [error, shakeAnim]);
 
-  // ─── Completion celebration ───
+  // ─── Completion bounce ───
   useEffect(() => {
     const filledCount = value.replace(/\s/g, '').length;
     if (filledCount === length && !error) {
-      // All digits filled — celebration bounce
       Animated.sequence([
-        Animated.parallel([
-          Animated.spring(completionScale, {
-            toValue: 1.06,
-            tension: 300,
-            friction: 5,
-            useNativeDriver: true,
-          }),
-          Animated.timing(completionGlow, {
-            toValue: 1,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-        ]),
+        Animated.spring(completionScale, {
+          toValue: 1.04,
+          tension: 300,
+          friction: 5,
+          useNativeDriver: true,
+        }),
         Animated.spring(completionScale, {
           toValue: 1,
           tension: 200,
@@ -182,92 +156,33 @@ export const OTPInput: React.FC<OTPInputProps> = ({
         }),
       ]).start();
     } else {
-      completionGlow.setValue(0);
       completionScale.setValue(1);
     }
-  }, [value, length, error, completionScale, completionGlow]);
+  }, [value, length, error, completionScale]);
 
-  // ─── Pulse animation on digit entry ───
-  const animatePulse = useCallback(
-    (index: number) => {
-      Animated.sequence([
-        Animated.spring(pulseAnims[index], {
-          toValue: 1.15,
-          tension: 400,
-          friction: 4,
-          useNativeDriver: true,
-        }),
-        Animated.spring(pulseAnims[index], {
-          toValue: 1,
-          tension: 200,
-          friction: 6,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    },
-    [pulseAnims]
-  );
-
-  const handleDigitChange = useCallback(
-    (text: string, index: number) => {
+  // ─── Handle text change from hidden input ───
+  const handleChange = useCallback(
+    (text: string) => {
       if (disabled) return;
-
-      // Handle paste (multiple chars)
-      if (text.length > 1) {
-        const pastedCode = text.replace(/[^0-9]/g, '').slice(0, length);
-        onChange(pastedCode);
-        const nextIndex = Math.min(pastedCode.length, length - 1);
-        inputRefs.current[nextIndex]?.focus();
-        // Pulse each pasted cell
-        pastedCode.split('').forEach((_, i) => animatePulse(i));
-        return;
-      }
-
-      const digit = text.replace(/[^0-9]/g, '');
-      const newValue = digits
-        .map((d, i) => (i === index ? digit : d))
-        .join('');
-      onChange(newValue.replace(/\s/g, ''));
-
-      if (digit && index < length - 1) {
-        animatePulse(index);
-        inputRefs.current[index + 1]?.focus();
-      } else if (digit) {
-        // Last digit entered — pulse it
-        animatePulse(index);
-      }
+      const cleaned = text.replace(/[^0-9]/g, '').slice(0, length);
+      onChange(cleaned);
     },
-    [digits, length, onChange, disabled, animatePulse]
+    [disabled, length, onChange]
   );
 
-  const handleKeyPress = useCallback(
-    (e: any, index: number) => {
-      if (e.nativeEvent.key === 'Backspace') {
-        if (!digits[index] && index > 0) {
-          const newValue = digits
-            .map((d, i) => (i === index - 1 ? '' : d))
-            .join('');
-          onChange(newValue.replace(/\s/g, ''));
-          inputRefs.current[index - 1]?.focus();
-        } else {
-          const newValue = digits
-            .map((d, i) => (i === index ? '' : d))
-            .join('');
-          onChange(newValue.replace(/\s/g, ''));
-        }
-      }
-    },
-    [digits, onChange]
-  );
-
-  const handleFocus = (index: number) => setFocusedIndex(index);
-  const handleBlur = () => setFocusedIndex(null);
+  // ─── Focus hidden input when cells tapped ───
+  const handlePress = () => {
+    if (!disabled) {
+      hiddenInputRef.current?.focus();
+    }
+  };
 
   const isComplete = value.replace(/\s/g, '').length === length && !error;
+  const activeIndex = value.length < length ? value.length : length - 1;
 
   const getCellStyle = (index: number) => {
     const isFilled = !!digits[index];
-    const isFocused = focusedIndex === index;
+    const isCellFocused = isFocused && index === activeIndex;
 
     let borderColor = theme.colors.border;
     let backgroundColor = theme.colors.surface;
@@ -278,8 +193,9 @@ export const OTPInput: React.FC<OTPInputProps> = ({
     } else if (isComplete) {
       borderColor = theme.colors.success;
       backgroundColor = theme.colors.successContainer;
-    } else if (isFocused) {
+    } else if (isCellFocused) {
       borderColor = theme.colors.primary;
+      backgroundColor = theme.colors.surface;
     } else if (isFilled) {
       borderColor = theme.colors.primaryLight;
     }
@@ -287,111 +203,116 @@ export const OTPInput: React.FC<OTPInputProps> = ({
     return {
       borderColor,
       backgroundColor,
-      borderWidth: isFocused || isComplete ? 2 : 1.5,
+      borderWidth: isCellFocused || isComplete ? 2 : 1.5,
     };
   };
 
   return (
     <View style={styles.container}>
-      <Animated.View
-        style={[
-          styles.inputRow,
-          {
-            transform: [
-              { translateX: shakeAnim },
-              { scale: completionScale },
-            ],
-          },
-        ]}
-      >
-        {Array.from({ length }).map((_, index) => {
-          const isFocused = focusedIndex === index;
-          const isEmpty = !digits[index];
+      {/* Hidden input that captures all keyboard input */}
+      <TextInput
+        ref={hiddenInputRef}
+        style={styles.hiddenInput}
+        value={value}
+        onChangeText={handleChange}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        keyboardType="number-pad"
+        maxLength={length}
+        editable={!disabled}
+        autoFocus={false}
+        caretHidden
+        autoComplete="sms-otp"
+        textContentType="oneTimeCode"
+      />
 
-          return (
-            <Animated.View
-              key={index}
-              style={[
-                styles.cellWrapper,
-                {
-                  opacity: entranceAnims[index],
-                  transform: [
-                    { translateY: entranceSlides[index] },
-                    { scale: pulseAnims[index] },
-                  ],
-                },
-              ]}
-            >
-              {/* Glow ring behind focused cell */}
-              {isFocused && (
-                <Animated.View
-                  style={[
-                    styles.glowRing,
-                    {
-                      backgroundColor: theme.colors.primary,
-                      opacity: glowAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, 0.08],
-                      }),
-                    },
-                  ]}
-                />
-              )}
-              {/* Success glow on completion */}
-              {isComplete && (
-                <Animated.View
-                  style={[
-                    styles.glowRing,
-                    {
-                      backgroundColor: theme.colors.success,
-                      opacity: completionGlow.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, 0.1],
-                      }),
-                    },
-                  ]}
-                />
-              )}
-              <TextInput
-                ref={(ref) => {
-                  inputRefs.current[index] = ref;
-                }}
+      {/* Visual cells */}
+      <Pressable onPress={handlePress}>
+        <Animated.View
+          style={[
+            styles.inputRow,
+            {
+              transform: [
+                { translateX: shakeAnim },
+                { scale: completionScale },
+              ],
+            },
+          ]}
+        >
+          {Array.from({ length }).map((_, index) => {
+            const isCellFocused = isFocused && index === activeIndex;
+            const isEmpty = !digits[index];
+
+            return (
+              <Animated.View
+                key={index}
                 style={[
-                  styles.cell,
-                  getCellStyle(index),
-                  { color: isComplete ? theme.colors.success : theme.colors.text },
+                  styles.cellWrapper,
+                  {
+                    opacity: entranceAnims[index],
+                    transform: [{ translateY: entranceSlides[index] }],
+                  },
                 ]}
-                value={digits[index]}
-                onChangeText={(text) => handleDigitChange(text, index)}
-                onKeyPress={(e) => handleKeyPress(e, index)}
-                onFocus={() => handleFocus(index)}
-                onBlur={handleBlur}
-                keyboardType="number-pad"
-                maxLength={Platform.OS === 'android' ? 1 : undefined}
-                selectTextOnFocus
-                editable={!disabled}
-                caretHidden={Platform.OS === 'ios'}
-                accessibilityLabel={`Digit ${index + 1} of ${length}`}
-              />
-              {/* Blinking cursor for empty focused cell */}
-              {isFocused && isEmpty && (
-                <Animated.View
-                  style={[
-                    styles.cursor,
-                    {
-                      backgroundColor: theme.colors.primary,
-                      opacity: cursorAnim,
-                    },
-                  ]}
-                  pointerEvents="none"
-                />
-              )}
-            </Animated.View>
-          );
-        })}
-      </Animated.View>
+              >
+                {/* Focus glow */}
+                {isCellFocused && (
+                  <View
+                    style={[
+                      styles.glowRing,
+                      {
+                        backgroundColor: theme.colors.primary,
+                        opacity: 0.08,
+                      },
+                    ]}
+                  />
+                )}
+                {/* Completion glow */}
+                {isComplete && (
+                  <View
+                    style={[
+                      styles.glowRing,
+                      {
+                        backgroundColor: theme.colors.success,
+                        opacity: 0.1,
+                      },
+                    ]}
+                  />
+                )}
 
-      {/* Completion indicator */}
+                <View style={[styles.cell, getCellStyle(index)]}>
+                  <Text
+                    style={[
+                      styles.cellText,
+                      {
+                        color: isComplete
+                          ? theme.colors.success
+                          : theme.colors.text,
+                      },
+                    ]}
+                  >
+                    {digits[index]}
+                  </Text>
+
+                  {/* Blinking cursor for focused empty cell */}
+                  {isCellFocused && isEmpty && (
+                    <Animated.View
+                      style={[
+                        styles.cursor,
+                        {
+                          backgroundColor: theme.colors.primary,
+                          opacity: cursorAnim,
+                        },
+                      ]}
+                    />
+                  )}
+                </View>
+              </Animated.View>
+            );
+          })}
+        </Animated.View>
+      </Pressable>
+
+      {/* Status indicators */}
       {isComplete && (
         <View style={styles.completeRow}>
           <Ionicons
@@ -426,6 +347,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 24,
   },
+  hiddenInput: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0,
+  },
   inputRow: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -448,20 +375,19 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cellText: {
     fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
-    textAlignVertical: 'center',
   },
   cursor: {
     position: 'absolute',
     width: 2,
     height: 24,
     borderRadius: 1,
-    top: 17,
-    alignSelf: 'center',
-    left: '50%',
-    marginLeft: -1,
   },
   completeRow: {
     flexDirection: 'row',
