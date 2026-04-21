@@ -23,7 +23,16 @@ import {
 // These constants enable Google Play Store reviewers to log in
 // without needing to receive a real OTP email.
 // Controlled via EXPO_PUBLIC_TEST_OTP_ENABLED env variable.
-const TEST_OTP_ENABLED = process.env.EXPO_PUBLIC_TEST_OTP_ENABLED === 'true';
+const getPublicConfigValue = (key: string, extraKey: string): string | undefined => {
+  const envValue = process.env[key];
+  if (envValue) {
+    return envValue;
+  }
+  const extraValue = Constants.expoConfig?.extra?.[extraKey];
+  return typeof extraValue === 'string' ? extraValue : undefined;
+};
+
+const TEST_OTP_ENABLED = getPublicConfigValue('EXPO_PUBLIC_TEST_OTP_ENABLED', 'testOtpEnabled') === 'true';
 const TEST_OTP_EMAIL = 'playstore-reviewer@truevine.app';
 const TEST_OTP_CODE = '123456';
 
@@ -781,9 +790,9 @@ export class AuthService {
       }
 
       // Get Google Client ID from environment
-      const googleClientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
+      const googleClientId = getPublicConfigValue('EXPO_PUBLIC_GOOGLE_CLIENT_ID', 'googleClientId');
       if (!googleClientId) {
-        throw new Error('EXPO_PUBLIC_GOOGLE_CLIENT_ID is not configured');
+        throw new Error('EXPO_PUBLIC_GOOGLE_CLIENT_ID is not configured in env or app config extra');
       }
 
       // Extract iOS Client ID from iosUrlScheme if on iOS

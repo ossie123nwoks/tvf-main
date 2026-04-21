@@ -1,5 +1,15 @@
 import { makeRedirectUri } from 'expo-auth-session';
 import * as Linking from 'expo-linking';
+import Constants from 'expo-constants';
+
+const getPublicConfigValue = (key: string, extraKey: string): string | undefined => {
+  const envValue = process.env[key];
+  if (envValue) {
+    return envValue;
+  }
+  const extraValue = Constants.expoConfig?.extra?.[extraKey];
+  return typeof extraValue === 'string' ? extraValue : undefined;
+};
 
 /**
  * Get the redirect URL for OAuth flows
@@ -19,7 +29,7 @@ export const getRedirectURL = (): string => {
  * This is used when initiating OAuth with Supabase
  */
 export const getSupabaseCallbackURL = (): string => {
-  const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const supabaseUrl = getPublicConfigValue('EXPO_PUBLIC_SUPABASE_URL', 'supabaseUrl');
   
   if (!supabaseUrl) {
     throw new Error('EXPO_PUBLIC_SUPABASE_URL is not configured');
@@ -33,7 +43,7 @@ export const getSupabaseCallbackURL = (): string => {
  * This constructs the Google OAuth endpoint with all required parameters
  */
 export const buildGoogleAuthURL = (redirectUri: string): string => {
-  const clientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
+  const clientId = getPublicConfigValue('EXPO_PUBLIC_GOOGLE_CLIENT_ID', 'googleClientId');
   
   if (!clientId) {
     throw new Error('EXPO_PUBLIC_GOOGLE_CLIENT_ID is not configured');

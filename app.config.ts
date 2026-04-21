@@ -99,6 +99,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     appName: process.env.EXPO_PUBLIC_APP_NAME || 'TRUEVINE FELLOWSHIP',
     appVersion: process.env.EXPO_PUBLIC_APP_VERSION || '1.0.0',
+    googleClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+    testOtpEnabled: process.env.EXPO_PUBLIC_TEST_OTP_ENABLED,
     appDescription: 'Mobile app for TRUEVINE FELLOWSHIP Church with sermons, articles, and offline functionality',
     appWebsite: 'https://tvffellowship.org',
     appEmail: 'support@tvffellowship.org',
