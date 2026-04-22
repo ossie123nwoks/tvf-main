@@ -125,7 +125,7 @@ const particleStyles = StyleSheet.create({
   },
 });
 
-// ─── Progress dots (step indicator) ───
+// ─── Progress dots (step indicator) — simple, no animations ───
 function ProgressDots({
   total,
   filled,
@@ -135,45 +135,21 @@ function ProgressDots({
   filled: number;
   theme: any;
 }) {
-  const dotAnims = useRef(
-    Array.from({ length: total }, () => new Animated.Value(0))
-  ).current;
-
-  useEffect(() => {
-    dotAnims.forEach((anim, i) => {
-      Animated.spring(anim, {
-        toValue: i < filled ? 1 : 0,
-        tension: 300,
-        friction: 8,
-        useNativeDriver: true,
-      }).start();
-    });
-  }, [filled]);
-
   return (
     <View style={progressStyles.container}>
-      {dotAnims.map((anim, i) => {
-        const scale = anim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [1, 1.3],
-        });
-        const backgroundColor = anim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [theme.colors.border, theme.colors.primary],
-        });
-        return (
-          <Animated.View
-            key={i}
-            style={[
-              progressStyles.dot,
-              {
-                backgroundColor: backgroundColor as any,
-                transform: [{ scale }],
-              },
-            ]}
-          />
-        );
-      })}
+      {Array.from({ length: total }).map((_, i) => (
+        <View
+          key={i}
+          style={[
+            progressStyles.dot,
+            {
+              backgroundColor:
+                i < filled ? theme.colors.primary : theme.colors.border,
+              transform: [{ scale: i < filled ? 1.2 : 1 }],
+            },
+          ]}
+        />
+      ))}
     </View>
   );
 }
@@ -279,9 +255,12 @@ export default function OTPScreen() {
     }
   }, [resendCooldown]);
 
+  // Ref to prevent double-submit (avoids disabling the input which kills keyboard)
+  const isSubmittingRef = useRef(false);
+
   // Auto-verify when 6 digits entered
   useEffect(() => {
-    if (otpCode.length === 6 && !isVerifying && !isSuccess) {
+    if (otpCode.length === 6 && !isSubmittingRef.current && !isSuccess) {
       handleVerifyOtp();
     }
   }, [otpCode]);
@@ -362,6 +341,8 @@ export default function OTPScreen() {
       return;
     }
 
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setIsVerifying(true);
     setError('');
 
@@ -374,11 +355,13 @@ export default function OTPScreen() {
 
       if ('code' in result) {
         setError(result.message);
-        setOtpCode('');
+        // Don't clear otpCode — let user see what they typed and re-enter
         setIsVerifying(false);
+        isSubmittingRef.current = false;
       } else {
         setIsSuccess(true);
         setIsVerifying(false);
+        isSubmittingRef.current = false;
         playSuccessAnimation();
 
         setTimeout(() => {
@@ -394,8 +377,8 @@ export default function OTPScreen() {
       }
     } catch (err) {
       setError('Verification failed. Please try again.');
-      setOtpCode('');
       setIsVerifying(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -606,7 +589,7 @@ export default function OTPScreen() {
               if (error) setError('');
             }}
             error={error}
-            disabled={isVerifying}
+            disabled={false}
             autoFocus
           />
 
