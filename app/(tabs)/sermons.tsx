@@ -371,11 +371,14 @@ export default function SermonsScreen() {
   // ============================================================================
 
   const numColumns = viewMode === 'grid' ? 2 : 1;
+  const GRID_GAP = theme.spacing.sm; // 8
+  const CONTENT_PADDING = theme.spacing.md; // 16
+  const gridCardWidth = (screenWidth - CONTENT_PADDING * 2 - GRID_GAP) / 2;
 
   const renderSermonCard = ({ item: sermon }: { item: Sermon; index: number }) => {
     const variant = viewMode === 'compact' ? 'compact' : viewMode === 'grid' ? 'grid' : 'default';
 
-    return (
+    const card = (
       <SermonCard
         sermon={sermon}
         variant={variant}
@@ -386,6 +389,13 @@ export default function SermonsScreen() {
         showActions={viewMode !== 'compact' && viewMode !== 'grid'}
       />
     );
+
+    // In grid mode, constrain each card to exactly half the available width
+    if (viewMode === 'grid') {
+      return <View style={{ width: gridCardWidth }}>{card}</View>;
+    }
+
+    return card;
   };
 
   const renderHeader = () => (
@@ -536,7 +546,7 @@ export default function SermonsScreen() {
           sermons.length === 0 && { flexGrow: 1 },
         ]}
         {...(numColumns === 2 && {
-          columnWrapperStyle: { gap: theme.spacing.sm },
+          columnWrapperStyle: { justifyContent: 'space-between' },
         })}
         refreshControl={
           <RefreshControl

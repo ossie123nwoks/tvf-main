@@ -524,7 +524,7 @@ const compactStyles = StyleSheet.create({
 
 const gridStyles = StyleSheet.create({
     container: {
-        flex: 1,
+        width: '100%',
         overflow: 'hidden',
     },
     imageContainer: {
