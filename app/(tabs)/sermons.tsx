@@ -370,8 +370,10 @@ export default function SermonsScreen() {
   // Render
   // ============================================================================
 
+  const numColumns = viewMode === 'grid' ? 2 : 1;
+
   const renderSermonCard = ({ item: sermon }: { item: Sermon; index: number }) => {
-    const variant = viewMode === 'compact' ? 'compact' : 'default';
+    const variant = viewMode === 'compact' ? 'compact' : viewMode === 'grid' ? 'grid' : 'default';
 
     return (
       <SermonCard
@@ -381,7 +383,7 @@ export default function SermonsScreen() {
         onPlay={() => handlePlayPress(sermon)}
         onDownload={() => handleDownloadPress(sermon)}
         onShare={() => handleSharePress(sermon)}
-        showActions={viewMode !== 'compact'}
+        showActions={viewMode !== 'compact' && viewMode !== 'grid'}
       />
     );
   };
@@ -533,6 +535,9 @@ export default function SermonsScreen() {
           { padding: theme.spacing.md },
           sermons.length === 0 && { flexGrow: 1 },
         ]}
+        {...(numColumns === 2 && {
+          columnWrapperStyle: { gap: theme.spacing.sm },
+        })}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -543,7 +548,7 @@ export default function SermonsScreen() {
         }
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
-        numColumns={viewMode === 'grid' ? 2 : 1}
+        numColumns={numColumns}
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         windowSize={5}
