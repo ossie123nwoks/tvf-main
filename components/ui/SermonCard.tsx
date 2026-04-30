@@ -11,7 +11,7 @@ import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Sermon } from '@/types/content';
 
-export type SermonCardVariant = 'default' | 'compact' | 'featured';
+export type SermonCardVariant = 'default' | 'compact' | 'featured' | 'grid';
 export type DownloadStatus = 'idle' | 'checking' | 'downloading' | 'downloaded' | 'error';
 
 interface SermonCardProps {
@@ -136,6 +136,109 @@ export default function SermonCard({
                             </TouchableOpacity>
                         )}
                     </View>
+                </View>
+            </TouchableOpacity>
+        );
+    }
+
+    // ============ GRID VARIANT ============
+    if (variant === 'grid') {
+        return (
+            <TouchableOpacity
+                onPress={onPress}
+                activeOpacity={0.7}
+                style={[
+                    gridStyles.container,
+                    {
+                        backgroundColor: theme.colors.cardBackground,
+                        borderRadius: theme.borderRadius.md,
+                        borderWidth: 1,
+                        borderColor: theme.colors.cardBorder,
+                        marginBottom: theme.spacing.sm,
+                        ...theme.shadows.small,
+                    },
+                ]}
+            >
+                {/* Thumbnail */}
+                <View style={gridStyles.imageContainer}>
+                    <Image
+                        source={{ uri: sermon.thumbnail_url || 'https://via.placeholder.com/200x120' }}
+                        style={[
+                            gridStyles.image,
+                            {
+                                borderTopLeftRadius: theme.borderRadius.md,
+                                borderTopRightRadius: theme.borderRadius.md,
+                            },
+                        ]}
+                        resizeMode="cover"
+                    />
+
+                    {/* Duration badge */}
+                    <View
+                        style={[
+                            gridStyles.durationBadge,
+                            {
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                borderRadius: theme.borderRadius.xs,
+                                paddingHorizontal: theme.spacing.xs,
+                                paddingVertical: 2,
+                            },
+                        ]}
+                    >
+                        <Text style={{ ...theme.typography.labelSmall, color: '#FFFFFF', fontSize: 10 }}>
+                            {formatDuration(sermon.duration)}
+                        </Text>
+                    </View>
+
+                    {/* Play button */}
+                    {onPlay && (
+                        <TouchableOpacity
+                            onPress={onPlay}
+                            style={[
+                                gridStyles.playOverlay,
+                                {
+                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                    borderRadius: theme.borderRadius.full,
+                                },
+                            ]}
+                            activeOpacity={0.8}
+                        >
+                            <MaterialIcons name="play-arrow" size={20} color={theme.colors.primary} />
+                        </TouchableOpacity>
+                    )}
+                </View>
+
+                {/* Card body */}
+                <View style={{ padding: theme.spacing.sm }}>
+                    <Text
+                        style={{ ...theme.typography.titleSmall, color: theme.colors.text, fontSize: 13 }}
+                        numberOfLines={2}
+                    >
+                        {sermon.title}
+                    </Text>
+
+                    <Text
+                        style={{
+                            ...theme.typography.caption,
+                            color: theme.colors.primary,
+                            marginTop: theme.spacing.xxs,
+                            fontSize: 11,
+                        }}
+                        numberOfLines={1}
+                    >
+                        {sermon.preacher}
+                    </Text>
+
+                    <Text
+                        style={{
+                            ...theme.typography.caption,
+                            color: theme.colors.textTertiary,
+                            marginTop: 2,
+                            fontSize: 10,
+                        }}
+                    >
+                        {formatDate(sermon.date)}
+                    </Text>
                 </View>
             </TouchableOpacity>
         );
@@ -416,5 +519,36 @@ const compactStyles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+    },
+});
+
+const gridStyles = StyleSheet.create({
+    container: {
+        flex: 1,
+        overflow: 'hidden',
+    },
+    imageContainer: {
+        position: 'relative',
+    },
+    image: {
+        width: '100%',
+        height: 120,
+    },
+    durationBadge: {
+        position: 'absolute',
+        bottom: 6,
+        right: 6,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    playOverlay: {
+        position: 'absolute',
+        alignSelf: 'center',
+        top: '50%',
+        marginTop: -16,
+        width: 32,
+        height: 32,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });
