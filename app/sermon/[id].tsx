@@ -151,14 +151,14 @@ export default function SermonDetailScreen() {
       if (!sermonData?.audio_url || sermonData.audio_url.trim() === '') {
         setIsLoading(false);
         setIsAudioValid(false);
-        setAudioError('No audio file is available for this sermon.');
+        setAudioError('Audio is not yet available for this sermon. Coming soon!');
         return;
       }
 
       if (sermonData.audio_url.includes('placeholder') || sermonData.audio_url.includes('demo') || sermonData.audio_url.includes('sample')) {
         setIsLoading(false);
         setIsAudioValid(false);
-        setAudioError('Audio file is not available. Please upload a real audio file.');
+        setAudioError('Audio is not yet available for this sermon. Coming soon!');
         return;
       }
 
@@ -230,7 +230,7 @@ export default function SermonDetailScreen() {
         }
       }
       setAudioError(errorMessage);
-      setError(errorMessage);
+      // Don't set page-level error — sermon details should still be visible
     }
   };
 
@@ -450,21 +450,25 @@ export default function SermonDetailScreen() {
             {/* ─── Audio Player Card ─── */}
             <View style={[staticStyles.playerCard, dynamicStyles.playerCard, { padding: theme.spacing.lg }]}>
               {!isAudioValid && audioError ? (
-                <View style={staticStyles.centered}>
-                  <MaterialIcons name="music-off" size={48} color={theme.colors.error} />
-                  <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.sm, textAlign: 'center' }}>
+                <View style={{ alignItems: 'center', paddingVertical: theme.spacing.lg }}>
+                  <MaterialIcons name="headset-off" size={48} color={theme.colors.textTertiary} />
+                  <Text style={{ ...theme.typography.titleSmall, color: theme.colors.text, marginTop: theme.spacing.md, textAlign: 'center' }}>
+                    Audio Coming Soon
+                  </Text>
+                  <Text style={{ ...theme.typography.bodySmall, color: theme.colors.textSecondary, marginTop: theme.spacing.xs, textAlign: 'center', paddingHorizontal: theme.spacing.md }}>
                     {audioError}
                   </Text>
-                  <Button
-                    mode="contained"
-                    onPress={() => { setIsAudioValid(true); setAudioError(null); initializeAudioWithSermon(sermon); }}
-                    style={{ marginTop: theme.spacing.md }}
-                    buttonColor={theme.colors.primary}
-                    textColor="#FFFFFF"
-                    compact
-                  >
-                    Retry
-                  </Button>
+                  {sermon?.audio_url && sermon.audio_url.trim() !== '' && (
+                    <Button
+                      mode="outlined"
+                      onPress={() => { setIsAudioValid(true); setAudioError(null); initializeAudioWithSermon(sermon); }}
+                      style={{ marginTop: theme.spacing.md, borderColor: theme.colors.primary }}
+                      textColor={theme.colors.primary}
+                      compact
+                    >
+                      Retry
+                    </Button>
+                  )}
                 </View>
               ) : sermon?.audio_url && sermon.audio_url.trim() !== '' ? (
                 <>
@@ -543,10 +547,13 @@ export default function SermonDetailScreen() {
                   </View>
                 </>
               ) : (
-                <View style={[staticStyles.centered, { padding: theme.spacing.lg }]}>
-                  <MaterialIcons name="music-off" size={48} color={theme.colors.textTertiary} />
-                  <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.sm }}>
-                    Audio not available for this sermon.
+                <View style={{ alignItems: 'center', paddingVertical: theme.spacing.lg }}>
+                  <MaterialIcons name="headset-off" size={48} color={theme.colors.textTertiary} />
+                  <Text style={{ ...theme.typography.titleSmall, color: theme.colors.text, marginTop: theme.spacing.md, textAlign: 'center' }}>
+                    Audio Coming Soon
+                  </Text>
+                  <Text style={{ ...theme.typography.bodySmall, color: theme.colors.textSecondary, marginTop: theme.spacing.xs, textAlign: 'center' }}>
+                    Audio for this sermon is not yet available. Check back later!
                   </Text>
                 </View>
               )}
