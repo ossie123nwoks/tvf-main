@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -126,7 +126,7 @@ const particleStyles = StyleSheet.create({
 });
 
 // ─── Progress dots (step indicator) — simple, no animations ───
-function ProgressDots({
+const ProgressDots = React.memo(function ProgressDots({
   total,
   filled,
   theme,
@@ -152,7 +152,7 @@ function ProgressDots({
       ))}
     </View>
   );
-}
+});
 
 const progressStyles = StyleSheet.create({
   container: {
@@ -255,15 +255,34 @@ export default function OTPScreen() {
     }
   }, [resendCooldown]);
 
+  // Stable OTP change handler — memoized to prevent OTPInput re-renders
+  const handleOtpChange = useCallback((code: string) => {
+    setOtpCode(code);
+    if (error) setError('');
+  }, [error]);
+
   // Ref to prevent double-submit (avoids disabling the input which kills keyboard)
   const isSubmittingRef = useRef(false);
+  // Debounce timer ref to prevent keyboard race conditions
+  const autoVerifyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Auto-verify when 6 digits entered
+  // Auto-verify when 6 digits entered (debounced to avoid keyboard flicker)
   useEffect(() => {
-    if (otpCode.length === 6 && !isSubmittingRef.current && !isSuccess) {
-      handleVerifyOtp();
+    if (autoVerifyTimer.current) {
+      clearTimeout(autoVerifyTimer.current);
+      autoVerifyTimer.current = null;
     }
-  }, [otpCode]);
+    if (otpCode.length === 6 && !isSubmittingRef.current && !isSuccess) {
+      autoVerifyTimer.current = setTimeout(() => {
+        handleVerifyOtp();
+      }, 300);
+    }
+    return () => {
+      if (autoVerifyTimer.current) {
+        clearTimeout(autoVerifyTimer.current);
+      }
+    };
+  }, [otpCode, isSuccess]);
 
   // Spin animation for verifying state
   useEffect(() => {
@@ -335,7 +354,7 @@ export default function OTPScreen() {
     ]).start();
   }, []);
 
-  const handleVerifyOtp = async () => {
+  const handleVerifyOtp = useCallback(async () => {
     if (otpCode.length !== 6) {
       setError('Please enter all 6 digits');
       return;
@@ -343,6 +362,8 @@ export default function OTPScreen() {
 
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
+    // Batch state updates: only set verifying, don't clear error separately
+    // to minimize re-renders that could dismiss the keyboard
     setIsVerifying(true);
     setError('');
 
@@ -359,6 +380,7 @@ export default function OTPScreen() {
         setIsVerifying(false);
         isSubmittingRef.current = false;
       } else {
+        // Set success first, then stop verifying in a single batch
         setIsSuccess(true);
         setIsVerifying(false);
         isSubmittingRef.current = false;
@@ -380,7 +402,7 @@ export default function OTPScreen() {
       setIsVerifying(false);
       isSubmittingRef.current = false;
     }
-  };
+  }, [otpCode, emailOrPhone, type, flow, playSuccessAnimation, router]);
 
   const handleResendOtp = async () => {
     if (resendCooldown > 0 || isResending) return;
@@ -516,8 +538,8 @@ export default function OTPScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
       <ScrollView
         style={styles.scrollView}
@@ -584,10 +606,7 @@ export default function OTPScreen() {
           <OTPInput
             length={6}
             value={otpCode}
-            onChange={(code) => {
-              setOtpCode(code);
-              if (error) setError('');
-            }}
+            onChange={handleOtpChange}
             error={error}
             disabled={false}
             autoFocus

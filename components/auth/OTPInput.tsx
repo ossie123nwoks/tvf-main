@@ -20,7 +20,7 @@ interface OTPInputProps {
   autoFocus?: boolean;
 }
 
-export const OTPInput: React.FC<OTPInputProps> = ({
+export const OTPInput: React.FC<OTPInputProps> = React.memo(({
   length = 6,
   value,
   onChange,
@@ -208,7 +208,7 @@ export const OTPInput: React.FC<OTPInputProps> = ({
       ) : null}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
