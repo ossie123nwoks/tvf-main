@@ -5,8 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { AdminService } from '@/lib/supabase/admin';
 import { AdminAuthGuard, useAdminAuth } from '@/components/admin/AdminAuthGuard';
-import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { HeaderBar, DataTable, Column, DashboardCard, ActionButton } from '@/components/admin/ui';
 
 export default function ArticlesManagementPage() {
