@@ -21,7 +21,7 @@ const MANAGEMENT_SECTIONS = [
     id: 'series',
     title: 'Manage Series',
     description: 'Group sermons and articles into structured series',
-    icon: 'collections-bookmark' as const,
+    icon: 'collections' as const,
     color: '#3B82F6',
     route: '/admin/series-management',
     stats: 'Sermon series & collections',

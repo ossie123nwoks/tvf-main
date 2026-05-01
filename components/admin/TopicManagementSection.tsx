@@ -7,6 +7,7 @@ import { AdminService } from '@/lib/supabase/admin';
 import { useAdminAuth } from './AdminAuthGuard';
 import { useRouter } from 'expo-router';
 import { DataTable, Column, DashboardCard, ActionButton } from '@/components/admin/ui';
+import { toMaterialIconName } from '@/lib/utils/materialIconName';
 
 interface Topic {
   id: string;
@@ -105,7 +106,7 @@ export default function TopicManagementSection() {
             marginRight: 12,
           }}>
             <MaterialIcons
-              name={(item.icon || 'label') as any}
+              name={toMaterialIconName(item.icon, 'label') as any}
               size={18}
               color={item.color || '#8B5CF6'}
             />
@@ -214,7 +215,7 @@ export default function TopicManagementSection() {
         />
       </DashboardCard>
 
-      <DashboardCard contentStyle={{ padding: 0 }} style={{ flex: 1 }}>
+      <DashboardCard contentStyle={{ padding: 0, flex: 1 }} style={{ flex: 1 }}>
         <DataTable
           columns={columns}
           data={data}

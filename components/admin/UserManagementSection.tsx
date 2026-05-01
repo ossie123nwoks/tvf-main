@@ -275,7 +275,7 @@ export default function UserManagementSection() {
         )}
       </DashboardCard>
 
-      <DashboardCard contentStyle={{ padding: 0 }}>
+      <DashboardCard contentStyle={{ padding: 0, flex: 1 }} style={{ flex: 1 }}>
         <DataTable
           columns={columns}
           data={users}

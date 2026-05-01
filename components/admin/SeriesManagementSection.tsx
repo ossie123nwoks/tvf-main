@@ -7,6 +7,7 @@ import { AdminService } from '@/lib/supabase/admin';
 import { useAdminAuth } from './AdminAuthGuard';
 import { useRouter } from 'expo-router';
 import { DataTable, Column, DashboardCard, ActionButton } from '@/components/admin/ui';
+import { toMaterialIconName } from '@/lib/utils/materialIconName';
 
 interface Series {
   id: string;
@@ -106,7 +107,7 @@ export default function SeriesManagementSection() {
             marginRight: 12,
           }}>
             <MaterialIcons
-              name={(item.icon || 'collections-bookmark') as any}
+              name={toMaterialIconName(item.icon, 'collections') as any}
               size={18}
               color={item.color || '#3B82F6'}
             />
@@ -214,7 +215,7 @@ export default function SeriesManagementSection() {
         />
       </DashboardCard>
 
-      <DashboardCard contentStyle={{ padding: 0 }} style={{ flex: 1 }}>
+      <DashboardCard contentStyle={{ padding: 0, flex: 1 }} style={{ flex: 1 }}>
         <DataTable
           columns={columns}
           data={data}
@@ -223,7 +224,7 @@ export default function SeriesManagementSection() {
           onRefresh={() => loadSeries(true)}
           emptyTitle="No series found"
           emptyDescription="Try adjusting your search or create a new series."
-          emptyIcon="collections-bookmark"
+          emptyIcon="collections"
         />
       </DashboardCard>
     </View>

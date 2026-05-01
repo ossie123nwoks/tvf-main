@@ -27,6 +27,7 @@ import {
 } from '@/lib/services/categorization';
 import { ContentService } from '@/lib/supabase/content';
 import { Category, ContentStats } from '@/types/content';
+import { toMaterialIconName } from '@/lib/utils/materialIconName';
 
 interface ContentOrganizationDashboardProps {
   onNavigateToCategory?: (categoryId: string) => void;
@@ -497,7 +498,7 @@ export default function ContentOrganizationDashboard({
           onPress={() => handleCategoryPress(category.id)}
         >
           <View style={styles.categoryHeader}>
-            <MaterialIcons name={category.icon as any} size={24} color={category.color} />
+            <MaterialIcons name={toMaterialIconName(category.icon, 'folder') as any} size={24} color={category.color} />
 
             <View style={styles.categoryInfo}>
               <Text style={styles.categoryName}>{category.name}</Text>
