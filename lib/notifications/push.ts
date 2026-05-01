@@ -506,9 +506,12 @@ class PushNotificationService {
       let sent = 0;
       let failed = 0;
 
-      // Send notification to each user
-      for (const user of users) {
-        const success = await this.sendNotificationToUser(user.user_id, notification);
+      // Extract unique user IDs to avoid duplicate notification attempts
+      const uniqueUserIds = [...new Set(users.map((u: any) => u.user_id))];
+
+      // Send notification to each unique user
+      for (const userId of uniqueUserIds) {
+        const success = await this.sendNotificationToUser(userId as string, notification);
         if (success) {
           sent++;
         } else {
