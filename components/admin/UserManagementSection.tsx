@@ -112,18 +112,18 @@ export default function UserManagementSection() {
       title: 'User',
       flex: 2,
       render: item => (
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingRight: 8 }}>
           <Avatar.Text
             size={40}
             label={`${item.first_name?.[0] || ''}${item.last_name?.[0] || ''}`.toUpperCase() || 'U'}
-            style={{ backgroundColor: theme.colors.primaryContainer, marginRight: 12 }}
+            style={{ backgroundColor: theme.colors.primaryContainer, marginRight: 12, flexShrink: 0 }}
             labelStyle={{ color: theme.colors.primary, ...theme.typography.titleSmall }}
           />
-          <View>
-            <Text style={{ ...theme.typography.titleSmall, color: theme.colors.text }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ ...theme.typography.titleSmall, color: theme.colors.text }} numberOfLines={1}>
               {item.first_name || 'Unknown'} {item.last_name || 'User'}
             </Text>
-            <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary }}>
+            <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary }} numberOfLines={1}>
               {item.email}
             </Text>
           </View>
