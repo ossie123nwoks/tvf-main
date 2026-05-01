@@ -238,7 +238,7 @@ export default function ContentManagementSection() {
         />
       </DashboardCard>
 
-      <DashboardCard contentStyle={{ padding: 0 }} style={{ flex: 1 }}>
+      <DashboardCard contentStyle={{ padding: 0, flex: 1 }} style={{ flex: 1 }}>
         <DataTable
           columns={columns}
           data={data}
