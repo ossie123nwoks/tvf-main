@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Text, Searchbar, IconButton, Menu } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { AdminService } from '@/lib/supabase/admin';
-import { Sermon } from '@/types/content';
 import { AdminAuthGuard, useAdminAuth } from '@/components/admin/AdminAuthGuard';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { HeaderBar, DataTable, Column, DashboardCard, ActionButton } from '@/components/admin/ui';
 
 export default function SermonsManagementPage() {
@@ -14,28 +14,31 @@ export default function SermonsManagementPage() {
   const { checkPermission } = useAdminAuth();
   const router = useRouter();
 
-  const [data, setData] = useState<Sermon[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
 
-  const loadSermons = async (reset: boolean = false) => {
+  const loadSermons = useCallback(async () => {
     try {
-      if (reset) setLoading(true);
-      const result = await AdminService.getSermons(1, 50, appliedSearch);
-      setData(result.sermons);
+      setLoading(true);
+      const result = await AdminService.getSermons(1, 50, appliedSearch || undefined);
+      setData(result.sermons || []);
     } catch (err) {
       console.error('Failed to load sermons:', err);
       Alert.alert('Error', 'Failed to load sermons');
     } finally {
-      if (reset) setLoading(false);
+      setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    loadSermons(true);
   }, [appliedSearch]);
+
+  // Reload data when screen comes into focus (e.g. after create/edit)
+  useFocusEffect(
+    useCallback(() => {
+      loadSermons();
+    }, [loadSermons])
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -75,13 +78,13 @@ export default function SermonsManagementPage() {
       key: 'title',
       title: 'Title',
       flex: 3,
-      render: item => (
+      render: (item: any) => (
         <View style={{ paddingRight: 8 }}>
           <Text
             style={{ ...theme.typography.titleMedium, color: theme.colors.text }}
             numberOfLines={1}
           >
-            {item.title}
+            {item.title || 'Untitled'}
           </Text>
           <Text
             style={{
@@ -90,7 +93,7 @@ export default function SermonsManagementPage() {
               marginTop: 2,
             }}
           >
-            {item.preacher} • {new Date(item.date).toLocaleDateString()}
+            {item.preacher || 'Unknown'} • {item.date ? new Date(item.date).toLocaleDateString() : 'No date'}
           </Text>
         </View>
       ),
@@ -99,18 +102,18 @@ export default function SermonsManagementPage() {
       key: 'status',
       title: 'Status',
       flex: 1,
-      render: item => (
+      render: (item: any) => (
         <View
           style={{
             alignSelf: 'flex-start',
             paddingHorizontal: 8,
             paddingVertical: 4,
             borderRadius: 12,
-            backgroundColor: getStatusColor(item.is_published) + '15',
+            backgroundColor: getStatusColor(!!item.is_published) + '15',
           }}
         >
           <Text
-            style={{ ...theme.typography.labelSmall, color: getStatusColor(item.is_published) }}
+            style={{ ...theme.typography.labelSmall, color: getStatusColor(!!item.is_published) }}
           >
             {item.is_published ? 'Published' : 'Draft'}
           </Text>
@@ -121,7 +124,7 @@ export default function SermonsManagementPage() {
       key: 'stats',
       title: 'Views',
       flex: 1,
-      render: item => (
+      render: (item: any) => (
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <MaterialIcons
             name="visibility"
@@ -139,7 +142,7 @@ export default function SermonsManagementPage() {
       key: 'actions',
       title: '',
       width: 50,
-      render: item => (
+      render: (item: any) => (
         <Menu
           visible={menuVisible === item.id}
           onDismiss={() => setMenuVisible(null)}
@@ -182,10 +185,10 @@ export default function SermonsManagementPage() {
           rightAction={
             canCreate ? (
               <ActionButton
-                label="New Sermon"
+                label="New"
                 icon="add"
+                size="small"
                 onPress={() => router.push('/admin/sermon/create')}
-                compact
               />
             ) : undefined
           }
@@ -209,8 +212,8 @@ export default function SermonsManagementPage() {
               columns={columns}
               data={data}
               loading={loading}
-              keyExtractor={item => item.id}
-              onRefresh={() => loadSermons(true)}
+              keyExtractor={(item: any) => item.id}
+              onRefresh={loadSermons}
               emptyTitle="No sermons found"
               emptyDescription="Try adjusting your search or create a new sermon."
               emptyIcon="headset"

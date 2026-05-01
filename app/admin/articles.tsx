@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Text, Searchbar, IconButton, Menu } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { AdminService } from '@/lib/supabase/admin';
-import { Article } from '@/types/content';
 import { AdminAuthGuard, useAdminAuth } from '@/components/admin/AdminAuthGuard';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { HeaderBar, DataTable, Column, DashboardCard, ActionButton } from '@/components/admin/ui';
 
 export default function ArticlesManagementPage() {
@@ -14,28 +14,31 @@ export default function ArticlesManagementPage() {
   const { checkPermission } = useAdminAuth();
   const router = useRouter();
 
-  const [data, setData] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
 
-  const loadArticles = async (reset: boolean = false) => {
+  const loadArticles = useCallback(async () => {
     try {
-      if (reset) setLoading(true);
-      const result = await AdminService.getArticles(1, 50, appliedSearch);
-      setData(result.articles);
+      setLoading(true);
+      const result = await AdminService.getArticles(1, 50, appliedSearch || undefined);
+      setData(result.articles || []);
     } catch (err) {
       console.error('Failed to load articles:', err);
       Alert.alert('Error', 'Failed to load articles');
     } finally {
-      if (reset) setLoading(false);
+      setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    loadArticles(true);
   }, [appliedSearch]);
+
+  // Reload data when screen comes into focus (e.g. after create/edit)
+  useFocusEffect(
+    useCallback(() => {
+      loadArticles();
+    }, [loadArticles])
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -75,13 +78,13 @@ export default function ArticlesManagementPage() {
       key: 'title',
       title: 'Title',
       flex: 3,
-      render: item => (
+      render: (item: any) => (
         <View style={{ paddingRight: 8 }}>
           <Text
             style={{ ...theme.typography.titleMedium, color: theme.colors.text }}
             numberOfLines={1}
           >
-            {item.title}
+            {item.title || 'Untitled'}
           </Text>
           <Text
             style={{
@@ -90,7 +93,7 @@ export default function ArticlesManagementPage() {
               marginTop: 2,
             }}
           >
-            By {item.author} • {new Date(item.created_at).toLocaleDateString()}
+            By {item.author || 'Unknown'} • {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'No date'}
           </Text>
         </View>
       ),
@@ -99,18 +102,18 @@ export default function ArticlesManagementPage() {
       key: 'status',
       title: 'Status',
       flex: 1,
-      render: item => (
+      render: (item: any) => (
         <View
           style={{
             alignSelf: 'flex-start',
             paddingHorizontal: 8,
             paddingVertical: 4,
             borderRadius: 12,
-            backgroundColor: getStatusColor(item.is_published) + '15',
+            backgroundColor: getStatusColor(!!item.is_published) + '15',
           }}
         >
           <Text
-            style={{ ...theme.typography.labelSmall, color: getStatusColor(item.is_published) }}
+            style={{ ...theme.typography.labelSmall, color: getStatusColor(!!item.is_published) }}
           >
             {item.is_published ? 'Published' : 'Draft'}
           </Text>
@@ -121,7 +124,7 @@ export default function ArticlesManagementPage() {
       key: 'stats',
       title: 'Views',
       flex: 1,
-      render: item => (
+      render: (item: any) => (
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <MaterialIcons
             name="visibility"
@@ -139,7 +142,7 @@ export default function ArticlesManagementPage() {
       key: 'actions',
       title: '',
       width: 50,
-      render: item => (
+      render: (item: any) => (
         <Menu
           visible={menuVisible === item.id}
           onDismiss={() => setMenuVisible(null)}
@@ -182,10 +185,10 @@ export default function ArticlesManagementPage() {
           rightAction={
             canCreate ? (
               <ActionButton
-                label="New Article"
+                label="New"
                 icon="add"
+                size="small"
                 onPress={() => router.push('/admin/article/create')}
-                compact
               />
             ) : undefined
           }
@@ -209,8 +212,8 @@ export default function ArticlesManagementPage() {
               columns={columns}
               data={data}
               loading={loading}
-              keyExtractor={item => item.id}
-              onRefresh={() => loadArticles(true)}
+              keyExtractor={(item: any) => item.id}
+              onRefresh={loadArticles}
               emptyTitle="No articles found"
               emptyDescription="Try adjusting your search or create a new article."
               emptyIcon="article"
