@@ -522,7 +522,7 @@ export default function DashboardScreen() {
                     ...theme.shadows.small,
                   },
                 ]}
-                onPress={() => Linking.openURL('https://truevinefellowship.online')}
+                onPress={() => Linking.openURL('https://truevineassembly.com')}
                 activeOpacity={0.8}
               >
                 <MaterialIcons name="language" size={24} color={theme.colors.secondary} />

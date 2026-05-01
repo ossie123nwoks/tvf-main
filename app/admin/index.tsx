@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -75,7 +75,11 @@ export default function AdminIndex() {
           backButton
         />
 
-        <View style={styles.content}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           <DashboardCard style={styles.welcomeCard}>
             <Text style={{ ...theme.typography.headlineMedium, color: theme.colors.text }}>
               Welcome back, {user?.firstName || 'Admin'} 👋
@@ -168,15 +172,19 @@ export default function AdminIndex() {
               })}
             </View>
           )}
-        </View>
+        </ScrollView>
       </View>
     </AdminAuthGuard>
   );
 }
 
 const styles = StyleSheet.create({
-  content: {
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
     padding: 16,
+    paddingBottom: 48,
   },
   welcomeCard: {
     marginBottom: 24,
