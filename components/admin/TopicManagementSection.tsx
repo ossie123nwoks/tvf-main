@@ -6,6 +6,7 @@ import { useTheme } from '@/lib/theme/ThemeProvider';
 import { AdminService } from '@/lib/supabase/admin';
 import { useAdminAuth } from './AdminAuthGuard';
 import { useRouter } from 'expo-router';
+import { supabase } from '@/lib/supabase/client';
 import { DataTable, Column, DashboardCard, ActionButton } from '@/components/admin/ui';
 import { toMaterialIconName } from '@/lib/utils/materialIconName';
 
@@ -74,10 +75,16 @@ export default function TopicManagementSection() {
         style: 'destructive',
         onPress: async () => {
           try {
+            // Delete from database
+            const { error } = await supabase.from('topics').delete().eq('id', id);
+            
+            if (error) throw error;
+
             // Remove from local state
             setData(prev => prev.filter(item => item.id !== id));
             Alert.alert('Success', 'Topic deleted successfully');
           } catch (error) {
+            console.error('Failed to delete topic:', error);
             Alert.alert('Error', 'Failed to delete topic');
           }
         },
