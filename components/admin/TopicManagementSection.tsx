@@ -1,24 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Alert, FlatList, Image, RefreshControl } from 'react-native';
-import {
-  Text,
-  Card,
-  Button,
-  TextInput,
-  IconButton,
-  ActivityIndicator,
-  FAB,
-  Chip,
-  SegmentedButtons,
-  Searchbar,
-} from 'react-native-paper';
+import { View, StyleSheet, Alert } from 'react-native';
+import { Text, Searchbar, IconButton, Menu } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { AdminService } from '@/lib/supabase/admin';
 import { useAdminAuth } from './AdminAuthGuard';
 import { useRouter } from 'expo-router';
-import CustomDropdown from '@/components/ui/CustomDropdown';
-import { Sermon, Series } from '@/types/content';
+import { DataTable, Column, DashboardCard, ActionButton } from '@/components/admin/ui';
 
 interface Topic {
   id: string;
@@ -30,623 +18,234 @@ interface Topic {
   updated_at: string;
 }
 
-interface TopicManagementSectionProps {
-  onNavigate?: (section: string) => void;
-}
-
-const TopicManagementSection: React.FC<TopicManagementSectionProps> = ({ onNavigate }) => {
+export default function TopicManagementSection() {
   const { theme } = useTheme();
   const { checkPermission } = useAdminAuth();
   const router = useRouter();
 
-  // Topics state
-  const [topics, setTopics] = useState<Topic[]>([]);
+  const [data, setData] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
-  // Search state
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchLoading, setSearchLoading] = useState(false);
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const [menuVisible, setMenuVisible] = useState<string | null>(null);
 
-  // Tab state
-  const [activeTab, setActiveTab] = useState<'manage' | 'assign'>('manage');
-
-  // Sermon assignment state
-  const [sermons, setSermons] = useState<(Sermon & { series?: Series; topics?: Topic[] })[]>([]);
-  const [allTopics, setAllTopics] = useState<Topic[]>([]);
-  const [sermonsLoading, setSermonsLoading] = useState(false);
-  const [sermonsError, setSermonsError] = useState<string | null>(null);
-  const [sermonSearchQuery, setSermonSearchQuery] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
-  const [savingSermonId, setSavingSermonId] = useState<string | null>(null);
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: theme.spacing.lg,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: theme.spacing.lg,
-    },
-    title: {
-      fontSize: 20,
-      fontWeight: '600',
-      color: theme.colors.text,
-    },
-    searchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: theme.spacing.lg,
-    },
-    searchInput: {
-      flex: 1,
-      marginRight: theme.spacing.sm,
-    },
-    topicsList: {
-      flex: 1,
-    },
-    topicsListContent: {
-      paddingBottom: theme.spacing.xl * 2,
-    },
-    topicCard: {
-      marginBottom: theme.spacing.md,
-      backgroundColor: theme.colors.surface,
-      borderRadius: theme.borderRadius.md,
-    },
-    topicHeader: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      justifyContent: 'space-between',
-    },
-    topicInfo: {
-      flex: 1,
-      marginRight: theme.spacing.sm,
-    },
-    topicName: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.xs,
-      lineHeight: 22,
-    },
-    topicDescription: {
-      fontSize: 14,
-      color: theme.colors.textSecondary,
-      marginBottom: theme.spacing.xs,
-      lineHeight: 20,
-    },
-    topicMeta: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
-      lineHeight: 18,
-    },
-    topicIcon: {
-      marginRight: theme.spacing.sm,
-    },
-    actionButtons: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      marginTop: theme.spacing.xs,
-    },
-    paginationContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: theme.spacing.lg,
-      marginBottom: theme.spacing.md,
-      paddingVertical: theme.spacing.md,
-    },
-    paginationButton: {
-      marginHorizontal: theme.spacing.xs,
-    },
-    emptyState: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: theme.spacing.xl * 2,
-      minHeight: 200,
-    },
-    emptyText: {
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-      textAlign: 'center',
-      marginTop: theme.spacing.md,
-      lineHeight: 24,
-    },
-    fab: {
-      position: 'absolute',
-      bottom: theme.spacing.lg,
-      right: theme.spacing.lg,
-      backgroundColor: theme.colors.primary,
-    },
-    tabContainer: {
-      marginBottom: theme.spacing.lg,
-    },
-    sermonCard: {
-      marginBottom: theme.spacing.md,
-      backgroundColor: theme.colors.surface,
-      borderRadius: theme.borderRadius.md,
-    },
-    sermonCardContent: {
-      padding: theme.spacing.md,
-    },
-    sermonHeader: {
-      flexDirection: 'row',
-      marginBottom: theme.spacing.sm,
-    },
-    errorCard: {
-      marginBottom: theme.spacing.md,
-      backgroundColor: theme.colors.surface,
-      borderRadius: theme.borderRadius.md,
-    },
-    errorContent: {
-      padding: theme.spacing.lg,
-    },
-    sermonThumbnail: {
-      width: 60,
-      height: 60,
-      borderRadius: 8,
-      marginRight: theme.spacing.sm,
-    },
-    sermonInfo: {
-      flex: 1,
-    },
-    sermonTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: theme.spacing.xs,
-    },
-    sermonMeta: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
-      marginBottom: theme.spacing.xs,
-    },
-    sermonDropdown: {
-      marginTop: theme.spacing.sm,
-    },
-    savingIndicator: {
-      position: 'absolute',
-      right: theme.spacing.md,
-      top: theme.spacing.md,
-    },
-    topicsBadge: {
-      marginTop: theme.spacing.xs,
-    },
-  });
-
-  // Load topics
-  const loadTopics = async (page: number = 1, search?: string) => {
+  const loadTopics = async (reset: boolean = false) => {
     try {
-      setLoading(true);
-      setError(null);
+      if (reset) setLoading(true);
 
-      // For now, we'll use a mock implementation since topics table might not exist yet
-      // In a real implementation, this would call AdminService.getTopics()
-      const mockTopics: Topic[] = [
-        {
-          id: '1',
-          name: 'Faith',
-          description: 'Sermons about faith and belief',
-          color: '#1976D2',
-          icon: 'favorite',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        {
-          id: '2',
-          name: 'Hope',
-          description: 'Messages of hope and encouragement',
-          color: '#388E3C',
-          icon: 'lightbulb',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        {
-          id: '3',
-          name: 'Love',
-          description: 'Teachings about love and relationships',
-          color: '#D32F2F',
-          icon: 'favorite',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ];
+      const allTopics = await AdminService.getAllTopics();
 
-      // Filter by search query
-      const filteredTopics = search
-        ? mockTopics.filter(
-            topic =>
-              topic.name.toLowerCase().includes(search.toLowerCase()) ||
-              topic.description?.toLowerCase().includes(search.toLowerCase())
+      // Filter by search query locally
+      const filtered = appliedSearch
+        ? allTopics.filter(
+            (t: any) =>
+              t.name?.toLowerCase().includes(appliedSearch.toLowerCase()) ||
+              t.description?.toLowerCase().includes(appliedSearch.toLowerCase())
           )
-        : mockTopics;
+        : allTopics;
 
-      setTopics(filteredTopics);
-      setTotalPages(1); // Mock pagination
-      setCurrentPage(page);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load topics');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle search
-  const handleSearch = async (query: string) => {
-    setSearchQuery(query);
-    setSearchLoading(true);
-
-    try {
-      await loadTopics(1, query);
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  // Handle delete topic
-  const handleDelete = (id: string, name: string) => {
-    Alert.alert(
-      'Delete Topic',
-      `Are you sure you want to delete "${name}"? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // TODO: Implement actual delete when AdminService.getTopics() is available
-              setTopics(prev => prev.filter(t => t.id !== id));
-              Alert.alert('Success', 'Topic deleted successfully');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete topic');
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  // Load sermons for assignment
-  const loadSermons = async () => {
-    try {
-      setSermonsLoading(true);
-      setSermonsError(null);
-      const sermonsData = await AdminService.getSermonsForAssignment(
-        200,
-        sermonSearchQuery || undefined
-      );
-      setSermons(sermonsData);
-    } catch (err) {
-      setSermonsError(err instanceof Error ? err.message : 'Failed to load sermons');
-    } finally {
-      setSermonsLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  // Load all topics for dropdown
-  const loadAllTopics = async () => {
-    try {
-      const topicsData = await AdminService.getAllTopics();
-      setAllTopics(topicsData as unknown as Topic[]);
+      setData(filtered as Topic[]);
     } catch (err) {
       console.error('Failed to load topics:', err);
-    }
-  };
-
-  // Handle topics assignment
-  const handleTopicsAssignment = async (sermonId: string, topicIds: string[]) => {
-    try {
-      setSavingSermonId(sermonId);
-      await AdminService.assignSermonToTopics(sermonId, topicIds);
-
-      // Update local state
-      setSermons(prev =>
-        prev.map(sermon =>
-          sermon.id === sermonId
-            ? {
-                ...sermon,
-                topics: allTopics.filter(t => topicIds.includes(t.id)),
-              }
-            : sermon
-        )
-      );
-    } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to assign topics');
+      Alert.alert('Error', 'Failed to load topics');
     } finally {
-      setSavingSermonId(null);
+      if (reset) setLoading(false);
     }
   };
 
-  // Handle refresh
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await Promise.all([loadSermons(), loadAllTopics()]);
+  useEffect(() => {
+    loadTopics(true);
+  }, [appliedSearch]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAppliedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleDelete = (id: string, name: string) => {
+    setMenuVisible(null);
+    Alert.alert('Delete Topic', `Are you sure you want to delete "${name}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            // Remove from local state
+            setData(prev => prev.filter(item => item.id !== id));
+            Alert.alert('Success', 'Topic deleted successfully');
+          } catch (error) {
+            Alert.alert('Error', 'Failed to delete topic');
+          }
+        },
+      },
+    ]);
   };
-
-  // Load topics on mount
-  useEffect(() => {
-    loadTopics(1, searchQuery);
-  }, []);
-
-  // Load sermons and topics when assignment tab is active
-  useEffect(() => {
-    if (activeTab === 'assign') {
-      loadSermons();
-      loadAllTopics();
-    }
-  }, [activeTab, sermonSearchQuery]);
 
   const canCreate = checkPermission('topics.create');
   const canEdit = checkPermission('topics.manage');
   const canDelete = checkPermission('topics.manage');
 
-  // Render sermon assignment view
-  const renderSermonAssignment = () => (
-    <View style={{ flex: 1 }}>
-      {/* Search */}
-      <Searchbar
-        placeholder="Search sermons..."
-        onChangeText={setSermonSearchQuery}
-        value={sermonSearchQuery}
-        style={{ marginBottom: theme.spacing.md }}
-      />
-
-      {sermonsLoading && sermons.length === 0 ? (
-        <View style={styles.emptyState}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={styles.emptyText}>Loading sermons...</Text>
+  const columns: Column<any>[] = [
+    {
+      key: 'name',
+      title: 'Topic',
+      flex: 3,
+      render: item => (
+        <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 8 }}>
+          <View style={{
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            backgroundColor: (item.color || '#8B5CF6') + '15',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 12,
+          }}>
+            <MaterialIcons
+              name={(item.icon || 'label') as any}
+              size={18}
+              color={item.color || '#8B5CF6'}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{ ...theme.typography.titleMedium, color: theme.colors.text }}
+              numberOfLines={1}
+            >
+              {item.name}
+            </Text>
+            {item.description ? (
+              <Text
+                style={{
+                  ...theme.typography.bodySmall,
+                  color: theme.colors.textSecondary,
+                  marginTop: 2,
+                }}
+                numberOfLines={1}
+              >
+                {item.description}
+              </Text>
+            ) : null}
+          </View>
         </View>
-      ) : sermonsError ? (
-        <Card style={styles.sermonCard}>
-          <Card.Content>
-            <Text style={{ color: theme.colors.error, textAlign: 'center' }}>{sermonsError}</Text>
-            <Button mode="outlined" onPress={loadSermons} style={{ marginTop: theme.spacing.md }}>
-              Retry
-            </Button>
-          </Card.Content>
-        </Card>
-      ) : sermons.length === 0 ? (
-        <View style={styles.emptyState}>
-          <MaterialIcons name="music-note" size={48} color={theme.colors.textSecondary} />
-          <Text style={styles.emptyText}>No sermons found.</Text>
+      ),
+    },
+    {
+      key: 'color',
+      title: 'Color',
+      flex: 1,
+      render: item => (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{
+            width: 16,
+            height: 16,
+            borderRadius: 4,
+            backgroundColor: item.color || '#8B5CF6',
+            marginRight: 8,
+          }} />
+          <Text style={{ ...theme.typography.bodySmall, color: theme.colors.textSecondary }}>
+            {item.color || '#8B5CF6'}
+          </Text>
         </View>
-      ) : (
-        <FlatList
-          data={sermons}
-          keyExtractor={item => item.id}
-          renderItem={({ item: sermon }) => {
-            const currentTopicIds = (sermon.topics || []).map(t => t.id);
-            return (
-              <Card style={styles.sermonCard} elevation={2}>
-                <Card.Content style={styles.sermonCardContent}>
-                  {savingSermonId === sermon.id && (
-                    <View style={styles.savingIndicator}>
-                      <ActivityIndicator size="small" color={theme.colors.primary} />
-                    </View>
-                  )}
-                  <View style={styles.sermonHeader}>
-                    {sermon.thumbnail_url && (
-                      <Image
-                        source={{ uri: sermon.thumbnail_url }}
-                        style={styles.sermonThumbnail}
-                        resizeMode="cover"
-                      />
-                    )}
-                    <View style={styles.sermonInfo}>
-                      <Text style={styles.sermonTitle} numberOfLines={2}>
-                        {sermon.title}
-                      </Text>
-                      <Text style={styles.sermonMeta}>
-                        {sermon.preacher} • {new Date(sermon.date).toLocaleDateString()}
-                      </Text>
-                      {currentTopicIds.length > 0 && (
-                        <View style={styles.topicsBadge}>
-                          <Chip icon="label" compact style={{ alignSelf: 'flex-start' }}>
-                            {currentTopicIds.length} topic{currentTopicIds.length !== 1 ? 's' : ''}
-                          </Chip>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                  <View style={styles.sermonDropdown}>
-                    <CustomDropdown
-                      options={allTopics.map(t => ({ id: t.id, label: t.name, value: t.id }))}
-                      selectedValues={currentTopicIds}
-                      onMultiSelect={values => handleTopicsAssignment(sermon.id, values)}
-                      placeholder="Select Topics"
-                      variant="dark"
-                      multiSelect={true}
-                    />
-                  </View>
-                </Card.Content>
-              </Card>
-            );
-          }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-          contentContainerStyle={{ paddingBottom: theme.spacing.xl }}
-        />
-      )}
-    </View>
-  );
+      ),
+    },
+    {
+      key: 'actions',
+      title: '',
+      width: 50,
+      render: item => (
+        <Menu
+          visible={menuVisible === item.id}
+          onDismiss={() => setMenuVisible(null)}
+          anchor={
+            <IconButton icon="dots-vertical" size={20} onPress={() => setMenuVisible(item.id)} />
+          }
+        >
+          {canEdit && (
+            <Menu.Item
+              onPress={() => {
+                setMenuVisible(null);
+                router.push(`/admin/topic-edit/${item.id}`);
+              }}
+              title="Edit"
+              leadingIcon="pencil"
+            />
+          )}
+          {canDelete && (
+            <Menu.Item
+              onPress={() => handleDelete(item.id, item.name)}
+              title="Delete"
+              titleStyle={{ color: theme.colors.error }}
+              leadingIcon={() => (
+                <MaterialIcons name="delete" size={20} color={theme.colors.error} />
+              )}
+            />
+          )}
+        </Menu>
+      ),
+    },
+  ];
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Topic Management</Text>
-      </View>
-
-      {/* Tabs */}
-      <View style={styles.tabContainer}>
-        <SegmentedButtons
-          value={activeTab}
-          onValueChange={value => setActiveTab(value as 'manage' | 'assign')}
-          buttons={[
-            { value: 'manage', label: 'Manage Topics' },
-            { value: 'assign', label: 'Assign Sermons' },
-          ]}
-        />
-      </View>
-
-      {activeTab === 'assign' ? (
-        renderSermonAssignment()
-      ) : (
-        <>
-          {/* Search */}
-          <View style={styles.searchContainer}>
-            <TextInput
-              placeholder="Search topics..."
-              value={searchQuery}
-              onChangeText={handleSearch}
-              style={styles.searchInput}
-              right={
-                searchLoading ? (
-                  <ActivityIndicator size="small" color={theme.colors.primary} />
-                ) : (
-                  <TextInput.Icon icon="magnify" />
-                )
-              }
-            />
-          </View>
-
-          {/* Topics List */}
-          <ScrollView
-            style={styles.topicsList}
-            contentContainerStyle={styles.topicsListContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {loading && topics.length === 0 ? (
-              <View style={styles.emptyState}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
-                <Text style={styles.emptyText}>Loading topics...</Text>
-              </View>
-            ) : error ? (
-              <Card style={styles.errorCard} elevation={1}>
-                <View style={styles.errorContent}>
-                  <Text
-                    style={{
-                      color: theme.colors.error,
-                      textAlign: 'center',
-                      marginBottom: theme.spacing.md,
-                    }}
-                  >
-                    {error}
-                  </Text>
-                  <Button
-                    mode="outlined"
-                    onPress={() => loadTopics(currentPage, searchQuery)}
-                    style={{ alignSelf: 'center' }}
-                  >
-                    Retry
-                  </Button>
-                </View>
-              </Card>
-            ) : topics.length === 0 ? (
-              <View style={styles.emptyState}>
-                <MaterialIcons name="label-outline" size={48} color={theme.colors.textSecondary} />
-                <Text style={styles.emptyText}>
-                  No topics found. {canCreate && 'Create your first one!'}
-                </Text>
-              </View>
-            ) : (
-              topics.map(topic => (
-                <Card key={topic.id} style={styles.topicCard} elevation={2}>
-                  <Card.Content style={{ padding: theme.spacing.md }}>
-                    <View style={styles.topicHeader}>
-                      <View style={styles.topicInfo}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <MaterialIcons
-                            name={topic.icon as any}
-                            size={20}
-                            color={topic.color}
-                            style={styles.topicIcon}
-                          />
-                          <Text style={styles.topicName}>{topic.name}</Text>
-                        </View>
-                        {topic.description && (
-                          <Text style={styles.topicDescription}>{topic.description}</Text>
-                        )}
-                        <Text style={styles.topicMeta}>
-                          Created {new Date(topic.created_at).toLocaleDateString()}
-                        </Text>
-                      </View>
-                      <View style={styles.actionButtons}>
-                        <Chip
-                          style={{ backgroundColor: topic.color + '20' }}
-                          textStyle={{ color: topic.color }}
-                        >
-                          {topic.name}
-                        </Chip>
-                        {canEdit && (
-                          <IconButton
-                            icon="pencil"
-                            size={20}
-                            onPress={() => router.push(`/admin/topic-edit/${topic.id}`)}
-                          />
-                        )}
-                        {canDelete && (
-                          <IconButton
-                            icon="delete"
-                            size={20}
-                            iconColor={theme.colors.error}
-                            onPress={() => handleDelete(topic.id, topic.name)}
-                          />
-                        )}
-                      </View>
-                    </View>
-                  </Card.Content>
-                </Card>
-              ))
-            )}
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <View style={styles.paginationContainer}>
-                <Button
-                  mode="outlined"
-                  onPress={() => loadTopics(currentPage - 1, searchQuery)}
-                  disabled={currentPage === 1}
-                  style={styles.paginationButton}
-                >
-                  Previous
-                </Button>
-                <Text style={{ marginHorizontal: theme.spacing.md }}>
-                  {currentPage} of {totalPages}
-                </Text>
-                <Button
-                  mode="outlined"
-                  onPress={() => loadTopics(currentPage + 1, searchQuery)}
-                  disabled={currentPage === totalPages}
-                  style={styles.paginationButton}
-                >
-                  Next
-                </Button>
-              </View>
-            )}
-          </ScrollView>
-
-          {/* Create FAB */}
+      <DashboardCard style={{ marginBottom: 16 }}>
+        <View style={styles.header}>
           {canCreate && (
-            <FAB
-              icon="plus"
-              style={styles.fab}
+            <ActionButton
+              label="New Topic"
+              icon="add"
               onPress={() => router.push('/admin/topic-create')}
-              label="Create Topic"
+              style={styles.createButton}
             />
           )}
-        </>
-      )}
+        </View>
+
+        <Searchbar
+          placeholder="Search topics..."
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+          style={styles.searchBar}
+          elevation={0}
+          iconColor={theme.colors.textTertiary}
+          inputStyle={{ ...theme.typography.bodyMedium, color: theme.colors.text }}
+        />
+      </DashboardCard>
+
+      <DashboardCard contentStyle={{ padding: 0 }} style={{ flex: 1 }}>
+        <DataTable
+          columns={columns}
+          data={data}
+          loading={loading}
+          keyExtractor={item => item.id}
+          onRefresh={() => loadTopics(true)}
+          emptyTitle="No topics found"
+          emptyDescription="Try adjusting your search or create a new topic."
+          emptyIcon="label"
+        />
+      </DashboardCard>
     </View>
   );
-};
+}
 
-export default TopicManagementSection;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginBottom: 16,
+  },
+  createButton: {
+    minWidth: 140,
+  },
+  searchBar: {
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
+  },
+});

@@ -1,30 +1,30 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
-import { Text, Button } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { Text } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useTheme } from '@/lib/theme/ThemeProvider';
+import { useRouter } from 'expo-router';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import { HeaderBar } from '@/components/admin/ui';
 
-const MANAGEMENT_CARDS = [
+const MANAGEMENT_SECTIONS = [
   {
     id: 'topics',
-    title: 'Topics',
+    title: 'Manage Topics',
     description: 'Create and manage content categories and topics',
     icon: 'label' as const,
-    route: '/admin/topics-management',
     color: '#8B5CF6',
-    features: ['Create custom topics', 'Assign colors and icons', 'Set display order'],
+    route: '/admin/topics-management',
+    stats: 'Categories, tags & labels',
   },
   {
     id: 'series',
-    title: 'Series',
+    title: 'Manage Series',
     description: 'Group sermons and articles into structured series',
     icon: 'collections-bookmark' as const,
-    route: '/admin/series-management',
     color: '#3B82F6',
-    features: ['Create sermon series', 'Set date ranges', 'Add series artwork'],
+    route: '/admin/series-management',
+    stats: 'Sermon series & collections',
   },
 ];
 
@@ -34,122 +34,110 @@ export default function TopicsSeriesPage() {
 
   return (
     <AdminAuthGuard>
-      <View style={[staticStyles.container, { backgroundColor: theme.colors.background }]}>
-        <HeaderBar title="Topics & Series" backButton />
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <HeaderBar
+          title="Topics & Series"
+          subtitle="Organize your church content"
+          backButton
+        />
 
         <ScrollView
-          style={staticStyles.scrollView}
-          contentContainerStyle={{ padding: theme.spacing.md, paddingBottom: theme.spacing.xxl }}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Page title */}
-          <Text
-            style={{
-              ...theme.typography.headlineSmall,
+          {/* Intro */}
+          <View style={[styles.introCard, {
+            backgroundColor: theme.colors.surfaceElevated,
+            borderRadius: theme.borderRadius.lg,
+            borderWidth: 1,
+            borderColor: theme.colors.cardBorder,
+            padding: theme.spacing.lg,
+            marginBottom: theme.spacing.lg,
+            ...theme.shadows.small,
+          }]}>
+            <MaterialIcons name="category" size={32} color={theme.colors.primary} />
+            <Text style={{
+              ...theme.typography.titleMedium,
               color: theme.colors.text,
-              marginBottom: theme.spacing.xs,
-            }}
-          >
-            Topics & Series
-          </Text>
-          <Text
-            style={{
-              ...theme.typography.bodyMedium,
+              marginTop: theme.spacing.sm,
+            }}>
+              Content Organization
+            </Text>
+            <Text style={{
+              ...theme.typography.bodySmall,
               color: theme.colors.textSecondary,
-              marginBottom: theme.spacing.lg,
-            }}
-          >
-            Organize your content to help users discover related material.
-          </Text>
+              marginTop: theme.spacing.xxs,
+            }}>
+              Select a section below to manage your topics or series.
+            </Text>
+          </View>
 
           {/* Management Cards */}
-          {MANAGEMENT_CARDS.map(card => (
+          {MANAGEMENT_SECTIONS.map((section) => (
             <Pressable
-              key={card.id}
-              onPress={() => router.push(card.route)}
+              key={section.id}
+              onPress={() => router.push(section.route)}
               style={({ pressed }) => [
-                staticStyles.card,
+                styles.sectionCard,
                 {
                   backgroundColor: theme.colors.surfaceElevated,
                   borderRadius: theme.borderRadius.lg,
                   borderWidth: 1,
-                  borderColor: pressed ? card.color + '40' : theme.colors.cardBorder,
-                  padding: theme.spacing.lg,
+                  borderColor: pressed ? section.color : theme.colors.cardBorder,
                   marginBottom: theme.spacing.md,
-                  opacity: pressed ? 0.92 : 1,
+                  transform: [{ scale: pressed ? 0.98 : 1 }],
+                  opacity: pressed ? 0.9 : 1,
                   ...theme.shadows.small,
                 },
               ]}
             >
-              {/* Header */}
-              <View style={staticStyles.cardHeader}>
-                <View
-                  style={[
-                    staticStyles.cardIcon,
-                    {
-                      backgroundColor: card.color + '15',
-                      borderRadius: theme.borderRadius.md,
-                    },
-                  ]}
-                >
-                  <MaterialIcons name={card.icon} size={28} color={card.color} />
-                </View>
-                <View style={staticStyles.cardTitleArea}>
-                  <Text style={{ ...theme.typography.titleLarge, color: theme.colors.text }}>
-                    {card.title}
-                  </Text>
-                  <Text
-                    style={{
-                      ...theme.typography.bodySmall,
-                      color: theme.colors.textSecondary,
-                      marginTop: 2,
-                    }}
-                  >
-                    {card.description}
-                  </Text>
-                </View>
-                <MaterialIcons name="chevron-right" size={24} color={theme.colors.textTertiary} />
-              </View>
+              {/* Colored accent strip */}
+              <View style={[styles.accentStrip, {
+                backgroundColor: section.color,
+                borderTopLeftRadius: theme.borderRadius.lg,
+                borderBottomLeftRadius: theme.borderRadius.lg,
+              }]} />
 
-              {/* Features */}
-              <View
-                style={[
-                  staticStyles.featuresContainer,
-                  {
-                    marginTop: theme.spacing.md,
-                    paddingTop: theme.spacing.md,
-                    borderTopWidth: 1,
-                    borderTopColor: theme.colors.borderLight,
-                  },
-                ]}
-              >
-                {card.features.map((feature, idx) => (
-                  <View key={idx} style={staticStyles.featureRow}>
-                    <MaterialIcons name="check-circle" size={16} color={card.color} />
+              <View style={styles.cardBody}>
+                {/* Icon + Title Row */}
+                <View style={styles.cardHeader}>
+                  <View style={[styles.iconCircle, { backgroundColor: section.color + '15' }]}>
+                    <MaterialIcons name={section.icon} size={28} color={section.color} />
+                  </View>
+                  <View style={styles.titleBlock}>
+                    <Text
+                      style={{ ...theme.typography.titleLarge, color: theme.colors.text }}
+                      numberOfLines={1}
+                    >
+                      {section.title}
+                    </Text>
                     <Text
                       style={{
                         ...theme.typography.bodySmall,
                         color: theme.colors.textSecondary,
-                        marginLeft: 8,
+                        marginTop: 2,
                       }}
+                      numberOfLines={2}
                     >
-                      {feature}
+                      {section.description}
                     </Text>
                   </View>
-                ))}
-              </View>
+                  <MaterialIcons name="chevron-right" size={24} color={theme.colors.textTertiary} />
+                </View>
 
-              {/* Button */}
-              <Button
-                mode="contained"
-                onPress={() => router.push(card.route)}
-                buttonColor={card.color}
-                textColor="#FFFFFF"
-                style={{ marginTop: theme.spacing.md, borderRadius: theme.borderRadius.md }}
-                icon={card.icon}
-              >
-                Manage {card.title}
-              </Button>
+                {/* Footer tag */}
+                <View style={[styles.cardFooter, { borderTopColor: theme.colors.borderLight }]}>
+                  <MaterialIcons name="info-outline" size={14} color={theme.colors.textTertiary} />
+                  <Text style={{
+                    ...theme.typography.caption,
+                    color: theme.colors.textTertiary,
+                    marginLeft: 6,
+                  }}>
+                    {section.stats}
+                  </Text>
+                </View>
+              </View>
             </Pressable>
           ))}
         </ScrollView>
@@ -158,33 +146,52 @@ export default function TopicsSeriesPage() {
   );
 }
 
-const staticStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   scrollView: {
     flex: 1,
   },
-  card: {},
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 48,
+  },
+  introCard: {
+    alignItems: 'center',
+  },
+  sectionCard: {
+    flexDirection: 'row',
+    overflow: 'hidden',
+  },
+  accentStrip: {
+    width: 5,
+  },
+  cardBody: {
+    flex: 1,
+    padding: 16,
+  },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  cardIcon: {
-    width: 52,
-    height: 52,
+  iconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 16,
   },
-  cardTitleArea: {
+  titleBlock: {
     flex: 1,
     marginRight: 8,
   },
-  featuresContainer: {},
-  featureRow: {
+  cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
   },
 });
