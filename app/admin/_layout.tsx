@@ -1,16 +1,15 @@
 import React from 'react';
 import { Stack } from 'expo-router';
-import { AdminLayout } from '@/components/admin/ui';
 
 export default function Layout() {
   return (
-    <AdminLayout scrollable={false}>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: 'transparent' },
-        }}
-      />
-    </AdminLayout>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: 'transparent' },
+        gestureEnabled: true,
+        animation: 'slide_from_right',
+      }}
+    />
   );
 }

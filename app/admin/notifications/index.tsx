@@ -11,7 +11,7 @@ export default function NotificationsPage() {
   return (
     <AdminAuthGuard>
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <HeaderBar title="Notifications" />
+        <HeaderBar title="Notifications" backButton />
         <View style={styles.content}>
           <NotificationManagementSection />
         </View>

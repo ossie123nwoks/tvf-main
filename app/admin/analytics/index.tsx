@@ -11,7 +11,7 @@ export default function AnalyticsPage() {
   return (
     <AdminAuthGuard>
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <HeaderBar title="Analytics" />
+        <HeaderBar title="Analytics" backButton />
         <View style={styles.content}>
           <UserAnalyticsSection />
         </View>

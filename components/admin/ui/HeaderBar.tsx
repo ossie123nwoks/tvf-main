@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Text } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface HeaderBarProps {
   title: string;
@@ -22,6 +23,7 @@ export default function HeaderBar({
 }: HeaderBarProps) {
   const { theme } = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const handleBack = () => {
     if (onBack) onBack();
@@ -38,7 +40,8 @@ export default function HeaderBar({
           borderBottomColor: theme.colors.border,
           borderBottomWidth: 1,
           paddingHorizontal: theme.spacing.lg,
-          paddingVertical: theme.spacing.md,
+          paddingBottom: theme.spacing.md,
+          paddingTop: Math.max(insets.top, theme.spacing.md) + theme.spacing.sm,
         },
       ]}
     >

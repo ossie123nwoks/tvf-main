@@ -11,7 +11,7 @@ export default function CarouselPage() {
   return (
     <AdminAuthGuard>
       <View style={[staticStyles.container, { backgroundColor: theme.colors.background }]}>
-        <HeaderBar title="Carousel Management" />
+        <HeaderBar title="Carousel Management" backButton />
         <View style={staticStyles.content}>
           <CarouselManagementSection />
         </View>
