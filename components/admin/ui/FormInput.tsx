@@ -51,11 +51,6 @@ export default function FormInput({
                 : theme.colors.border,
             borderRadius: theme.borderRadius.md,
             borderWidth: 1,
-            shadowColor: isFocused ? theme.colors.primary : 'transparent',
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: isFocused ? 0.2 : 0,
-            shadowRadius: 3,
-            elevation: isFocused ? 2 : 0,
           },
         ]}
       >
