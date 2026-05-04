@@ -14,10 +14,10 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, router, useRouter } from 'expo-router';
 import { ContentService } from '@/lib/supabase/content';
 import { Sermon, Category } from '@/types/content';
-import { Audio } from 'expo-av';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { useOfflineDownloads } from '@/lib/storage/useOfflineDownloads';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import SermonMediaPlayer from '@/components/sermons/SermonMediaPlayer';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -32,16 +32,6 @@ export default function SermonDetailScreen() {
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Audio player states
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [position, setPosition] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isBuffering, setIsBuffering] = useState(false);
-  const [isAudioValid, setIsAudioValid] = useState(true);
-  const [audioError, setAudioError] = useState<string | null>(null);
 
   // UI states
   const [showFullDescription, setShowFullDescription] = useState(false);
@@ -112,16 +102,10 @@ export default function SermonDetailScreen() {
     }
   }, [downloads, sermon]);
 
-  useEffect(() => {
-    return () => { if (sound) { sound.unloadAsync(); } };
-  }, [sound]);
-
   const loadSermon = async () => {
     try {
       setLoading(true);
       setError(null);
-      setIsAudioValid(true);
-      setAudioError(null);
 
       const sermonData = await ContentService.getSermonById(id);
       setSermon(sermonData);
@@ -134,146 +118,11 @@ export default function SermonDetailScreen() {
           console.warn('Failed to load category:', error);
         }
       }
-
-      await initializeAudioWithSermon(sermonData);
     } catch (error) {
       console.error('Failed to load sermon:', error);
       setError('Failed to load sermon. Please try again.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const initializeAudioWithSermon = async (sermonData: Sermon) => {
-    try {
-      setIsLoading(true);
-
-      if (!sermonData?.audio_url || sermonData.audio_url.trim() === '') {
-        setIsLoading(false);
-        setIsAudioValid(false);
-        setAudioError('Audio is not yet available for this sermon. Coming soon!');
-        return;
-      }
-
-      if (sermonData.audio_url.includes('placeholder') || sermonData.audio_url.includes('demo') || sermonData.audio_url.includes('sample')) {
-        setIsLoading(false);
-        setIsAudioValid(false);
-        setAudioError('Audio is not yet available for this sermon. Coming soon!');
-        return;
-      }
-
-      let audioUrlObj;
-      try {
-        audioUrlObj = new URL(sermonData.audio_url);
-      } catch (urlError) {
-        setIsLoading(false);
-        Alert.alert('Invalid Audio URL', 'The audio file URL is invalid.');
-        return;
-      }
-
-      if (!audioUrlObj.protocol.startsWith('http')) {
-        setIsLoading(false);
-        Alert.alert('Unsupported Protocol', 'Audio must be served over HTTP or HTTPS.');
-        return;
-      }
-
-      const permissionStatus = await Audio.requestPermissionsAsync();
-      if (permissionStatus.status !== 'granted') {
-        Alert.alert('Permission Required', 'Audio playback permission is required.');
-        return;
-      }
-
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        staysActiveInBackground: true,
-        playsInSilentModeIOS: true,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
-      });
-
-      let audioUri = sermonData.audio_url;
-      const isOfflineAvailable = await isAvailableOffline(sermonData.audio_url);
-      if (isOfflineAvailable) {
-        const offlinePath = await getOfflinePath(sermonData.audio_url);
-        if (offlinePath) {
-          audioUri = offlinePath;
-        }
-      }
-
-      const { sound: audioSound } = await Audio.Sound.createAsync(
-        { uri: audioUri },
-        { shouldPlay: false, isLooping: false, isMuted: false, volume: 1.0, rate: 1.0, shouldCorrectPitch: true },
-        onPlaybackStatusUpdate
-      );
-
-      setSound(audioSound);
-
-      const audioStatus = await audioSound.getStatusAsync();
-      if (audioStatus.isLoaded && 'durationMillis' in audioStatus) {
-        setDuration(audioStatus.durationMillis || 0);
-      }
-      setIsLoading(false);
-    } catch (error) {
-      setIsLoading(false);
-      setIsAudioValid(false);
-
-      let errorMessage = 'Failed to initialize audio player.';
-      if (error instanceof Error) {
-        if (error.message.includes('Network') || error.message.includes('timeout') || error.message.includes('-1008')) {
-          errorMessage = 'Network timeout. Please check your connection.';
-        } else if (error.message.includes('format') || error.message.includes('codec')) {
-          errorMessage = 'Audio format not supported.';
-        } else if (error.message.includes('not found') || error.message.includes('404')) {
-          errorMessage = 'Audio file not found.';
-        } else {
-          errorMessage = `Unable to load audio: ${error.message}`;
-        }
-      }
-      setAudioError(errorMessage);
-      // Don't set page-level error — sermon details should still be visible
-    }
-  };
-
-  // ───── Audio Controls ─────
-
-  const onPlaybackStatusUpdate = (status: any) => {
-    if (status.isLoaded) {
-      setIsPlaying(status.isPlaying);
-      setIsBuffering(status.isBuffering);
-      if (status.positionMillis !== null) setPosition(status.positionMillis);
-      if (status.durationMillis !== null) setDuration(status.durationMillis);
-    }
-  };
-
-  const handlePlayPause = async () => {
-    if (!sound) {
-      Alert.alert('Audio Error', 'Audio player is not ready.');
-      return;
-    }
-    try {
-      if (isPlaying) { await sound.pauseAsync(); }
-      else { await sound.playAsync(); }
-    } catch (error) {
-      Alert.alert('Playback Error', error instanceof Error ? error.message : 'Failed to control audio.');
-    }
-  };
-
-  const handleSeek = async (value: number) => {
-    if (!sound) return;
-    try {
-      await sound.setPositionAsync(value * duration);
-    } catch (error) {
-      Alert.alert('Seek Error', 'Failed to seek audio position.');
-    }
-  };
-
-  const handleSkip = async (seconds: number) => {
-    if (!sound) return;
-    try {
-      const newPosition = Math.max(0, position + seconds * 1000);
-      await sound.setPositionAsync(newPosition);
-    } catch (error) {
-      Alert.alert('Skip Error', 'Failed to skip audio position.');
     }
   };
 
@@ -320,14 +169,7 @@ export default function SermonDetailScreen() {
   };
 
   const handleBack = () => {
-    if (sound && isPlaying) {
-      Alert.alert('Audio Playing', 'Stop audio and go back?', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Stop & Go Back', onPress: async () => { await sound.stopAsync(); router.back(); } },
-      ]);
-    } else {
-      router.back();
-    }
+    router.back();
   };
 
   // ───── Formatters ─────
@@ -376,7 +218,7 @@ export default function SermonDetailScreen() {
     );
   }
 
-  const progress = duration > 0 ? position / duration : 0;
+
 
   // ───── Main Render ─────
 
@@ -385,178 +227,79 @@ export default function SermonDetailScreen() {
       <View style={[staticStyles.flex, dynamicStyles.container]}>
         <ScrollView style={staticStyles.flex} showsVerticalScrollIndicator={false}>
 
-          {/* ─── Hero Header ─── */}
-          <View style={[staticStyles.heroSection, dynamicStyles.header]}>
-            {/* Back Button */}
-            <Pressable
-              style={[staticStyles.backBtn, { backgroundColor: theme.colors.background + 'CC', borderRadius: theme.borderRadius.full }]}
-              onPress={handleBack}
-            >
-              <MaterialIcons name="arrow-back" size={22} color={theme.colors.text} />
-            </Pressable>
-
-            {/* Thumbnail */}
-            {sermon.thumbnail_url ? (
-              <View style={[staticStyles.thumbnailContainer, { borderRadius: theme.borderRadius.lg, ...theme.shadows.medium }]}>
-                <Image
-                  source={{ uri: sermon.thumbnail_url }}
-                  style={[staticStyles.thumbnail, { borderRadius: theme.borderRadius.lg }]}
-                  resizeMode="cover"
-                />
-              </View>
-            ) : (
-              <View style={[staticStyles.thumbnailPlaceholder, { borderRadius: theme.borderRadius.lg, backgroundColor: theme.colors.surfaceVariant }]}>
-                <MaterialIcons name="headset" size={64} color={theme.colors.textTertiary} />
-              </View>
-            )}
-
-            {/* Title & Meta */}
-            <Text style={{ ...theme.typography.headlineLarge, color: theme.colors.text, marginTop: theme.spacing.lg }}>
-              {sermon.title}
-            </Text>
-            <Text style={{ ...theme.typography.titleMedium, color: theme.colors.primary, marginTop: theme.spacing.xs }}>
-              {sermon.preacher}
-            </Text>
-
-            <View style={[staticStyles.metaRow, { marginTop: theme.spacing.sm }]}>
-              <View style={staticStyles.metaItem}>
-                <MaterialIcons name="calendar-today" size={14} color={theme.colors.textTertiary} />
-                <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary, marginLeft: 4 }}>
-                  {formatDate(sermon.date)}
-                </Text>
-              </View>
-              <View style={[staticStyles.metaDot, { backgroundColor: theme.colors.textTertiary }]} />
-              <View style={staticStyles.metaItem}>
-                <MaterialIcons name="access-time" size={14} color={theme.colors.textTertiary} />
-                <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary, marginLeft: 4 }}>
-                  {formatDuration(sermon.duration)}
-                </Text>
-              </View>
-              {sermon.is_featured && (
-                <>
-                  <View style={[staticStyles.metaDot, { backgroundColor: theme.colors.textTertiary }]} />
-                  <View style={[staticStyles.featuredBadge, { backgroundColor: theme.colors.accent + '20', borderRadius: theme.borderRadius.xs }]}>
-                    <MaterialIcons name="star" size={12} color={theme.colors.accent} />
-                    <Text style={{ ...theme.typography.labelSmall, color: theme.colors.accent, marginLeft: 2 }}>Featured</Text>
-                  </View>
-                </>
-              )}
+          {/* ─── Media Section ─── */}
+          <View style={{ paddingTop: Platform.select({ ios: Math.max(insets.top, 20), android: 20 }) }}>
+            <View style={{ paddingHorizontal: theme.spacing.md, paddingBottom: theme.spacing.md, flexDirection: 'row', alignItems: 'center' }}>
+              <Pressable
+                style={[staticStyles.backBtn, { backgroundColor: theme.colors.surfaceElevated, borderRadius: theme.borderRadius.full, ...theme.shadows.small }]}
+                onPress={handleBack}
+              >
+                <MaterialIcons name="arrow-back" size={22} color={theme.colors.text} />
+              </Pressable>
+              <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text, marginLeft: theme.spacing.md }}>
+                Sermon
+              </Text>
             </View>
+
+            <SermonMediaPlayer sermon={sermon} />
           </View>
 
           {/* ─── Content ─── */}
           <View style={{ padding: theme.spacing.md }}>
+            <View style={{ paddingHorizontal: theme.spacing.sm }}>
+              <Text style={{ ...theme.typography.headlineLarge, color: theme.colors.text }}>
+                {sermon.title}
+              </Text>
+              <Text style={{ ...theme.typography.titleMedium, color: theme.colors.primary, marginTop: theme.spacing.xs }}>
+                {sermon.preacher}
+              </Text>
 
-            {/* ─── Audio Player Card ─── */}
-            <View style={[staticStyles.playerCard, dynamicStyles.playerCard, { padding: theme.spacing.lg }]}>
-              {!isAudioValid && audioError ? (
-                <View style={{ alignItems: 'center', paddingVertical: theme.spacing.lg }}>
-                  <MaterialIcons name="headset-off" size={48} color={theme.colors.textTertiary} />
-                  <Text style={{ ...theme.typography.titleSmall, color: theme.colors.text, marginTop: theme.spacing.md, textAlign: 'center' }}>
-                    Audio Coming Soon
+              <View style={[staticStyles.metaRow, { marginTop: theme.spacing.sm }]}>
+                <View style={staticStyles.metaItem}>
+                  <MaterialIcons name="calendar-today" size={14} color={theme.colors.textTertiary} />
+                  <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary, marginLeft: 4 }}>
+                    {formatDate(sermon.date)}
                   </Text>
-                  <Text style={{ ...theme.typography.bodySmall, color: theme.colors.textSecondary, marginTop: theme.spacing.xs, textAlign: 'center', paddingHorizontal: theme.spacing.md }}>
-                    {audioError}
-                  </Text>
-                  {sermon?.audio_url && sermon.audio_url.trim() !== '' && (
-                    <Button
-                      mode="outlined"
-                      onPress={() => { setIsAudioValid(true); setAudioError(null); initializeAudioWithSermon(sermon); }}
-                      style={{ marginTop: theme.spacing.md, borderColor: theme.colors.primary }}
-                      textColor={theme.colors.primary}
-                      compact
-                    >
-                      Retry
-                    </Button>
-                  )}
                 </View>
-              ) : sermon?.audio_url && sermon.audio_url.trim() !== '' ? (
-                <>
-                  {/* Player Header */}
-                  <View style={staticStyles.playerHeader}>
-                    <MaterialIcons name="headset" size={20} color={theme.colors.primary} />
-                    <Text style={{ ...theme.typography.titleSmall, color: theme.colors.text, marginLeft: 8, flex: 1 }}>
-                      Now Playing
-                    </Text>
-                    {isBuffering && <ActivityIndicator size="small" color={theme.colors.primary} />}
-                  </View>
-
-                  {/* Progress */}
-                  <View style={{ marginTop: theme.spacing.md }}>
-                    <View style={staticStyles.timeRow}>
-                      <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textTertiary }}>{formatTime(position)}</Text>
-                      <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textTertiary }}>{formatTime(duration)}</Text>
+                <View style={[staticStyles.metaDot, { backgroundColor: theme.colors.textTertiary }]} />
+                <View style={staticStyles.metaItem}>
+                  <MaterialIcons name="access-time" size={14} color={theme.colors.textTertiary} />
+                  <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary, marginLeft: 4 }}>
+                    {formatDuration(sermon.duration)}
+                  </Text>
+                </View>
+                {sermon.is_featured && (
+                  <>
+                    <View style={[staticStyles.metaDot, { backgroundColor: theme.colors.textTertiary }]} />
+                    <View style={[staticStyles.featuredBadge, { backgroundColor: theme.colors.accent + '20', borderRadius: theme.borderRadius.xs }]}>
+                      <MaterialIcons name="star" size={12} color={theme.colors.accent} />
+                      <Text style={{ ...theme.typography.labelSmall, color: theme.colors.accent, marginLeft: 2 }}>Featured</Text>
                     </View>
-                    <Pressable
-                      onPress={event => {
-                        const { locationX } = event.nativeEvent;
-                        const containerWidth = screenWidth - (theme.spacing.md * 2 + theme.spacing.lg * 2);
-                        handleSeek(Math.max(0, Math.min(1, locationX / containerWidth)));
-                      }}
-                      style={[staticStyles.progressWrapper]}
-                    >
-                      <View style={[staticStyles.progressTrack, dynamicStyles.progressTrack]}>
-                        <View style={[staticStyles.progressFill, dynamicStyles.progressFill, { width: `${progress * 100}%` }]} />
-                      </View>
-                    </Pressable>
-                  </View>
+                  </>
+                )}
+              </View>
 
-                  {/* Controls */}
-                  <View style={[staticStyles.controlsRow, { marginTop: theme.spacing.lg }]}>
-                    <Pressable onPress={() => handleSkip(-30)} style={staticStyles.controlBtn}>
-                      <MaterialIcons name="replay-30" size={28} color={theme.colors.textSecondary} />
-                    </Pressable>
-
-                    <Pressable
-                      onPress={handlePlayPause}
-                      disabled={isLoading}
-                      style={[staticStyles.playBtn, { backgroundColor: theme.colors.primary, borderRadius: theme.borderRadius.full }]}
-                    >
-                      {isLoading ? (
-                        <ActivityIndicator size="small" color="#FFFFFF" />
-                      ) : (
-                        <MaterialIcons name={isPlaying ? 'pause' : 'play-arrow'} size={36} color="#FFFFFF" />
-                      )}
-                    </Pressable>
-
-                    <Pressable onPress={() => handleSkip(30)} style={staticStyles.controlBtn}>
-                      <MaterialIcons name="forward-30" size={28} color={theme.colors.textSecondary} />
-                    </Pressable>
-                  </View>
-
-                  {/* Action Bar */}
-                  <View style={[staticStyles.actionBar, { marginTop: theme.spacing.lg, borderTopWidth: 1, borderTopColor: theme.colors.borderLight, paddingTop: theme.spacing.md }]}>
-                    <Pressable
-                      onPress={handleDownload}
-                      disabled={downloadStatus === 'downloading' || downloadStatus === 'checking'}
-                      style={staticStyles.actionItem}
-                    >
-                      <MaterialIcons
-                        name={downloadStatus === 'downloaded' ? 'check-circle' : downloadStatus === 'error' ? 'error' : 'download'}
-                        size={22}
-                        color={downloadStatus === 'downloaded' ? theme.colors.success : downloadStatus === 'error' ? theme.colors.error : theme.colors.textSecondary}
-                      />
-                      <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textSecondary, marginTop: 2 }}>
-                        {downloadStatus === 'downloaded' ? 'Saved' : downloadStatus === 'downloading' ? 'Saving...' : 'Download'}
-                      </Text>
-                    </Pressable>
-                    <Pressable onPress={handleShare} style={staticStyles.actionItem}>
-                      <MaterialIcons name="share" size={22} color={theme.colors.textSecondary} />
-                      <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textSecondary, marginTop: 2 }}>Share</Text>
-                    </Pressable>
-                  </View>
-                </>
-              ) : (
-                <View style={{ alignItems: 'center', paddingVertical: theme.spacing.lg }}>
-                  <MaterialIcons name="headset-off" size={48} color={theme.colors.textTertiary} />
-                  <Text style={{ ...theme.typography.titleSmall, color: theme.colors.text, marginTop: theme.spacing.md, textAlign: 'center' }}>
-                    Audio Coming Soon
+              {/* Action Bar */}
+              <View style={[staticStyles.actionBar, { marginTop: theme.spacing.lg, marginBottom: theme.spacing.md }]}>
+                <Pressable
+                  onPress={handleDownload}
+                  disabled={downloadStatus === 'downloading' || downloadStatus === 'checking'}
+                  style={staticStyles.actionItem}
+                >
+                  <MaterialIcons
+                    name={downloadStatus === 'downloaded' ? 'check-circle' : downloadStatus === 'error' ? 'error' : 'download'}
+                    size={22}
+                    color={downloadStatus === 'downloaded' ? theme.colors.success : downloadStatus === 'error' ? theme.colors.error : theme.colors.textSecondary}
+                  />
+                  <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textSecondary, marginTop: 2 }}>
+                    {downloadStatus === 'downloaded' ? 'Saved' : downloadStatus === 'downloading' ? 'Saving...' : 'Download'}
                   </Text>
-                  <Text style={{ ...theme.typography.bodySmall, color: theme.colors.textSecondary, marginTop: theme.spacing.xs, textAlign: 'center' }}>
-                    Audio for this sermon is not yet available. Check back later!
-                  </Text>
-                </View>
-              )}
+                </Pressable>
+                <Pressable onPress={handleShare} style={staticStyles.actionItem}>
+                  <MaterialIcons name="share" size={22} color={theme.colors.textSecondary} />
+                  <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textSecondary, marginTop: 2 }}>Share</Text>
+                </Pressable>
+              </View>
             </View>
 
             {/* ─── Stats ─── */}

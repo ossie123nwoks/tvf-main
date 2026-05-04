@@ -36,7 +36,7 @@ const MediaUploadSection: React.FC<MediaUploadSectionProps> = ({
   onUploadError,
   maxFiles = 10,
   allowedTypes = ['image/*', 'video/*', 'audio/*', 'application/pdf'],
-  maxFileSize = 50, // 50MB default
+  maxFileSize = 200, // 200MB default
 }) => {
   const { theme } = useTheme();
 

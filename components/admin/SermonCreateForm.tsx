@@ -240,7 +240,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
             onChange={url => handleInputChange('audioUrl', url || '')}
             placeholder="Upload sermon audio file"
             folder="sermons"
-            maxFileSize={50 * 1024 * 1024}
+            maxFileSize={200 * 1024 * 1024}
           />
           {errors.audioUrl && <HelperText type="error">{errors.audioUrl}</HelperText>}
         </View>

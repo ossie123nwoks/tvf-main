@@ -160,7 +160,7 @@ export default function UploadComponent({
                 { ...theme.typography.bodySmall, color: theme.colors.textTertiary },
               ]}
             >
-              {type === 'image' ? 'JPG, PNG, GIF up to 5MB' : 'Max size 50MB'}
+              {type === 'image' ? 'JPG, PNG, GIF up to 5MB' : 'Max size 200MB'}
             </Text>
           </View>
         )}

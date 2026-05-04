@@ -17,7 +17,7 @@ export interface AudioUploadOptions {
 
 export class AudioUploadService {
   private static readonly BUCKET_NAME = 'audio';
-  private static readonly MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB for audio files
+  private static readonly MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB for audio files
 
   /**
    * Request permissions for document picker
@@ -245,7 +245,7 @@ export class AudioUploadService {
     if (file.size && file.size > this.MAX_FILE_SIZE) {
       return {
         valid: false,
-        error: 'File size too large. Maximum size is 50MB.',
+        error: 'File size too large. Maximum size is 200MB.',
       };
     }
 
