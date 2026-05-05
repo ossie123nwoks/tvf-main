@@ -174,7 +174,7 @@ export default function SermonMediaPlayer({ sermon }: SermonMediaPlayerProps) {
             play={isVideoPlaying}
             videoId={youtubeId}
             onReady={() => setYoutubeReady(true)}
-            onChangeState={(state) => {
+            onChangeState={(state: string) => {
               if (state === 'playing') setIsVideoPlaying(true);
               if (state === 'paused' || state === 'ended') setIsVideoPlaying(false);
             }}

@@ -38,6 +38,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
     scheduledAt: '',
     thumbnailUrl: '',
     audioUrl: '',
+    videoUrl: '',
     duration: 0,
     ...initialData,
   });
@@ -57,6 +58,10 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
       newErrors.audioUrl = 'Audio URL is required';
     } else if (!isValidUrl(formData.audioUrl)) {
       newErrors.audioUrl = 'Please enter a valid URL';
+    }
+
+    if (formData.videoUrl && !isValidUrl(formData.videoUrl)) {
+      newErrors.videoUrl = 'Please enter a valid URL';
     }
 
     if (formData.thumbnailUrl && !isValidUrl(formData.thumbnailUrl)) {
@@ -93,6 +98,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
             date: formData.date?.trim() || new Date().toISOString(),
             description: formData.description?.trim() || undefined,
             audio_url: formData.audioUrl?.trim() || '',
+            video_url: formData.videoUrl?.trim() || undefined,
             thumbnail_url: formData.thumbnailUrl?.trim() || undefined,
             duration: formData.duration || undefined,
             category_id: formData.categoryId || undefined,
@@ -106,6 +112,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
             date: formData.date?.trim() || new Date().toISOString(),
             description: formData.description?.trim() || undefined,
             audio_url: formData.audioUrl?.trim() || '',
+            video_url: formData.videoUrl?.trim() || undefined,
             thumbnail_url: formData.thumbnailUrl?.trim() || undefined,
             duration: formData.duration || undefined,
             category_id: formData.categoryId || undefined,
@@ -122,6 +129,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
           title: sermonData.title,
           preacher: sermonData.preacher,
           audio_url: sermonData.audio_url,
+          video_url: sermonData.video_url,
           updated_at: new Date().toISOString(),
         };
 
@@ -244,6 +252,14 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
           />
           {errors.audioUrl && <HelperText type="error">{errors.audioUrl}</HelperText>}
         </View>
+
+        <FormInput
+          label="Video URL (YouTube or Direct Link)"
+          value={formData.videoUrl || ''}
+          onChangeText={text => handleInputChange('videoUrl', text)}
+          error={errors.videoUrl}
+          placeholder="Enter YouTube URL or Supabase video URL"
+        />
 
         <View style={styles.uploadSection}>
           <Text

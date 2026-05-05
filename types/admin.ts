@@ -70,6 +70,7 @@ export interface ContentFormData {
   scheduledAt?: string;
   thumbnailUrl?: string;
   audioUrl?: string;
+  videoUrl?: string;
   duration?: number;
 }
 
