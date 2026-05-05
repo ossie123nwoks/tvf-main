@@ -67,6 +67,7 @@ CREATE TABLE public.sermons (
     date DATE NOT NULL,
     duration INTEGER NOT NULL, -- in seconds
     audio_url TEXT NOT NULL,
+    video_url TEXT,
     thumbnail_url TEXT,
     description TEXT,
     category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,

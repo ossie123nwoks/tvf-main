@@ -87,6 +87,7 @@ export default function EditSermonPage() {
                 preacher: sermon.preacher,
                 date: sermon.date,
                 audioUrl: sermon.audio_url,
+                videoUrl: sermon.video_url,
                 thumbnailUrl: sermon.thumbnail_url,
                 duration: sermon.duration,
                 categoryId: sermon.category_id,
