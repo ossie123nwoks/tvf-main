@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Alert, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { Text, Switch, HelperText, ActivityIndicator } from 'react-native-paper';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { AdminService } from '@/lib/supabase/admin';
 import { ContentFormData } from '@/types/admin';
@@ -8,6 +9,7 @@ import { supabase } from '@/lib/supabase/client';
 import { DashboardCard, FormInput, ActionButton } from '@/components/admin/ui';
 import ImageUpload from '@/components/ui/ImageUpload';
 import AudioUpload from '@/components/ui/AudioUpload';
+import { Category } from '@/types/content';
 
 interface SermonCreateFormProps {
   onSuccess?: (sermon: any) => void;
@@ -46,6 +48,33 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Category picker state
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
+  const selectedCategory = categories.find(c => c.id === formData.categoryId);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('name', { ascending: true });
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (err) {
+      console.error('Failed to load categories:', err);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -54,13 +83,15 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
     if (!formData.date?.trim()) newErrors.date = 'Date is required';
     if (!formData.categoryId?.trim()) newErrors.categoryId = 'Category is required';
 
-    if (!formData.audioUrl?.trim()) {
-      newErrors.audioUrl = 'Audio URL is required';
-    } else if (!isValidUrl(formData.audioUrl)) {
-      newErrors.audioUrl = 'Please enter a valid URL';
+    if (!formData.audioUrl?.trim() && !formData.videoUrl?.trim()) {
+      newErrors.audioUrl = 'At least one media source (Audio or Video URL) is required';
     }
 
-    if (formData.videoUrl && !isValidUrl(formData.videoUrl)) {
+    if (formData.audioUrl?.trim() && !isValidUrl(formData.audioUrl)) {
+      newErrors.audioUrl = 'Please enter a valid audio URL';
+    }
+
+    if (formData.videoUrl?.trim() && !isValidUrl(formData.videoUrl)) {
       newErrors.videoUrl = 'Please enter a valid URL';
     }
 
@@ -100,7 +131,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
             audio_url: formData.audioUrl?.trim() || '',
             video_url: formData.videoUrl?.trim() || undefined,
             thumbnail_url: formData.thumbnailUrl?.trim() || undefined,
-            duration: formData.duration || undefined,
+            duration: formData.duration ?? 0,
             category_id: formData.categoryId || undefined,
             series_id: formData.seriesId || undefined,
             is_published: formData.isPublished,
@@ -114,7 +145,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
             audio_url: formData.audioUrl?.trim() || '',
             video_url: formData.videoUrl?.trim() || undefined,
             thumbnail_url: formData.thumbnailUrl?.trim() || undefined,
-            duration: formData.duration || undefined,
+            duration: formData.duration ?? 0,
             category_id: formData.categoryId || undefined,
             series_id: formData.seriesId || undefined,
             is_published: formData.isPublished,
@@ -123,17 +154,21 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
 
       let sermon;
       if (isEdit && sermonId) {
-        // Standard supabase update logic using rpc and fallback
         const cleanId = sermonId.trim();
         const updatePayload = {
           title: sermonData.title,
           preacher: sermonData.preacher,
           audio_url: sermonData.audio_url,
           video_url: sermonData.video_url,
+          category_id: sermonData.category_id,
+          description: sermonData.description,
+          thumbnail_url: sermonData.thumbnail_url,
+          duration: sermonData.duration,
+          is_published: sermonData.is_published,
           updated_at: new Date().toISOString(),
         };
 
-        const { data: updateData, error: updateError } = await supabase
+        const { error: updateError } = await supabase
           .from('sermons')
           .update(updatePayload)
           .eq('id', cleanId)
@@ -190,8 +225,133 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
     }
   };
 
+  const renderCategoryPicker = () => (
+    <View style={styles.fieldContainer}>
+      <Text style={{ ...theme.typography.labelLarge, color: theme.colors.textSecondary, marginBottom: 8 }}>
+        Category *
+      </Text>
+      <TouchableOpacity
+        style={[
+          styles.pickerButton,
+          {
+            backgroundColor: theme.colors.surfaceElevated,
+            borderColor: errors.categoryId ? theme.colors.error : theme.colors.cardBorder,
+            borderRadius: theme.borderRadius.md,
+          },
+        ]}
+        onPress={() => setCategoryPickerVisible(true)}
+        activeOpacity={0.7}
+      >
+        {categoriesLoading ? (
+          <ActivityIndicator size="small" color={theme.colors.primary} />
+        ) : (
+          <>
+            <Text
+              style={{
+                ...theme.typography.bodyMedium,
+                color: selectedCategory ? theme.colors.text : theme.colors.textTertiary,
+                flex: 1,
+              }}
+            >
+              {selectedCategory ? selectedCategory.name : 'Select a category...'}
+            </Text>
+            <MaterialIcons name="arrow-drop-down" size={24} color={theme.colors.textSecondary} />
+          </>
+        )}
+      </TouchableOpacity>
+      {errors.categoryId && (
+        <HelperText type="error">{errors.categoryId}</HelperText>
+      )}
+    </View>
+  );
+
   return (
     <View style={styles.container}>
+      {/* Category Picker Modal */}
+      <Modal
+        visible={categoryPickerVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCategoryPickerVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setCategoryPickerVisible(false)}
+        >
+          <View
+            style={[
+              styles.modalSheet,
+              { backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.xl },
+            ]}
+          >
+            <View style={[styles.modalHeader, { borderBottomColor: theme.colors.cardBorder }]}>
+              <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text }}>
+                Select Category
+              </Text>
+              <TouchableOpacity onPress={() => setCategoryPickerVisible(false)}>
+                <MaterialIcons name="close" size={24} color={theme.colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            {categories.length === 0 ? (
+              <View style={styles.emptyCategories}>
+                <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textTertiary }}>
+                  No categories found
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={categories}
+                keyExtractor={item => item.id}
+                renderItem={({ item }) => {
+                  const isSelected = formData.categoryId === item.id;
+                  return (
+                    <TouchableOpacity
+                      style={[
+                        styles.categoryItem,
+                        {
+                          backgroundColor: isSelected
+                            ? theme.colors.primary + '18'
+                            : 'transparent',
+                          borderBottomColor: theme.colors.cardBorder,
+                        },
+                      ]}
+                      onPress={() => {
+                        handleInputChange('categoryId', item.id);
+                        setCategoryPickerVisible(false);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <View
+                        style={[
+                          styles.categoryDot,
+                          { backgroundColor: item.color || theme.colors.primary },
+                        ]}
+                      />
+                      <Text
+                        style={{
+                          ...theme.typography.bodyMedium,
+                          color: isSelected ? theme.colors.primary : theme.colors.text,
+                          flex: 1,
+                          fontWeight: isSelected ? '600' : '400',
+                        }}
+                      >
+                        {item.name}
+                      </Text>
+                      {isSelected && (
+                        <MaterialIcons name="check" size={20} color={theme.colors.primary} />
+                      )}
+                    </TouchableOpacity>
+                  );
+                }}
+                style={{ maxHeight: 360 }}
+              />
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       <DashboardCard title="Basic Information" style={styles.card}>
         <FormInput
           label="Title"
@@ -214,13 +374,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
           error={errors.date}
           placeholder="YYYY-MM-DD"
         />
-        <FormInput
-          label="Category ID"
-          value={formData.categoryId || ''}
-          onChangeText={text => handleInputChange('categoryId', text)}
-          error={errors.categoryId}
-          placeholder="Enter category ID"
-        />
+        {renderCategoryPicker()}
         <FormInput
           label="Description"
           value={formData.description || ''}
@@ -241,7 +395,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
               marginBottom: 8,
             }}
           >
-            Audio File
+            Audio File <Text style={{ color: theme.colors.textTertiary, fontSize: 12 }}>(optional if video provided)</Text>
           </Text>
           <AudioUpload
             value={formData.audioUrl || ''}
@@ -342,6 +496,17 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: 16,
   },
+  fieldContainer: {
+    marginBottom: 16,
+  },
+  pickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    borderWidth: 1,
+    minHeight: 52,
+  },
   uploadSection: {
     marginBottom: 24,
   },
@@ -356,5 +521,47 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 16,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalSheet: {
+    width: '100%',
+    overflow: 'hidden',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+  },
+  categoryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 12,
+  },
+  categoryDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  emptyCategories: {
+    padding: 32,
+    alignItems: 'center',
   },
 });

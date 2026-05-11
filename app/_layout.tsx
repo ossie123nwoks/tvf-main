@@ -7,6 +7,8 @@ import { AuthProvider, useAuth } from '@/lib/auth/AuthContext';
 import { useDeepLinking } from '@/lib/hooks/useDeepLinking';
 import { usePushNotifications } from '@/lib/hooks/usePushNotifications';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import { MiniPlayerProvider } from '@/lib/media/MiniPlayerContext';
+import MiniPlayer from '@/components/sermons/MiniPlayer';
 
 // Component to initialize deep linking
 function DeepLinkingInitializer({ children }: { children: React.ReactNode }) {
@@ -76,29 +78,33 @@ function AppContent() {
 
   return (
     <AuthProvider>
-      <PaperProvider theme={paperTheme}>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
-        <PushNotificationInitializer>
-          <DeepLinkingInitializer>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="sermon/[id]" />
-              <Stack.Screen name="article/[id]" />
-              <Stack.Screen name="saved" />
-              <Stack.Screen name="notifications" />
-              <Stack.Screen name="auth" />
-              <Stack.Screen name="auth-signin" options={{ animation: 'slide_from_right' }} />
-              <Stack.Screen name="auth-signup" options={{ animation: 'slide_from_right' }} />
-              <Stack.Screen name="auth-otp" options={{ animation: 'slide_from_right' }} />
-              <Stack.Screen name="auth-profile-setup" options={{ animation: 'fade' }} />
-              <Stack.Screen name="auth-callback" />
-              <Stack.Screen name="password-reset" />
-              <Stack.Screen name="email-verification" />
-              <Stack.Screen name="admin" />
-            </Stack>
-          </DeepLinkingInitializer>
-        </PushNotificationInitializer>
-      </PaperProvider>
+      <MiniPlayerProvider>
+        <PaperProvider theme={paperTheme}>
+          <StatusBar style={isDark ? 'light' : 'dark'} />
+          <PushNotificationInitializer>
+            <DeepLinkingInitializer>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="sermon/[id]" />
+                <Stack.Screen name="article/[id]" />
+                <Stack.Screen name="saved" />
+                <Stack.Screen name="notifications" />
+                <Stack.Screen name="auth" />
+                <Stack.Screen name="auth-signin" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="auth-signup" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="auth-otp" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="auth-profile-setup" options={{ animation: 'fade' }} />
+                <Stack.Screen name="auth-callback" />
+                <Stack.Screen name="password-reset" />
+                <Stack.Screen name="email-verification" />
+                <Stack.Screen name="admin" />
+              </Stack>
+            </DeepLinkingInitializer>
+          </PushNotificationInitializer>
+          {/* Global mini player — floats above tab bar across all screens */}
+          <MiniPlayer />
+        </PaperProvider>
+      </MiniPlayerProvider>
     </AuthProvider>
   );
 }

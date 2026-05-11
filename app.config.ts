@@ -1,10 +1,34 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
+/**
+ * ============================================================
+ * VERSIONING — UPDATE THESE BEFORE EVERY PLAY STORE RELEASE
+ * ============================================================
+ *
+ * APP_VERSION  → Semantic version shown to users (e.g. "1.1.0")
+ *                Increment MAJOR for breaking changes,
+ *                MINOR for new features, PATCH for bug fixes.
+ *
+ * ANDROID_VERSION_CODE → Integer that MUST increase with every
+ *                        AAB uploaded to Google Play Console.
+ *                        Google rejects uploads where this value
+ *                        is ≤ the previously uploaded code.
+ *                        Tip: Use a date-based scheme like
+ *                        YYYYMMDDNN for long-term scalability.
+ *
+ * IOS_BUILD_NUMBER → String that must increase for each
+ *                    TestFlight / App Store upload.
+ * ============================================================
+ */
+const APP_VERSION = '1.1.0';
+const ANDROID_VERSION_CODE = 2;
+const IOS_BUILD_NUMBER = '2';
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: process.env.EXPO_PUBLIC_APP_NAME || 'TRUEVINE FELLOWSHIP',
   slug: 'tvf-app',
-  version: process.env.EXPO_PUBLIC_APP_VERSION || '1.0.0',
+  version: APP_VERSION,
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
@@ -17,7 +41,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.tvffellowship.app',
-    buildNumber: '1',
+    buildNumber: IOS_BUILD_NUMBER,
     infoPlist: {
       NSCameraUsageDescription: 'This app uses the camera to allow you to upload profile pictures.',
       NSPhotoLibraryUsageDescription: 'This app uses the photo library to allow you to select profile pictures and share content.',
@@ -36,7 +60,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#FFFFFF',
     },
     package: 'com.tvffellowship.app',
-    versionCode: 1,
+    versionCode: ANDROID_VERSION_CODE,
     permissions: [
       'INTERNET',
       'ACCESS_NETWORK_STATE',
@@ -98,7 +122,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       projectId: '8bfd3384-3d72-45dd-bc91-757f4df9375f',
     },
     appName: process.env.EXPO_PUBLIC_APP_NAME || 'TRUEVINE FELLOWSHIP',
-    appVersion: process.env.EXPO_PUBLIC_APP_VERSION || '1.0.0',
+    appVersion: APP_VERSION,
     googleClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
     testOtpEnabled: process.env.EXPO_PUBLIC_TEST_OTP_ENABLED,
     appDescription: 'Mobile app for TRUEVINE FELLOWSHIP Church with sermons, articles, and offline functionality',

@@ -1,6 +1,6 @@
 {
   "name": "tvf-app",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -12,7 +12,11 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json}\"",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "build:android": "eas build --platform android --profile production",
+    "build:android:preview": "eas build --platform android --profile preview",
+    "submit:android": "eas submit --platform android --profile production",
+    "release:android": "eas build --platform android --profile production --auto-submit"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.0",
@@ -24,6 +28,7 @@
     "expo": "~53.0.23",
     "expo-auth-session": "~6.2.1",
     "expo-av": "~15.1.7",
+    "expo-blur": "~14.1.5",
     "expo-clipboard": "^7.1.5",
     "expo-constants": "~17.1.7",
     "expo-crypto": "~14.1.5",

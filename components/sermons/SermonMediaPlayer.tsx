@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Dimensions, Platform, Alert, Image, Pressable } from 'react-native';
+import { View, StyleSheet, Dimensions, Platform, Image, Pressable } from 'react-native';
 import { Text, ActivityIndicator, IconButton, Button } from 'react-native-paper';
-import { Audio, Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
+import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { Sermon } from '@/types/content';
 import { useOfflineDownloads } from '@/lib/storage/useOfflineDownloads';
+import { useMiniPlayer } from '@/lib/media/MiniPlayerContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -30,119 +31,102 @@ const formatTime = (millis: number) => {
 
 export default function SermonMediaPlayer({ sermon }: SermonMediaPlayerProps) {
   const { theme } = useTheme();
-  
+
   const hasVideo = !!sermon.video_url && sermon.video_url.trim() !== '';
   const hasAudio = !!sermon.audio_url && sermon.audio_url.trim() !== '';
-  
+
   // Default to video if available, else audio
   const [activeMedia, setActiveMedia] = useState<'video' | 'audio'>(hasVideo ? 'video' : 'audio');
-  
+
   const youtubeId = getYoutubeId(sermon.video_url);
   const isYoutube = !!youtubeId;
-  
+
   const { isAvailableOffline, getOfflinePath } = useOfflineDownloads();
 
-  // ───── Audio Player States ─────
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [audioLoading, setAudioLoading] = useState(false);
-  const [audioPosition, setAudioPosition] = useState(0);
-  const [audioDuration, setAudioDuration] = useState(0);
-  const [isAudioBuffering, setIsAudioBuffering] = useState(false);
-  const [audioError, setAudioError] = useState<string | null>(null);
+  // ── Mini player context (owns the Sound instance) ──
+  const {
+    activeSermonId,
+    loadAudio,
+    togglePlayPause,
+    seekTo,
+    attachFullScreen,
+    detachFullScreen,
+    registerVideo,
+    // Playback state — read directly from context so mini player & full player stay in sync
+    isPlaying: ctxIsPlaying,
+    isLoading: ctxIsLoading,
+    isBuffering: ctxIsBuffering,
+    positionMillis: ctxPosition,
+    durationMillis: ctxDuration,
+    audioError: ctxAudioError,
+  } = useMiniPlayer();
 
-  // ───── Video Player States ─────
+  // Is this sermon already loaded in context?
+  const isThisSermonActive = activeSermonId === sermon.id;
+
+  // Derive audio display state from context (so returning to this screen stays in sync)
+  const isAudioPlaying = isThisSermonActive ? ctxIsPlaying : false;
+  const audioLoading = isThisSermonActive ? ctxIsLoading : false;
+  const isAudioBuffering = isThisSermonActive ? ctxIsBuffering : false;
+  const audioPosition = isThisSermonActive ? ctxPosition : 0;
+  const audioDuration = isThisSermonActive ? ctxDuration : 0;
+  const audioError = isThisSermonActive ? ctxAudioError : null;
+
+  // ── Video Player States (local — video isn't persisted in mini player) ──
   const videoRef = useRef<Video>(null);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [videoLoading, setVideoLoading] = useState(true);
   const [youtubeReady, setYoutubeReady] = useState(false);
 
+  // ── Full-screen lifecycle ──
   useEffect(() => {
-    // Unload audio when switching to video
-    if (activeMedia === 'video' && sound) {
-      sound.pauseAsync();
-    }
-    // Pause video when switching to audio
-    if (activeMedia === 'audio' && videoRef.current) {
-      videoRef.current.pauseAsync();
-    }
-  }, [activeMedia]);
-
-  useEffect(() => {
-    if (activeMedia === 'audio' && !sound && hasAudio) {
-      initializeAudio();
-    }
+    attachFullScreen();
     return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
+      // Hand off to mini player — do NOT unload the sound
+      detachFullScreen();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sermon.id]);
+
+  // ── Audio initialization / switching ──
+  useEffect(() => {
+    if (activeMedia === 'audio' && hasAudio) {
+      // Only initialize if this sermon isn't already loaded in context
+      if (!isThisSermonActive) {
+        initializeAudio();
+      }
+    }
+    // NOTE: Do NOT pause audio when switching to video tab.
+    // The full-screen player tabs are independent of the mini player's audio playback.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMedia]);
 
   const initializeAudio = async () => {
     try {
-      setAudioLoading(true);
-      setAudioError(null);
-
       let audioUri = sermon.audio_url;
       const isOffline = await isAvailableOffline(sermon.audio_url);
       if (isOffline) {
         const offlinePath = await getOfflinePath(sermon.audio_url);
-        if (offlinePath) {
-          audioUri = offlinePath;
-        }
+        if (offlinePath) audioUri = offlinePath;
       }
-
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        staysActiveInBackground: true,
-        playsInSilentModeIOS: true,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
-      });
-
-      const { sound: audioSound } = await Audio.Sound.createAsync(
-        { uri: audioUri },
-        { shouldPlay: false, isLooping: false, isMuted: false },
-        onAudioPlaybackStatusUpdate
-      );
-
-      setSound(audioSound);
-      setAudioLoading(false);
+      await loadAudio(sermon, audioUri);
     } catch (error) {
-      setAudioLoading(false);
-      setAudioError('Failed to load audio format.');
-      console.error('Audio init error:', error);
+      console.error('[SermonMediaPlayer] initializeAudio error:', error);
     }
   };
 
-  const onAudioPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
-    if (status.isLoaded) {
-      setIsAudioPlaying(status.isPlaying);
-      setIsAudioBuffering(status.isBuffering);
-      if (status.positionMillis !== undefined) setAudioPosition(status.positionMillis);
-      if (status.durationMillis !== undefined) setAudioDuration(status.durationMillis);
-    }
-  };
-
-  const handleAudioPlayPause = async () => {
-    if (!sound) return;
-    if (isAudioPlaying) {
-      await sound.pauseAsync();
-    } else {
-      await sound.playAsync();
-    }
-  };
+  // ── Audio controls — delegate to context ──
+  const handleAudioPlayPause = () => togglePlayPause();
 
   const handleAudioSeek = async (value: number) => {
-    if (!sound || audioDuration === 0) return;
-    const seekPosition = value * audioDuration;
-    await sound.setPositionAsync(seekPosition);
+    if (audioDuration === 0) return;
+    await seekTo(value * audioDuration);
   };
+
+  // ── Render helpers ──
 
   const renderMediaToggle = () => {
     if (!hasVideo || !hasAudio) return null;
-    
     return (
       <View style={[styles.toggleContainer, { backgroundColor: theme.colors.surfaceVariant, borderRadius: theme.borderRadius.full }]}>
         <Pressable
@@ -188,7 +172,6 @@ export default function SermonMediaPlayer({ sermon }: SermonMediaPlayerProps) {
       );
     }
 
-    // Native Video Player for Supabase storage URLs
     return (
       <View style={[styles.videoContainer, { backgroundColor: theme.colors.surfaceVariant }]}>
         <Video
@@ -218,12 +201,12 @@ export default function SermonMediaPlayer({ sermon }: SermonMediaPlayerProps) {
     const progress = audioDuration > 0 ? audioPosition / audioDuration : 0;
 
     return (
-      <View style={[styles.audioContainer, { 
-        backgroundColor: theme.colors.surfaceElevated, 
+      <View style={[styles.audioContainer, {
+        backgroundColor: theme.colors.surfaceElevated,
         borderRadius: theme.borderRadius.xl,
         borderColor: theme.colors.cardBorder,
         borderWidth: 1,
-        ...theme.shadows.medium
+        ...theme.shadows.medium,
       }]}>
         <View style={styles.playerHeader}>
           <MaterialIcons name="headset" size={20} color={theme.colors.primary} />
@@ -248,7 +231,7 @@ export default function SermonMediaPlayer({ sermon }: SermonMediaPlayerProps) {
               <Pressable
                 onPress={event => {
                   const { locationX } = event.nativeEvent;
-                  const containerWidth = screenWidth - (theme.spacing.md * 2 + theme.spacing.lg * 2); // approximate
+                  const containerWidth = screenWidth - (theme.spacing.md * 2 + theme.spacing.lg * 2);
                   handleAudioSeek(Math.max(0, Math.min(1, locationX / containerWidth)));
                 }}
                 style={styles.progressWrapper}
@@ -264,7 +247,7 @@ export default function SermonMediaPlayer({ sermon }: SermonMediaPlayerProps) {
                 icon="rewind-10"
                 size={28}
                 iconColor={theme.colors.textSecondary}
-                onPress={() => sound?.setPositionAsync(Math.max(0, audioPosition - 10000))}
+                onPress={() => seekTo(Math.max(0, audioPosition - 10000))}
               />
               <Pressable
                 style={[styles.playButton, { backgroundColor: theme.colors.primary, borderRadius: theme.borderRadius.full, ...theme.shadows.small }]}
@@ -274,14 +257,14 @@ export default function SermonMediaPlayer({ sermon }: SermonMediaPlayerProps) {
                 {audioLoading ? (
                   <ActivityIndicator size={28} color="#FFF" />
                 ) : (
-                  <MaterialIcons name={isAudioPlaying ? "pause" : "play-arrow"} size={32} color="#FFF" />
+                  <MaterialIcons name={isAudioPlaying ? 'pause' : 'play-arrow'} size={32} color="#FFF" />
                 )}
               </Pressable>
               <IconButton
                 icon="fast-forward-30"
                 size={28}
                 iconColor={theme.colors.textSecondary}
-                onPress={() => sound?.setPositionAsync(Math.min(audioDuration, audioPosition + 30000))}
+                onPress={() => seekTo(Math.min(audioDuration, audioPosition + 30000))}
               />
             </View>
           </>
@@ -313,21 +296,18 @@ export default function SermonMediaPlayer({ sermon }: SermonMediaPlayerProps) {
     <View style={styles.container}>
       {/* Media Player Area */}
       {activeMedia === 'video' ? renderVideoPlayer() : renderThumbnail()}
-      
+
       {/* Toggle */}
       {renderMediaToggle()}
 
-      {/* Audio Player below toggle if active */}
+      {/* Audio Player */}
       {activeMedia === 'audio' && renderAudioPlayer()}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    marginBottom: 16,
-  },
+  container: { width: '100%', marginBottom: 16 },
   videoContainer: {
     width: screenWidth,
     height: screenWidth * (9 / 16),
@@ -335,10 +315,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     overflow: 'hidden',
   },
-  nativeVideo: {
-    width: '100%',
-    height: '100%',
-  },
+  nativeVideo: { width: '100%', height: '100%' },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
@@ -359,37 +336,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  toggleText: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 6,
-  },
-  audioContainer: {
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 16,
-  },
-  playerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  timeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  progressWrapper: {
-    height: 30,
-    justifyContent: 'center',
-  },
-  progressTrack: {
-    height: 6,
-    width: '100%',
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-  },
+  toggleText: { fontSize: 14, fontWeight: '600', marginLeft: 6 },
+  audioContainer: { padding: 16, marginHorizontal: 16, marginBottom: 16 },
+  playerHeader: { flexDirection: 'row', alignItems: 'center' },
+  timeRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  progressWrapper: { height: 30, justifyContent: 'center' },
+  progressTrack: { height: 6, width: '100%', overflow: 'hidden' },
+  progressFill: { height: '100%' },
   controlsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -403,20 +356,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 24,
   },
-  errorContainer: {
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
+  errorContainer: { alignItems: 'center', paddingVertical: 16 },
   thumbnailContainer: {
     width: screenWidth - 32,
     height: (screenWidth - 32) * (9 / 16),
     alignSelf: 'center',
     marginBottom: 16,
   },
-  thumbnail: {
-    width: '100%',
-    height: '100%',
-  },
+  thumbnail: { width: '100%', height: '100%' },
   thumbnailPlaceholder: {
     width: screenWidth - 32,
     height: (screenWidth - 32) * (9 / 16),
