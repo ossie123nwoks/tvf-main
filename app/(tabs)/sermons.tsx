@@ -5,6 +5,7 @@ import {
   Text,
   Searchbar,
   useTheme as usePaperTheme,
+  ActivityIndicator,
   IconButton,
 } from 'react-native-paper';
 import { useTheme } from '@/lib/theme/ThemeProvider';
@@ -57,6 +58,8 @@ export default function SermonsScreen() {
 
   // Search debouncing
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
   const { width: screenWidth } = useWindowDimensions();
 
   // Offline downloads functionality
@@ -173,8 +176,8 @@ export default function SermonsScreen() {
         published: true,
       };
 
-      if (searchQuery) {
-        searchParams.query = searchQuery;
+      if (searchQueryRef.current) {
+        searchParams.query = searchQueryRef.current;
       }
 
       // Handle series and topics filtering
@@ -198,8 +201,8 @@ export default function SermonsScreen() {
           });
         }
 
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
+        if (searchQueryRef.current) {
+          const query = searchQueryRef.current.toLowerCase();
           filteredSermons = filteredSermons.filter(sermon =>
             sermon.title.toLowerCase().includes(query) ||
             sermon.preacher.toLowerCase().includes(query) ||
@@ -272,7 +275,7 @@ export default function SermonsScreen() {
     } finally {
       setLoadingMore(false);
     }
-  }, [currentPage, hasMore, searchQuery, selectedSeries, selectedTopics, sortBy, sortOrder]);
+  }, [currentPage, hasMore, selectedSeries, selectedTopics, sortBy, sortOrder]);
 
   // ============================================================================
   // Actions
@@ -285,7 +288,7 @@ export default function SermonsScreen() {
     if (query.length >= 2) {
       searchTimeoutRef.current = setTimeout(() => loadSermons(true), 500);
     } else if (query.length === 0) {
-      loadSermons(true);
+      searchTimeoutRef.current = setTimeout(() => loadSermons(true), 50);
     }
   }, [loadSermons]);
 
@@ -398,18 +401,8 @@ export default function SermonsScreen() {
     return card;
   };
 
-  const renderHeader = () => (
+  const renderHeader = useCallback(() => (
     <>
-      {/* Page Title */}
-      <View style={{ marginTop: theme.spacing.lg, marginBottom: theme.spacing.md, paddingTop: theme.spacing.md }}>
-        <Text style={{ ...theme.typography.displayMedium, color: theme.colors.text }}>
-          Sermons
-        </Text>
-        <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.xxs }}>
-          {totalSermons > 0 ? `${totalSermons} sermons available` : 'Browse our sermon library'}
-        </Text>
-      </View>
-
       {/* View Mode Toggle + Sort */}
       <View style={[staticStyles.viewModeRow, { marginBottom: theme.spacing.sm }]}>
         <View style={staticStyles.viewModeGroup}>
@@ -439,23 +432,6 @@ export default function SermonsScreen() {
           onPress={() => setSortModalVisible(true)}
         />
       </View>
-
-      {/* Search Bar */}
-      <Searchbar
-        placeholder="Search by title, preacher..."
-        onChangeText={handleSearch}
-        value={searchQuery}
-        style={[staticStyles.searchBar, {
-          backgroundColor: theme.colors.surfaceVariant,
-          borderRadius: theme.borderRadius.md,
-        }]}
-        inputStyle={{ ...theme.typography.bodyMedium }}
-        icon="magnify"
-        onClearIconPress={() => {
-          setSearchQuery('');
-          loadSermons(true);
-        }}
-      />
 
       {/* Filters Row */}
       <View style={[staticStyles.filtersRow, { marginTop: theme.spacing.sm, marginBottom: theme.spacing.md }]}>
@@ -491,7 +467,7 @@ export default function SermonsScreen() {
         )}
       </View>
     </>
-  );
+  ), [theme, viewMode, selectedSeries, selectedTopics, series, topics, sortModalVisible]);
 
   const renderFooter = () => {
     if (loadingMore) return <SkeletonList type="sermon" count={2} />;
@@ -513,7 +489,14 @@ export default function SermonsScreen() {
   );
 
   if (loading) {
-    return <LoadingSpinner type="content" message="Loading sermons" />;
+    return (
+      <View style={[staticStyles.container, staticStyles.centered, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.md }}>
+          Loading sermons...
+        </Text>
+      </View>
+    );
   }
 
   if (error) {
@@ -533,6 +516,35 @@ export default function SermonsScreen() {
 
   return (
     <View style={[staticStyles.container, { backgroundColor: theme.colors.background }]}>
+      {/* Fixed header area — outside FlatList so search doesn't lose focus */}
+      <View style={{ paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.md }}>
+        {/* Page Title */}
+        <View style={{ marginTop: theme.spacing.lg, marginBottom: theme.spacing.md }}>
+          <Text style={{ ...theme.typography.displayMedium, color: theme.colors.text }}>
+            Sermons
+          </Text>
+          <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.xxs }}>
+            {totalSermons > 0 ? `${totalSermons} sermons available` : 'Browse our sermon library'}
+          </Text>
+        </View>
+
+        {/* Search Bar */}
+        <Searchbar
+          placeholder="Search by title, preacher..."
+          onChangeText={handleSearch}
+          value={searchQuery}
+          style={[staticStyles.searchBar, {
+            backgroundColor: theme.colors.surfaceVariant,
+            borderRadius: theme.borderRadius.md,
+          }]}
+          inputStyle={{ ...theme.typography.bodyMedium }}
+          icon="magnify"
+          onClearIconPress={() => {
+            handleSearch('');
+          }}
+        />
+      </View>
+
       <FlatList
         key={viewMode}
         data={sermons}
@@ -564,6 +576,7 @@ export default function SermonsScreen() {
         windowSize={5}
         initialNumToRender={10}
         updateCellsBatchingPeriod={50}
+        keyboardShouldPersistTaps="handled"
       />
 
       {/* Sort Modal */}
@@ -583,6 +596,11 @@ export default function SermonsScreen() {
 const staticStyles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
   },
   viewModeRow: {
     flexDirection: 'row',

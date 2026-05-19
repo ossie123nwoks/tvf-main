@@ -41,6 +41,7 @@ export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [sermons, setSermons] = useState<Sermon[]>([]);
+  const [featuredSermons, setFeaturedSermons] = useState<Sermon[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [articlesLoading, setArticlesLoading] = useState(true);
@@ -249,6 +250,21 @@ export default function DashboardScreen() {
     }
   };
 
+  const fetchFeaturedSermons = async () => {
+    try {
+      const response = await ContentService.getSermons({
+        featured: true,
+        limit: 5,
+        sortBy: 'date',
+        sortOrder: 'desc',
+        published: true,
+      });
+      setFeaturedSermons(response.data || []);
+    } catch (err) {
+      console.warn('Failed to fetch featured sermons:', err);
+    }
+  };
+
   const fetchArticles = async () => {
     try {
       setArticlesLoading(true);
@@ -293,6 +309,7 @@ export default function DashboardScreen() {
   useEffect(() => {
     fetchSermons();
     fetchArticles();
+    fetchFeaturedSermons();
   }, []);
 
   // Monitor download progress
@@ -335,7 +352,7 @@ export default function DashboardScreen() {
   // Pull-to-refresh
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchSermons(), fetchArticles()]);
+    await Promise.all([fetchSermons(), fetchArticles(), fetchFeaturedSermons()]);
     setRefreshing(false);
   };
 
@@ -612,6 +629,41 @@ export default function DashboardScreen() {
                 </TouchableOpacity>
               )}
             </View>
+
+            {/* ==================== FEATURED SERMONS ==================== */}
+            {featuredSermons.length > 0 && (
+              <View style={[styles.section, { paddingHorizontal: theme.spacing.md, marginTop: theme.spacing.lg }]}>
+                <SectionHeader
+                  title="Featured Sermons"
+                  actionLabel="See All"
+                  onAction={() => router.push('/(tabs)/sermons')}
+                />
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    paddingHorizontal: theme.spacing.md,
+                    gap: theme.spacing.sm,
+                  }}
+                >
+                  {featuredSermons.map((sermon) => (
+                    <View key={sermon.id} style={{ width: screenWidth * 0.7 }}>
+                      <SermonCard
+                        sermon={sermon}
+                        variant="default"
+                        onPress={() => router.push(`/sermon/${sermon.id}`)}
+                        onPlay={() => router.push(`/sermon/${sermon.id}`)}
+                        onDownload={() => handleSermonDownload(sermon)}
+                        onShare={() => handleSermonShare(sermon)}
+                        onSave={() => handleSermonSave(sermon)}
+                        isSaved={isContentSaved('sermon', sermon.id)}
+                        downloadStatus={sermonDownloadStatus[sermon.id] || 'idle'}
+                      />
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
 
             {/* ==================== LATEST ARTICLES ==================== */}
             <View style={[styles.section, { paddingHorizontal: theme.spacing.md, marginTop: theme.spacing.lg }]}>

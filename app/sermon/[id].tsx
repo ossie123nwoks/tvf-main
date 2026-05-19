@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, ScrollView, StyleSheet, Alert, Dimensions, Pressable, Platform, Image } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, Dimensions, Pressable, Platform, Image, Share } from 'react-native';
 import {
   Text,
   Card,
@@ -13,7 +13,7 @@ import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, router, useRouter } from 'expo-router';
 import { ContentService } from '@/lib/supabase/content';
-import { Sermon, Category } from '@/types/content';
+import { Sermon, Category, Series } from '@/types/content';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { useOfflineDownloads } from '@/lib/storage/useOfflineDownloads';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -30,6 +30,8 @@ export default function SermonDetailScreen() {
   // Sermon data
   const [sermon, setSermon] = useState<Sermon | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
+  const [relatedSermons, setRelatedSermons] = useState<Sermon[]>([]);
+  const [seriesInfo, setSeriesInfo] = useState<Series | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -118,6 +120,26 @@ export default function SermonDetailScreen() {
           console.warn('Failed to load category:', error);
         }
       }
+
+      // Load related sermons: by series if available, otherwise by category
+      try {
+        if (sermonData.series_id) {
+          const [seriesData, seriesSermons] = await Promise.all([
+            ContentService.getSeriesById(sermonData.series_id),
+            ContentService.getSermonsBySeries(sermonData.series_id),
+          ]);
+          setSeriesInfo(seriesData);
+          setRelatedSermons(seriesSermons.filter(s => s.id !== sermonData.id));
+        } else if (sermonData.category_id) {
+          const categorySermons = await ContentService.getSermons({
+            category: sermonData.category_id,
+            limit: 6,
+          });
+          setRelatedSermons(categorySermons.data.filter(s => s.id !== sermonData.id).slice(0, 5));
+        }
+      } catch (err) {
+        console.warn('Failed to load related sermons:', err);
+      }
     } catch (error) {
       console.error('Failed to load sermon:', error);
       setError('Failed to load sermon. Please try again.');
@@ -165,7 +187,19 @@ export default function SermonDetailScreen() {
   };
 
   const handleShare = async () => {
-    Alert.alert('Coming Soon', 'Share functionality will be implemented in the next phase.');
+    if (!sermon) return;
+    try {
+      const message = sermon.description
+        ? `Check out this sermon: "${sermon.title}" by ${sermon.preacher}\n\n${sermon.description}`
+        : `Check out this sermon: "${sermon.title}" by ${sermon.preacher}`;
+
+      await Share.share({
+        message,
+        title: `TRUEVINE FELLOWSHIP - ${sermon.title}`,
+      });
+    } catch (error) {
+      console.error('Share error:', error);
+    }
   };
 
   const handleBack = () => {
@@ -185,10 +219,11 @@ export default function SermonDetailScreen() {
     return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
-  const formatDuration = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  const formatDuration = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    if (hours > 0) return `${hours}h ${remainingMinutes}m`;
+    return `${remainingMinutes} min`;
   };
 
   // ───── Loading / Error States ─────
@@ -229,25 +264,27 @@ export default function SermonDetailScreen() {
 
           {/* ─── Media Section ─── */}
           <View style={{ paddingTop: Platform.select({ ios: Math.max(insets.top, 20), android: 20 }) }}>
-            <View style={{ paddingHorizontal: theme.spacing.md, paddingBottom: theme.spacing.md, flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ paddingHorizontal: theme.spacing.md, paddingBottom: theme.spacing.sm, flexDirection: 'row', alignItems: 'center' }}>
               <Pressable
                 style={[staticStyles.backBtn, { backgroundColor: theme.colors.surfaceElevated, borderRadius: theme.borderRadius.full, ...theme.shadows.small }]}
                 onPress={handleBack}
               >
                 <MaterialIcons name="arrow-back" size={22} color={theme.colors.text} />
               </Pressable>
-              <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text, marginLeft: theme.spacing.md }}>
+              <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text, marginLeft: theme.spacing.sm }}>
                 Sermon
               </Text>
             </View>
 
-            <SermonMediaPlayer sermon={sermon} />
+            <View style={{ marginTop: theme.spacing.sm }}>
+              <SermonMediaPlayer sermon={sermon} />
+            </View>
           </View>
 
           {/* ─── Content ─── */}
           <View style={{ padding: theme.spacing.md }}>
             <View style={{ paddingHorizontal: theme.spacing.sm }}>
-              <Text style={{ ...theme.typography.headlineLarge, color: theme.colors.text }}>
+              <Text style={{ ...theme.typography.headlineSmall, color: theme.colors.text }}>
                 {sermon.title}
               </Text>
               <Text style={{ ...theme.typography.titleMedium, color: theme.colors.primary, marginTop: theme.spacing.xs }}>
@@ -279,50 +316,11 @@ export default function SermonDetailScreen() {
                 )}
               </View>
 
-              {/* Action Bar */}
-              <View style={[staticStyles.actionBar, { marginTop: theme.spacing.lg, marginBottom: theme.spacing.md }]}>
-                <Pressable
-                  onPress={handleDownload}
-                  disabled={downloadStatus === 'downloading' || downloadStatus === 'checking'}
-                  style={staticStyles.actionItem}
-                >
-                  <MaterialIcons
-                    name={downloadStatus === 'downloaded' ? 'check-circle' : downloadStatus === 'error' ? 'error' : 'download'}
-                    size={22}
-                    color={downloadStatus === 'downloaded' ? theme.colors.success : downloadStatus === 'error' ? theme.colors.error : theme.colors.textSecondary}
-                  />
-                  <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textSecondary, marginTop: 2 }}>
-                    {downloadStatus === 'downloaded' ? 'Saved' : downloadStatus === 'downloading' ? 'Saving...' : 'Download'}
-                  </Text>
-                </Pressable>
-                <Pressable onPress={handleShare} style={staticStyles.actionItem}>
-                  <MaterialIcons name="share" size={22} color={theme.colors.textSecondary} />
-                  <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textSecondary, marginTop: 2 }}>Share</Text>
-                </Pressable>
-              </View>
-            </View>
-
-            {/* ─── Stats ─── */}
-            <View style={[staticStyles.statsRow, dynamicStyles.sectionCard, { padding: theme.spacing.md, marginTop: theme.spacing.md }]}>
-              {[
-                { value: sermon.views, label: 'Views', icon: 'visibility' as const },
-                { value: sermon.downloads, label: 'Downloads', icon: 'download' as const },
-                { value: sermon.tags && Array.isArray(sermon.tags) ? sermon.tags.length : 0, label: 'Tags', icon: 'label' as const },
-              ].map((stat, i) => (
-                <View key={i} style={staticStyles.statItem}>
-                  <MaterialIcons name={stat.icon} size={18} color={theme.colors.primary} />
-                  <Text style={{ ...theme.typography.headlineSmall, color: theme.colors.text, marginTop: 2 }}>{stat.value}</Text>
-                  <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary }}>{stat.label}</Text>
-                </View>
-              ))}
             </View>
 
             {/* ─── Description ─── */}
             {sermon.description && (
-              <View style={[dynamicStyles.sectionCard, { padding: theme.spacing.lg, marginTop: theme.spacing.md }]}>
-                <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text, marginBottom: theme.spacing.sm }}>
-                  Description
-                </Text>
+              <View style={{ paddingHorizontal: theme.spacing.sm, marginTop: theme.spacing.md }}>
                 <Text
                   style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}
                   numberOfLines={showFullDescription ? undefined : 5}
@@ -338,6 +336,28 @@ export default function SermonDetailScreen() {
                 )}
               </View>
             )}
+
+            {/* Action Bar */}
+            <View style={[staticStyles.actionBar, { marginTop: theme.spacing.lg, marginBottom: theme.spacing.md }]}>
+              <Pressable
+                onPress={handleDownload}
+                disabled={downloadStatus === 'downloading' || downloadStatus === 'checking'}
+                style={staticStyles.actionItem}
+              >
+                <MaterialIcons
+                  name={downloadStatus === 'downloaded' ? 'check-circle' : downloadStatus === 'error' ? 'error' : 'download'}
+                  size={22}
+                  color={downloadStatus === 'downloaded' ? theme.colors.success : downloadStatus === 'error' ? theme.colors.error : theme.colors.textSecondary}
+                />
+                <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textSecondary, marginTop: 2 }}>
+                  {downloadStatus === 'downloaded' ? 'Saved' : downloadStatus === 'downloading' ? 'Saving...' : 'Download'}
+                </Text>
+              </Pressable>
+              <Pressable onPress={handleShare} style={staticStyles.actionItem}>
+                <MaterialIcons name="share" size={22} color={theme.colors.textSecondary} />
+                <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textSecondary, marginTop: 2 }}>Share</Text>
+              </Pressable>
+            </View>
 
             {/* ─── Tags ─── */}
             {sermon.tags && Array.isArray(sermon.tags) && sermon.tags.length > 0 && (
@@ -355,15 +375,51 @@ export default function SermonDetailScreen() {
               </View>
             )}
 
-            {/* ─── Category ─── */}
-            {category && (
-              <View style={[dynamicStyles.sectionCard, { padding: theme.spacing.lg, marginTop: theme.spacing.md }]}>
-                <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text, marginBottom: theme.spacing.sm }}>
-                  Category
+            {/* ─── Related Sermons ─── */}
+            {relatedSermons.length > 0 && (
+              <View style={{ marginTop: theme.spacing.lg }}>
+                <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text, marginBottom: theme.spacing.sm, paddingHorizontal: theme.spacing.sm }}>
+                  {seriesInfo ? `More from "${seriesInfo.name}"` : 'Related Sermons'}
                 </Text>
-                <Chip icon={category.icon} style={{ alignSelf: 'flex-start', backgroundColor: theme.colors.primaryContainer }} textStyle={{ ...theme.typography.labelMedium, color: theme.colors.primary }}>
-                  {category.name}
-                </Chip>
+                {relatedSermons.map((related) => (
+                  <Pressable
+                    key={related.id}
+                    onPress={() => router.push(`/sermon/${related.id}`)}
+                    style={({ pressed }) => [
+                      staticStyles.relatedCard,
+                      {
+                        backgroundColor: pressed ? theme.colors.surfaceVariant : theme.colors.surfaceElevated,
+                        borderRadius: theme.borderRadius.md,
+                        borderWidth: 1,
+                        borderColor: theme.colors.cardBorder,
+                        marginBottom: theme.spacing.sm,
+                      },
+                    ]}
+                  >
+                    {related.thumbnail_url ? (
+                      <Image
+                        source={{ uri: related.thumbnail_url }}
+                        style={[staticStyles.relatedThumb, { borderRadius: theme.borderRadius.sm }]}
+                      />
+                    ) : (
+                      <View style={[staticStyles.relatedThumb, { borderRadius: theme.borderRadius.sm, backgroundColor: theme.colors.surfaceVariant, justifyContent: 'center', alignItems: 'center' }]}>
+                        <MaterialIcons name="music-note" size={20} color={theme.colors.textTertiary} />
+                      </View>
+                    )}
+                    <View style={{ flex: 1, marginLeft: theme.spacing.sm }}>
+                      <Text numberOfLines={2} style={{ ...theme.typography.titleSmall, color: theme.colors.text }}>
+                        {related.title}
+                      </Text>
+                      <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary, marginTop: 2 }}>
+                        {related.preacher}
+                      </Text>
+                      <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary, marginTop: 2 }}>
+                        {formatDuration(related.duration)}
+                      </Text>
+                    </View>
+                    <MaterialIcons name="chevron-right" size={20} color={theme.colors.textTertiary} />
+                  </Pressable>
+                ))}
               </View>
             )}
 
@@ -384,7 +440,6 @@ const staticStyles = StyleSheet.create({
   heroSection: { paddingHorizontal: 16, paddingBottom: 20 },
   backBtn: {
     width: 40, height: 40, justifyContent: 'center', alignItems: 'center',
-    position: 'absolute', top: 16, left: 16, zIndex: 10,
   },
   thumbnailContainer: { width: '100%', height: 220, marginTop: 56, overflow: 'hidden' },
   thumbnail: { width: '100%', height: '100%' },
@@ -413,4 +468,8 @@ const staticStyles = StyleSheet.create({
 
   // Tags
   tagsWrap: { flexDirection: 'row', flexWrap: 'wrap' },
+
+  // Related sermons
+  relatedCard: { flexDirection: 'row', alignItems: 'center', padding: 12 },
+  relatedThumb: { width: 52, height: 52 },
 });

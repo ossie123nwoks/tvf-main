@@ -33,13 +33,11 @@
     },
     "production": {
       "channel": "production",
-      "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
       },
       "ios": {
-        "simulator": false,
-        "autoIncrement": true
+        "simulator": false
       },
       "env": {
         "EXPO_PUBLIC_TEST_OTP_ENABLED": "false"

@@ -49,6 +49,8 @@ export default function ArticlesScreen() {
 
   // Search debouncing
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
 
   // Saved content
   const { isContentSaved, toggleSave } = useSavedContent();
@@ -110,7 +112,7 @@ export default function ArticlesScreen() {
         published: true,
       };
 
-      if (searchQuery) searchParams.query = searchQuery;
+      if (searchQueryRef.current) searchParams.query = searchQueryRef.current;
 
       // Handle series and topics filtering
       if (selectedSeries || selectedTopics.length > 0) {
@@ -133,8 +135,8 @@ export default function ArticlesScreen() {
           });
         }
 
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
+        if (searchQueryRef.current) {
+          const query = searchQueryRef.current.toLowerCase();
           filteredArticles = filteredArticles.filter(article =>
             article.title.toLowerCase().includes(query) ||
             article.author.toLowerCase().includes(query) ||
@@ -182,7 +184,7 @@ export default function ArticlesScreen() {
     } finally {
       setLoadingMore(false);
     }
-  }, [currentPage, hasMore, searchQuery, selectedSeries, selectedTopics, sortBy, sortOrder]);
+  }, [currentPage, hasMore, selectedSeries, selectedTopics, sortBy, sortOrder]);
 
   // ============================================================================
   // Actions
@@ -195,7 +197,7 @@ export default function ArticlesScreen() {
     if (query.length >= 2) {
       searchTimeoutRef.current = setTimeout(() => loadArticles(true), 500);
     } else if (query.length === 0) {
-      loadArticles(true);
+      searchTimeoutRef.current = setTimeout(() => loadArticles(true), 50);
     }
   }, [loadArticles]);
 
@@ -273,18 +275,8 @@ export default function ArticlesScreen() {
     />
   );
 
-  const renderHeader = () => (
+  const renderHeader = useCallback(() => (
     <>
-      {/* Page Title */}
-      <View style={{ marginTop: theme.spacing.lg, marginBottom: theme.spacing.md, paddingTop: theme.spacing.md }}>
-        <Text style={{ ...theme.typography.displayMedium, color: theme.colors.text }}>
-          Articles
-        </Text>
-        <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.xxs }}>
-          {totalArticles > 0 ? `${totalArticles} articles available` : 'Browse our article library'}
-        </Text>
-      </View>
-
       {/* Sort button */}
       <View style={[staticStyles.sortRow, { marginBottom: theme.spacing.sm }]}>
         <View style={{ flex: 1 }} />
@@ -296,23 +288,6 @@ export default function ArticlesScreen() {
           onPress={() => setSortModalVisible(true)}
         />
       </View>
-
-      {/* Search Bar */}
-      <Searchbar
-        placeholder="Search by title, author..."
-        onChangeText={handleSearch}
-        value={searchQuery}
-        style={[staticStyles.searchBar, {
-          backgroundColor: theme.colors.surfaceVariant,
-          borderRadius: theme.borderRadius.md,
-        }]}
-        inputStyle={{ ...theme.typography.bodyMedium }}
-        icon="magnify"
-        onClearIconPress={() => {
-          setSearchQuery('');
-          loadArticles(true);
-        }}
-      />
 
       {/* Filters Row */}
       <View style={[staticStyles.filtersRow, { marginTop: theme.spacing.sm, marginBottom: theme.spacing.md }]}>
@@ -348,7 +323,7 @@ export default function ArticlesScreen() {
         )}
       </View>
     </>
-  );
+  ), [theme, selectedSeries, selectedTopics, series, topics, sortModalVisible]);
 
   const renderFooter = () => {
     if (loadingMore) return <SkeletonList type="article" count={2} />;
@@ -413,6 +388,35 @@ export default function ArticlesScreen() {
 
   return (
     <View style={[staticStyles.container, { backgroundColor: theme.colors.background }]}>
+      {/* Fixed header area — outside FlatList so search doesn't lose focus */}
+      <View style={{ paddingHorizontal: theme.spacing.md, paddingTop: theme.spacing.md }}>
+        {/* Page Title */}
+        <View style={{ marginTop: theme.spacing.lg, marginBottom: theme.spacing.md }}>
+          <Text style={{ ...theme.typography.displayMedium, color: theme.colors.text }}>
+            Articles
+          </Text>
+          <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, marginTop: theme.spacing.xxs }}>
+            {totalArticles > 0 ? `${totalArticles} articles available` : 'Browse our article library'}
+          </Text>
+        </View>
+
+        {/* Search Bar */}
+        <Searchbar
+          placeholder="Search by title, author..."
+          onChangeText={handleSearch}
+          value={searchQuery}
+          style={[staticStyles.searchBar, {
+            backgroundColor: theme.colors.surfaceVariant,
+            borderRadius: theme.borderRadius.md,
+          }]}
+          inputStyle={{ ...theme.typography.bodyMedium }}
+          icon="magnify"
+          onClearIconPress={() => {
+            handleSearch('');
+          }}
+        />
+      </View>
+
       <FlatList
         data={articles}
         renderItem={renderArticleCard}
@@ -439,6 +443,7 @@ export default function ArticlesScreen() {
         windowSize={5}
         initialNumToRender={10}
         updateCellsBatchingPeriod={50}
+        keyboardShouldPersistTaps="handled"
       />
 
       {/* Sort Modal */}

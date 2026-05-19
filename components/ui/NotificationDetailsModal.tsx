@@ -373,7 +373,9 @@ export default function NotificationDetailsModal({
                     style={{ marginRight: theme.spacing.sm }}
                   />
                   <Chip
-                    icon={getNotificationIcon(notification.type)}
+                    icon={({ size, color }) => (
+                      <MaterialIcons name={getNotificationIcon(notification.type) as any} size={size} color={color} />
+                    )}
                     style={{ backgroundColor: theme.colors.primaryContainer }}
                     textStyle={{ color: theme.colors.primary }}
                   >
@@ -444,7 +446,7 @@ export default function NotificationDetailsModal({
                         mode="outlined"
                         onPress={handleMarkAsUnread}
                         textColor={theme.colors.primary}
-                        icon="mark-email-unread"
+                        icon="email"
                       >
                         Mark Unread
                       </Button>
@@ -454,7 +456,7 @@ export default function NotificationDetailsModal({
                         onPress={handleMarkAsRead}
                         buttonColor={theme.colors.primary}
                         textColor="#FFFFFF"
-                        icon="mark-email-read"
+                        icon="email-check"
                       >
                         Mark Read
                       </Button>

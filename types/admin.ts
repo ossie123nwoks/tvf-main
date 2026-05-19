@@ -67,6 +67,7 @@ export interface ContentFormData {
   topicIds?: string[];
   seriesId?: string;
   isPublished: boolean;
+  isFeatured?: boolean;
   scheduledAt?: string;
   thumbnailUrl?: string;
   audioUrl?: string;

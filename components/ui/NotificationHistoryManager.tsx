@@ -409,7 +409,9 @@ export default function NotificationHistoryManager({
           <View style={styles.notificationMeta}>
             <Chip
               compact
-              icon={getNotificationIcon(item.type)}
+              icon={({ size, color }) => (
+                <MaterialIcons name={getNotificationIcon(item.type) as any} size={size} color={color} />
+              )}
               style={{ backgroundColor: theme.colors.surfaceVariant }}
               textStyle={{ color: theme.colors.text }}
             >
@@ -439,7 +441,7 @@ export default function NotificationHistoryManager({
             <View style={styles.notificationActions}>
               {onAnalyticsPress && (
                 <IconButton
-                  icon="analytics"
+                  icon="chart-bar"
                   size={16}
                   onPress={() => onAnalyticsPress(item)}
                   iconColor={theme.colors.primary}
@@ -447,7 +449,7 @@ export default function NotificationHistoryManager({
               )}
 
               <IconButton
-                icon={isUnread ? 'mark-email-read' : 'mark-email-unread'}
+                icon={isUnread ? 'email-check' : 'email'}
                 size={16}
                 onPress={() => isUnread ? markAsRead(item.id) : markAsUnread(item.id)}
                 iconColor={theme.colors.primary}
@@ -626,7 +628,7 @@ export default function NotificationHistoryManager({
             onPress={handleBulkMarkAsRead}
             style={styles.bulkActionButton}
             textColor={theme.colors.primary}
-            icon="mark-email-read"
+            icon="email-check"
           >
             Mark Read
           </Button>
@@ -636,7 +638,7 @@ export default function NotificationHistoryManager({
             onPress={handleBulkMarkAsUnread}
             style={styles.bulkActionButton}
             textColor={theme.colors.primary}
-            icon="mark-email-unread"
+            icon="email"
           >
             Mark Unread
           </Button>

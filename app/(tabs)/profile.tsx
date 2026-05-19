@@ -501,15 +501,15 @@ export default function Profile() {
               <View style={[profileStyles.statsContainer, dynamicStyles.statsContainer]}>
                 <View style={profileStyles.statItem}>
                   <Text style={{ ...theme.typography.headlineLarge, color: theme.colors.primary, marginBottom: theme.spacing.xxs }}>{savedSermons.length}</Text>
-                  <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary }}>Saved Sermons</Text>
+                  <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary }}>Sermons</Text>
                 </View>
                 <View style={profileStyles.statItem}>
                   <Text style={{ ...theme.typography.headlineLarge, color: theme.colors.primary, marginBottom: theme.spacing.xxs }}>{savedArticles.length}</Text>
-                  <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary }}>Saved Articles</Text>
+                  <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary }}>Articles</Text>
                 </View>
                 <View style={profileStyles.statItem}>
                   <Text style={{ ...theme.typography.headlineLarge, color: theme.colors.primary, marginBottom: theme.spacing.xxs }}>{savedContent.length}</Text>
-                  <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary }}>Total Saved</Text>
+                  <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary }}>Total</Text>
                 </View>
               </View>
 
@@ -522,7 +522,7 @@ export default function Profile() {
                   buttonColor={theme.colors.primary}
                   textColor="#FFFFFF"
                 >
-                  View Saved Sermons
+                  Sermons
                 </Button>
                 <Button
                   mode="contained"
@@ -532,7 +532,7 @@ export default function Profile() {
                   buttonColor={theme.colors.primary}
                   textColor="#FFFFFF"
                 >
-                  View Saved Articles
+                  Articles
                 </Button>
               </View>
 

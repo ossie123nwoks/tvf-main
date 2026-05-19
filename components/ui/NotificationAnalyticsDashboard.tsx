@@ -478,7 +478,7 @@ export default function NotificationAnalyticsDashboard({
                       <DataTable.Row key={type}>
                         <DataTable.Cell>
                           <Chip
-                            icon="notifications"
+                            icon="bell"
                             style={{ backgroundColor: theme.colors.primaryContainer }}
                             textStyle={{ color: theme.colors.primary }}
                           >

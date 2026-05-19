@@ -93,6 +93,7 @@ export default function EditSermonPage() {
                 categoryId: sermon.category_id,
                 seriesId: sermon.series_id,
                 isPublished: sermon.is_published,
+                isFeatured: sermon.is_featured,
                 scheduledAt: (sermon as any).scheduled_at,
               }}
             />

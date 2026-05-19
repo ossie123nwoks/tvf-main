@@ -41,11 +41,11 @@ export default function SermonCard({
 }: SermonCardProps) {
     const { theme } = useTheme();
 
-    const formatDuration = (seconds: number): string => {
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        if (hours > 0) return `${hours}h ${minutes}m`;
-        return `${minutes} min`;
+    const formatDuration = (minutes: number): string => {
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+        if (hours > 0) return `${hours}h ${remainingMinutes}m`;
+        return `${remainingMinutes} min`;
     };
 
     const formatDate = (dateString: string): string => {

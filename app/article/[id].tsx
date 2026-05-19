@@ -14,7 +14,7 @@ import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, router, useRouter } from 'expo-router';
 import { ContentService } from '@/lib/supabase/content';
-import { Article, Category } from '@/types/content';
+import { Article, Category, Series } from '@/types/content';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSavedContent } from '@/lib/hooks/useSavedContent';
@@ -48,6 +48,8 @@ export default function ArticleDetailScreen() {
   // Article data
   const [article, setArticle] = useState<Article | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
+  const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
+  const [seriesInfo, setSeriesInfo] = useState<Series | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -94,6 +96,25 @@ export default function ArticleDetailScreen() {
         await ContentService.incrementArticleViews(id);
       } catch (error) {
         console.warn('Failed to increment views:', error);
+      }
+
+      // Load related articles: by series if available, otherwise by category
+      try {
+        const articleSeriesList = await ContentService.getSeriesForArticle(id);
+        if (articleSeriesList.length > 0) {
+          const firstSeries = articleSeriesList[0];
+          setSeriesInfo(firstSeries);
+          const seriesArticles = await ContentService.getArticlesBySeries(firstSeries.id);
+          setRelatedArticles(seriesArticles.filter(a => a.id !== articleData.id).slice(0, 5));
+        } else if (articleData.category_id) {
+          const categoryArticles = await ContentService.getArticles({
+            category: articleData.category_id,
+            limit: 6,
+          });
+          setRelatedArticles(categoryArticles.data.filter(a => a.id !== articleData.id).slice(0, 5));
+        }
+      } catch (err) {
+        console.warn('Failed to load related articles:', err);
       }
     } catch (error) {
       console.error('Failed to load article:', error);
@@ -229,14 +250,19 @@ export default function ArticleDetailScreen() {
         <ScrollView style={staticStyles.flex} showsVerticalScrollIndicator={false}>
 
           {/* ─── Hero Header ─── */}
-          <View style={[staticStyles.heroSection, { backgroundColor: theme.colors.surfaceElevated, paddingTop: Platform.select({ ios: Math.max(insets.top, 20), android: 0 }) }]}>
-            {/* Back Button */}
-            <Pressable
-              style={[staticStyles.backBtn, { backgroundColor: theme.colors.background + 'CC', borderRadius: theme.borderRadius.full }]}
-              onPress={handleBack}
-            >
-              <MaterialIcons name="arrow-back" size={22} color={theme.colors.text} />
-            </Pressable>
+          <View style={[staticStyles.heroSection, { backgroundColor: theme.colors.surfaceElevated, paddingTop: Platform.select({ ios: Math.max(insets.top, 20), android: 20 }) }]}>
+            {/* Back Button Row */}
+            <View style={{ paddingBottom: theme.spacing.sm, flexDirection: 'row', alignItems: 'center' }}>
+              <Pressable
+                style={[staticStyles.backBtn, { backgroundColor: theme.colors.surfaceElevated, borderRadius: theme.borderRadius.full, ...theme.shadows.small }]}
+                onPress={handleBack}
+              >
+                <MaterialIcons name="arrow-back" size={22} color={theme.colors.text} />
+              </Pressable>
+              <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text, marginLeft: theme.spacing.sm }}>
+                Article
+              </Text>
+            </View>
 
             {/* Thumbnail */}
             {article.thumbnail_url ? (
@@ -378,44 +404,54 @@ export default function ArticleDetailScreen() {
               {parseContent(article.content)}
             </View>
 
-            {/* Stats */}
-            <View style={[cardStyle, { padding: theme.spacing.md, marginTop: theme.spacing.lg }]}>
-              <View style={staticStyles.statsGrid}>
-                {[
-                  { value: article.views, label: 'Views', icon: 'visibility' as const },
-                  { value: article.tags && Array.isArray(article.tags) ? article.tags.length : 0, label: 'Tags', icon: 'label' as const },
-                  { value: readTime, label: 'Min Read', icon: 'schedule' as const },
-                ].map((stat, i) => (
-                  <View key={i} style={staticStyles.statItem}>
-                    <MaterialIcons name={stat.icon} size={18} color={theme.colors.primary} />
-                    <Text style={{ ...theme.typography.headlineSmall, color: theme.colors.text, marginTop: 2 }}>{stat.value}</Text>
-                    <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary }}>{stat.label}</Text>
-                  </View>
+
+
+
+            {/* ─── Related Articles ─── */}
+            {relatedArticles.length > 0 && (
+              <View style={{ marginTop: theme.spacing.lg }}>
+                <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text, marginBottom: theme.spacing.sm, paddingHorizontal: theme.spacing.sm }}>
+                  {seriesInfo ? `More from "${seriesInfo.name}"` : 'Related Articles'}
+                </Text>
+                {relatedArticles.map((related) => (
+                  <Pressable
+                    key={related.id}
+                    onPress={() => router.push(`/article/${related.id}`)}
+                    style={({ pressed }) => [
+                      staticStyles.relatedCard,
+                      {
+                        backgroundColor: pressed ? theme.colors.surfaceVariant : theme.colors.surfaceElevated,
+                        borderRadius: theme.borderRadius.md,
+                        borderWidth: 1,
+                        borderColor: theme.colors.cardBorder,
+                        marginBottom: theme.spacing.sm,
+                      },
+                    ]}
+                  >
+                    {related.thumbnail_url ? (
+                      <Image
+                        source={{ uri: related.thumbnail_url }}
+                        style={[staticStyles.relatedThumb, { borderRadius: theme.borderRadius.sm }]}
+                      />
+                    ) : (
+                      <View style={[staticStyles.relatedThumb, { borderRadius: theme.borderRadius.sm, backgroundColor: theme.colors.surfaceVariant, justifyContent: 'center', alignItems: 'center' }]}>
+                        <MaterialIcons name="article" size={20} color={theme.colors.textTertiary} />
+                      </View>
+                    )}
+                    <View style={{ flex: 1, marginLeft: theme.spacing.sm }}>
+                      <Text numberOfLines={2} style={{ ...theme.typography.titleSmall, color: theme.colors.text }}>
+                        {related.title}
+                      </Text>
+                      <Text style={{ ...theme.typography.caption, color: theme.colors.textSecondary, marginTop: 2 }}>
+                        {related.author}
+                      </Text>
+                      <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary, marginTop: 2 }}>
+                        {calculateReadingTime(related.content)} min read
+                      </Text>
+                    </View>
+                    <MaterialIcons name="chevron-right" size={20} color={theme.colors.textTertiary} />
+                  </Pressable>
                 ))}
-              </View>
-            </View>
-
-            {/* Tags */}
-            {article.tags && Array.isArray(article.tags) && article.tags.length > 0 && (
-              <View style={[cardStyle, { padding: theme.spacing.lg, marginTop: theme.spacing.md }]}>
-                <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text, marginBottom: theme.spacing.sm }}>Tags</Text>
-                <View style={staticStyles.tagsWrap}>
-                  {article.tags.map((tag, index) => (
-                    <Chip key={index} style={{ marginRight: theme.spacing.xs, marginBottom: theme.spacing.xs, backgroundColor: theme.colors.primaryContainer }} textStyle={{ ...theme.typography.labelSmall, color: theme.colors.primary }}>
-                      {tag}
-                    </Chip>
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {/* Category */}
-            {category && (
-              <View style={[cardStyle, { padding: theme.spacing.lg, marginTop: theme.spacing.md }]}>
-                <Text style={{ ...theme.typography.titleMedium, color: theme.colors.text, marginBottom: theme.spacing.sm }}>Category</Text>
-                <Chip icon={category.icon} style={{ alignSelf: 'flex-start', backgroundColor: theme.colors.primaryContainer }} textStyle={{ ...theme.typography.labelMedium, color: theme.colors.primary }}>
-                  {category.name}
-                </Chip>
               </View>
             )}
 
@@ -436,11 +472,10 @@ const staticStyles = StyleSheet.create({
   heroSection: { paddingHorizontal: 16, paddingBottom: 16 },
   backBtn: {
     width: 40, height: 40, justifyContent: 'center', alignItems: 'center',
-    position: 'absolute', top: 16, left: 16, zIndex: 10,
   },
-  thumbnailContainer: { width: '100%', height: 240, marginTop: 56, overflow: 'hidden' },
+  thumbnailContainer: { width: '100%', height: 240, marginTop: 8, overflow: 'hidden' },
   thumbnail: { width: '100%', height: '100%' },
-  thumbnailPlaceholder: { width: '100%', height: 240, marginTop: 56, justifyContent: 'center', alignItems: 'center' },
+  thumbnailPlaceholder: { width: '100%', height: 240, marginTop: 8, justifyContent: 'center', alignItems: 'center' },
   readTimeBadge: { position: 'absolute', bottom: 12, right: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4 },
   authorRow: { flexDirection: 'row', alignItems: 'center' },
   featuredBadge: { width: 32, height: 32, justifyContent: 'center', alignItems: 'center' },
@@ -466,4 +501,8 @@ const staticStyles = StyleSheet.create({
 
   // Tags
   tagsWrap: { flexDirection: 'row', flexWrap: 'wrap' },
+
+  // Related articles
+  relatedCard: { flexDirection: 'row', alignItems: 'center', padding: 12 },
+  relatedThumb: { width: 52, height: 52 },
 });

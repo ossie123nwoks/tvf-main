@@ -367,14 +367,22 @@ export class ContentService {
     const { error } = await supabase.rpc('increment_article_views', { article_id: id });
 
     if (error) {
-      // Fallback to manual update if RPC function doesn't exist
-      const { error: updateError } = await supabase
-        .from('articles')
-        .update({ views: supabase.rpc('increment', { x: 1 }) })
-        .eq('id', id);
+      // Fallback: fetch current views and increment manually
+      try {
+        const { data } = await supabase
+          .from('articles')
+          .select('views')
+          .eq('id', id)
+          .single();
 
-      if (updateError) {
-        console.warn('Failed to increment article views:', updateError.message);
+        if (data) {
+          await supabase
+            .from('articles')
+            .update({ views: (data.views || 0) + 1 })
+            .eq('id', id);
+        }
+      } catch {
+        // Views increment is non-critical — silently ignore
       }
     }
   }

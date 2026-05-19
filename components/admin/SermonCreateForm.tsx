@@ -37,6 +37,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
     topicIds: [],
     seriesId: '',
     isPublished: false,
+    isFeatured: false,
     scheduledAt: '',
     thumbnailUrl: '',
     audioUrl: '',
@@ -135,6 +136,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
             category_id: formData.categoryId || undefined,
             series_id: formData.seriesId || undefined,
             is_published: formData.isPublished,
+            is_featured: formData.isFeatured ?? false,
             scheduled_at: formData.scheduledAt || undefined,
           }
         : {
@@ -149,13 +151,14 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
             category_id: formData.categoryId || undefined,
             series_id: formData.seriesId || undefined,
             is_published: formData.isPublished,
+            is_featured: formData.isFeatured ?? false,
             scheduled_at: formData.scheduledAt || undefined,
           };
 
       let sermon;
       if (isEdit && sermonId) {
         const cleanId = sermonId.trim();
-        const updatePayload = {
+          const updatePayload = {
           title: sermonData.title,
           preacher: sermonData.preacher,
           audio_url: sermonData.audio_url,
@@ -165,6 +168,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
           thumbnail_url: sermonData.thumbnail_url,
           duration: sermonData.duration,
           is_published: sermonData.is_published,
+          is_featured: sermonData.is_featured,
           updated_at: new Date().toISOString(),
         };
 
@@ -454,6 +458,22 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
             value={formData.isPublished}
             onValueChange={value => handleInputChange('isPublished', value)}
             color={theme.colors.primary}
+          />
+        </View>
+
+        <View style={styles.switchContainer}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text }}>
+              Mark as Featured
+            </Text>
+            <Text style={{ ...theme.typography.caption, color: theme.colors.textTertiary, marginTop: 2 }}>
+              Featured sermons are highlighted with a star badge
+            </Text>
+          </View>
+          <Switch
+            value={formData.isFeatured ?? false}
+            onValueChange={value => handleInputChange('isFeatured', value)}
+            color={theme.colors.accent || theme.colors.primary}
           />
         </View>
 
