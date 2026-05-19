@@ -84,14 +84,8 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
     if (!formData.date?.trim()) newErrors.date = 'Date is required';
     if (!formData.categoryId?.trim()) newErrors.categoryId = 'Category is required';
 
-<<<<<<< HEAD
     if (!formData.audioUrl?.trim() && !formData.videoUrl?.trim()) {
       newErrors.audioUrl = 'At least one media source (Audio or Video URL) is required';
-=======
-    // audio_url is optional — only validate format if a value was provided
-    if (formData.audioUrl?.trim() && !isValidUrl(formData.audioUrl)) {
-      newErrors.audioUrl = 'Please enter a valid audio URL';
->>>>>>> 66b68e48bc9cadf2e32cddda52ff8a8492e697bf
     }
 
     if (formData.audioUrl?.trim() && !isValidUrl(formData.audioUrl)) {
@@ -405,12 +399,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
               marginBottom: 8,
             }}
           >
-<<<<<<< HEAD
             Audio File <Text style={{ color: theme.colors.textTertiary, fontSize: 12 }}>(optional if video provided)</Text>
-=======
-            Audio File
-            <Text style={{ color: theme.colors.textSecondary, fontStyle: 'italic' }}> (optional)</Text>
->>>>>>> 66b68e48bc9cadf2e32cddda52ff8a8492e697bf
           </Text>
           <AudioUpload
             value={formData.audioUrl || ''}
