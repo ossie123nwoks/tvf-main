@@ -84,8 +84,14 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
     if (!formData.date?.trim()) newErrors.date = 'Date is required';
     if (!formData.categoryId?.trim()) newErrors.categoryId = 'Category is required';
 
+<<<<<<< HEAD
     if (!formData.audioUrl?.trim() && !formData.videoUrl?.trim()) {
       newErrors.audioUrl = 'At least one media source (Audio or Video URL) is required';
+=======
+    // audio_url is optional — only validate format if a value was provided
+    if (formData.audioUrl?.trim() && !isValidUrl(formData.audioUrl)) {
+      newErrors.audioUrl = 'Please enter a valid audio URL';
+>>>>>>> 66b68e48bc9cadf2e32cddda52ff8a8492e697bf
     }
 
     if (formData.audioUrl?.trim() && !isValidUrl(formData.audioUrl)) {
@@ -129,7 +135,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
             preacher: formData.preacher?.trim() || '',
             date: formData.date?.trim() || new Date().toISOString(),
             description: formData.description?.trim() || undefined,
-            audio_url: formData.audioUrl?.trim() || '',
+            audio_url: formData.audioUrl?.trim() || undefined,
             video_url: formData.videoUrl?.trim() || undefined,
             thumbnail_url: formData.thumbnailUrl?.trim() || undefined,
             duration: formData.duration ?? 0,
@@ -144,7 +150,7 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
             preacher: formData.preacher?.trim() || '',
             date: formData.date?.trim() || new Date().toISOString(),
             description: formData.description?.trim() || undefined,
-            audio_url: formData.audioUrl?.trim() || '',
+            audio_url: formData.audioUrl?.trim() || undefined,
             video_url: formData.videoUrl?.trim() || undefined,
             thumbnail_url: formData.thumbnailUrl?.trim() || undefined,
             duration: formData.duration ?? 0,
@@ -399,12 +405,17 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
               marginBottom: 8,
             }}
           >
+<<<<<<< HEAD
             Audio File <Text style={{ color: theme.colors.textTertiary, fontSize: 12 }}>(optional if video provided)</Text>
+=======
+            Audio File
+            <Text style={{ color: theme.colors.textSecondary, fontStyle: 'italic' }}> (optional)</Text>
+>>>>>>> 66b68e48bc9cadf2e32cddda52ff8a8492e697bf
           </Text>
           <AudioUpload
             value={formData.audioUrl || ''}
             onChange={url => handleInputChange('audioUrl', url || '')}
-            placeholder="Upload sermon audio file"
+            placeholder="Upload sermon audio file (optional)"
             folder="sermons"
             maxFileSize={200 * 1024 * 1024}
           />
@@ -412,12 +423,15 @@ export const SermonCreateForm: React.FC<SermonCreateFormProps> = ({
         </View>
 
         <FormInput
-          label="Video URL (YouTube or Direct Link)"
+          label="Video URL (optional)"
           value={formData.videoUrl || ''}
           onChangeText={text => handleInputChange('videoUrl', text)}
           error={errors.videoUrl}
-          placeholder="Enter YouTube URL or Supabase video URL"
+          placeholder="https://youtube.com/watch?v=... or Supabase URL"
+          autoCapitalize="none"
+          keyboardType="url"
         />
+
 
         <View style={styles.uploadSection}>
           <Text

@@ -66,7 +66,7 @@ CREATE TABLE public.sermons (
     preacher TEXT NOT NULL,
     date DATE NOT NULL,
     duration INTEGER NOT NULL, -- in seconds
-    audio_url TEXT NOT NULL,
+    audio_url TEXT,
     video_url TEXT,
     thumbnail_url TEXT,
     description TEXT,

@@ -4,7 +4,7 @@ export interface Sermon {
   preacher: string;
   date: string;
   duration: number; // in seconds
-  audio_url: string;
+  audio_url?: string;
   video_url?: string;
   thumbnail_url?: string;
   description: string;
