@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, Alert, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, Alert, TouchableOpacity, Share } from 'react-native';
 import {
   Text,
   Card,
@@ -12,16 +12,83 @@ import {
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSavedContent } from '@/lib/hooks/useSavedContent';
 import { Sermon } from '@/types/content';
-import ContentCard from '@/components/ui/ContentCard';
+import SermonCard from '@/components/ui/SermonCard';
 import { EmptyState, LoadingSpinner, ContentSkeleton } from '@/components/ui/LoadingStates';
+import { useOfflineDownloads } from '@/lib/storage/useOfflineDownloads';
 
 export default function SavedSermonsScreen() {
   const { theme } = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { savedContent = [], isLoading, refreshSavedContent, unsaveContent } = useSavedContent();
+  const { addDownload, isAvailableOffline, downloads } = useOfflineDownloads();
+  const [sermonDownloadStatus, setSermonDownloadStatus] = useState<Record<string, 'idle' | 'checking' | 'downloading' | 'downloaded' | 'error'>>({});
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Monitor download progress
+  useEffect(() => {
+    if (!savedContent || savedContent.length === 0) return;
+
+    setSermonDownloadStatus(prevStatus => {
+      const updatedStatus: Record<string, 'idle' | 'checking' | 'downloading' | 'downloaded' | 'error'> = {};
+
+      savedContent.forEach(item => {
+        const sermon = item.content as Sermon;
+        if (!sermon || !('duration' in sermon)) return;
+        const currentStatus = prevStatus[sermon.id] || 'idle';
+        const downloadItem = downloads.find(d => d.metadata?.contentId === sermon.id);
+
+        if (downloadItem) {
+          switch (downloadItem.status) {
+            case 'downloading':
+            case 'paused':
+              updatedStatus[sermon.id] = 'downloading';
+              break;
+            case 'completed':
+              updatedStatus[sermon.id] = 'downloaded';
+              break;
+            case 'failed':
+              updatedStatus[sermon.id] = 'error';
+              break;
+            default:
+              updatedStatus[sermon.id] = currentStatus;
+          }
+        } else {
+          updatedStatus[sermon.id] = currentStatus;
+        }
+      });
+
+      return updatedStatus;
+    });
+  }, [downloads, savedContent]);
+
+  // check initial download statuses
+  useEffect(() => {
+    const checkStatuses = async () => {
+      const statusMap: Record<string, 'idle' | 'checking' | 'downloading' | 'downloaded' | 'error'> = {};
+      for (const item of savedContent) {
+        const sermon = item.content as Sermon;
+        if (!sermon || !('duration' in sermon)) continue;
+        if (!sermon.audio_url) {
+          statusMap[sermon.id] = 'idle';
+          continue;
+        }
+        try {
+          const isDownloaded = await isAvailableOffline(sermon.audio_url);
+          statusMap[sermon.id] = isDownloaded ? 'downloaded' : 'idle';
+        } catch (err) {
+          statusMap[sermon.id] = 'error';
+        }
+      }
+      setSermonDownloadStatus(statusMap);
+    };
+    if (savedContent && savedContent.length > 0) {
+      checkStatuses();
+    }
+  }, [savedContent, isAvailableOffline]);
   const [sortBy, setSortBy] = useState<'dateSaved' | 'date' | 'title' | 'preacher'>('dateSaved');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [refreshing, setRefreshing] = useState(false);
@@ -131,9 +198,47 @@ export default function SavedSermonsScreen() {
     router.push(`/sermon/${sermon.id}`);
   };
 
-  const handleActionPress = (sermon: Sermon, action: 'play' | 'download' | 'share' | 'bookmark') => {
-    if (action === 'bookmark') {
-      handleRemoveBookmark(sermon);
+  const handleSermonDownload = async (sermon: Sermon) => {
+    if (!sermon.audio_url) {
+      Alert.alert('Not Available', 'This sermon does not have an audio file to download.');
+      return;
+    }
+    try {
+      setSermonDownloadStatus(prev => ({ ...prev, [sermon.id]: 'checking' }));
+      const isDownloaded = await isAvailableOffline(sermon.audio_url);
+      if (isDownloaded) {
+        setSermonDownloadStatus(prev => ({ ...prev, [sermon.id]: 'downloaded' }));
+        Alert.alert('Already Downloaded', `${sermon.title} is already available offline.`);
+        return;
+      }
+      setSermonDownloadStatus(prev => ({ ...prev, [sermon.id]: 'downloading' }));
+      await addDownload('audio', sermon.title, sermon.audio_url, {
+        contentId: sermon.id,
+        preacher: sermon.preacher,
+        date: sermon.date,
+        duration: sermon.duration,
+        thumbnail_url: sermon.thumbnail_url,
+      });
+      setSermonDownloadStatus(prev => ({ ...prev, [sermon.id]: 'downloaded' }));
+      Alert.alert('Download Started', `${sermon.title} is now downloading.`);
+    } catch (err) {
+      console.error('Failed to download sermon:', err);
+      setSermonDownloadStatus(prev => ({ ...prev, [sermon.id]: 'error' }));
+      Alert.alert('Download Failed', 'Please check your connection.', [
+        { text: 'OK', style: 'default' },
+        { text: 'Retry', style: 'default', onPress: () => handleSermonDownload(sermon) },
+      ]);
+    }
+  };
+
+  const handleSermonShare = async (sermon: Sermon) => {
+    try {
+      await Share.share({
+        message: `Check out this sermon: "${sermon.title}" by ${sermon.preacher}`,
+        title: sermon.title,
+      });
+    } catch (err) {
+      console.error('Failed to share sermon:', err);
     }
   };
 
@@ -155,6 +260,7 @@ export default function SavedSermonsScreen() {
       flexDirection: 'row',
       alignItems: 'center',
       padding: theme.spacing.md,
+      paddingTop: Math.max(insets.top, theme.spacing.md),
       backgroundColor: theme.colors.cardBackground,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
@@ -316,12 +422,17 @@ export default function SavedSermonsScreen() {
           ) : (
             (filteredSermons || []).map(({ sermon, savedAt }) => (
               <View key={sermon.id} style={{ marginBottom: theme.spacing.md }}>
-                <ContentCard
-                  content={sermon}
+                <SermonCard
+                  sermon={sermon}
+                  variant="default"
                   onPress={() => handleCardPress(sermon)}
-                  onActionPress={(action) => handleActionPress(sermon, action)}
+                  onPlay={() => handleCardPress(sermon)}
+                  onDownload={() => handleSermonDownload(sermon)}
+                  onShare={() => handleSermonShare(sermon)}
+                  onSave={() => handleRemoveBookmark(sermon)}
+                  isSaved={true}
+                  downloadStatus={sermonDownloadStatus[sermon.id] || 'idle'}
                   showActions={true}
-                  showStats={true}
                 />
                 <Text
                   style={{

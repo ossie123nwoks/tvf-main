@@ -12,6 +12,7 @@ import {
 import { useTheme } from '@/lib/theme/ThemeProvider';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSavedContent } from '@/lib/hooks/useSavedContent';
 import { Article } from '@/types/content';
 import ContentCard from '@/components/ui/ContentCard';
@@ -20,6 +21,7 @@ import { EmptyState, LoadingSpinner, ContentSkeleton } from '@/components/ui/Loa
 export default function SavedArticlesScreen() {
   const { theme } = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { savedContent, isLoading, refreshSavedContent, unsaveContent } = useSavedContent();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'dateSaved' | 'date' | 'title' | 'author'>('dateSaved');
@@ -140,6 +142,7 @@ export default function SavedArticlesScreen() {
       flexDirection: 'row',
       alignItems: 'center',
       padding: theme.spacing.md,
+      paddingTop: Math.max(insets.top, theme.spacing.md),
       backgroundColor: theme.colors.cardBackground,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,

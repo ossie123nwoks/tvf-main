@@ -136,6 +136,10 @@ export default function DashboardScreen() {
     const statusMap: Record<string, 'idle' | 'checking' | 'downloading' | 'downloaded' | 'error'> = {};
 
     for (const sermon of sermonsList) {
+      if (!sermon.audio_url) {
+        statusMap[sermon.id] = 'idle';
+        continue;
+      }
       try {
         const isDownloaded = await isAvailableOffline(sermon.audio_url);
         statusMap[sermon.id] = isDownloaded ? 'downloaded' : 'idle';
@@ -167,6 +171,11 @@ export default function DashboardScreen() {
   };
 
   const handleSermonDownload = async (sermon: Sermon) => {
+    if (!sermon.audio_url) {
+      Alert.alert('Not Available', 'This sermon does not have an audio file to download.');
+      return;
+    }
+
     try {
       setSermonDownloadStatus(prev => ({ ...prev, [sermon.id]: 'checking' }));
 
@@ -364,17 +373,29 @@ export default function DashboardScreen() {
     if (filter === 'all') return items;
 
     const now = new Date();
+    // Use midnight for accurate day comparison
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     return items.filter(item => {
-      const itemDate = new Date((item as any)[dateField]);
-      const diffDays = Math.ceil((today.getTime() - itemDate.getTime()) / (1000 * 60 * 60 * 24));
+      const dateStr = (item as any)[dateField];
+      if (!dateStr) return false;
+      
+      const itemDate = new Date(dateStr);
+      // Strip time from itemDate for accurate day difference
+      const itemDay = new Date(itemDate.getFullYear(), itemDate.getMonth(), itemDate.getDate());
+      
+      const diffTime = today.getTime() - itemDay.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
       switch (filter) {
-        case 'this_week': return diffDays <= 7;
-        case 'last_week': return diffDays > 7 && diffDays <= 14;
-        case 'last_2_months': return diffDays <= 60;
-        default: return true;
+        case 'this_week': 
+          return diffDays >= -7 && diffDays <= 7;
+        case 'last_week': 
+          return diffDays > 7 && diffDays <= 14;
+        case 'last_2_months': 
+          return diffDays >= -7 && diffDays <= 60;
+        default: 
+          return true;
       }
     });
   };
@@ -386,8 +407,8 @@ export default function DashboardScreen() {
     { key: 'last_2_months' as const, label: 'Last 2 Months', icon: 'calendar-today' },
   ];
 
-  const filteredSermons = filterByDate(sermons, sermonFilter, 'date').slice(0, 3);
-  const filteredArticles = filterByDate(articles, articleFilter, 'published_at').slice(0, 3);
+  const filteredSermons = filterByDate(sermons, sermonFilter, 'date').slice(0, sermonFilter === 'all' ? 3 : 10);
+  const filteredArticles = filterByDate(articles, articleFilter, 'published_at').slice(0, articleFilter === 'all' ? 3 : 10);
 
   // ============================================================================
   // Render
