@@ -69,9 +69,9 @@ export default function ArticlesScreen() {
     return () => { if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current); };
   }, []);
 
-  const loadInitialData = async () => {
+  const loadInitialData = async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (!isRefresh) setLoading(true);
       setError(null);
 
       const [categoriesData, seriesData, topicsData] = await Promise.all([
@@ -88,7 +88,7 @@ export default function ArticlesScreen() {
       console.error('Failed to load initial data:', err);
       setError('Failed to load article data. Please try again.');
     } finally {
-      setLoading(false);
+      if (!isRefresh) setLoading(false);
     }
   };
 
@@ -203,7 +203,7 @@ export default function ArticlesScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadInitialData();
+    await loadInitialData(true);
     setRefreshing(false);
   };
 
@@ -326,7 +326,7 @@ export default function ArticlesScreen() {
   ), [theme, selectedSeries, selectedTopics, series, topics, sortModalVisible]);
 
   const renderFooter = () => {
-    if (loadingMore) return <SkeletonList type="article" count={2} />;
+    if (loadingMore && !refreshing) return <SkeletonList type="article" count={2} />;
     return null;
   };
 

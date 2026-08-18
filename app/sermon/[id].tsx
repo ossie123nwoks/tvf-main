@@ -162,6 +162,10 @@ export default function SermonDetailScreen() {
 
   const handleDownload = async () => {
     if (!sermon) return;
+    if (!sermon.audio_url) {
+      Alert.alert('Audio Coming Soon', 'The audio for this sermon will be available shortly.');
+      return;
+    }
     try {
       setDownloadStatus('checking');
       const isDownloaded = await isAvailableOffline(sermon.audio_url);

@@ -160,6 +160,17 @@ export const MiniPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         soundRef.current = null;
       }
 
+      // ── Validate URI before attempting to load ──
+      if (!resolvedUri || resolvedUri.trim() === '' || resolvedUri === 'null' || resolvedUri === 'undefined') {
+        setSermon(targetSermon);
+        setActiveSermonId(targetSermon.id);
+        activeSermonIdRef.current = targetSermon.id;
+        setMediaType('audio');
+        setAudioError('Audio coming soon');
+        setIsLoading(false);
+        return null;
+      }
+
       // ── Create new sound ──
       try {
         setIsLoading(true);
@@ -183,8 +194,8 @@ export const MiniPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return sound;
       } catch (err) {
         setIsLoading(false);
-        setAudioError('Failed to load audio.');
-        console.error('[MiniPlayerContext] loadAudio error:', err);
+        setAudioError('Audio coming soon');
+        console.warn('[MiniPlayerContext] loadAudio error:', err);
         return null;
       }
     },

@@ -121,9 +121,9 @@ export default function SermonsScreen() {
   // Data Loading (preserved business logic)
   // ============================================================================
 
-  const loadInitialData = async () => {
+  const loadInitialData = async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (!isRefresh) setLoading(true);
       setError(null);
 
       const result = await retryUtils.retryContent(async () => {
@@ -152,7 +152,7 @@ export default function SermonsScreen() {
       });
       setError(appError.userMessage);
     } finally {
-      setLoading(false);
+      if (!isRefresh) setLoading(false);
     }
   };
 
@@ -294,7 +294,7 @@ export default function SermonsScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadInitialData();
+    await loadInitialData(true);
     setRefreshing(false);
   };
 
@@ -307,6 +307,11 @@ export default function SermonsScreen() {
 
   const handleDownloadPress = async (sermon: Sermon) => {
     try {
+      if (!sermon.audio_url) {
+        Alert.alert('Audio Coming Soon', 'The audio for this sermon will be available shortly.');
+        return;
+      }
+
       const isDownloaded = await isAvailableOffline(sermon.audio_url);
       if (isDownloaded) {
         Alert.alert('Already Downloaded', `${sermon.title} is already available offline.`);
@@ -470,7 +475,7 @@ export default function SermonsScreen() {
   ), [theme, viewMode, selectedSeries, selectedTopics, series, topics, sortModalVisible]);
 
   const renderFooter = () => {
-    if (loadingMore) return <SkeletonList type="sermon" count={2} />;
+    if (loadingMore && !refreshing) return <SkeletonList type="sermon" count={2} />;
     return null;
   };
 

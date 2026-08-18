@@ -172,7 +172,7 @@ export default function DashboardScreen() {
 
   const handleSermonDownload = async (sermon: Sermon) => {
     if (!sermon.audio_url) {
-      Alert.alert('Not Available', 'This sermon does not have an audio file to download.');
+      Alert.alert('Audio Coming Soon', 'The audio for this sermon will be available shortly.');
       return;
     }
 

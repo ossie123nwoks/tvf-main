@@ -151,6 +151,17 @@ export class OfflineDownloadService {
     const item = this.downloads.get(id);
     if (!item || this.activeDownloads.has(id)) return;
 
+    // Validate URL before attempting download
+    const url = item.url?.trim();
+    if (!url || url === 'null' || url === 'undefined' || (!url.startsWith('http://') && !url.startsWith('https://'))) {
+      item.status = 'failed';
+      item.error = 'Audio coming soon';
+      item.updatedAt = Date.now();
+      await this.saveDownloads();
+      this.processQueue();
+      return;
+    }
+
     try {
       this.activeDownloads.add(id);
       item.status = 'downloading';
@@ -158,7 +169,19 @@ export class OfflineDownloadService {
 
       // Get file size first
       const response = await fetch(item.url, { method: 'HEAD' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (!response.ok) {
+        // Handle 404/500 etc. gracefully — the file isn't available yet
+        item.status = 'failed';
+        item.error = response.status === 404
+          ? 'Audio coming soon'
+          : `Download unavailable (HTTP ${response.status})`;
+        item.updatedAt = Date.now();
+        this.activeDownloads.delete(id);
+        await this.saveDownloads();
+        this.processQueue();
+        console.warn(`Download unavailable for "${item.title}" (HTTP ${response.status})`);
+        return;
+      }
 
       const contentLength = response.headers.get('content-length');
       item.size = contentLength ? parseInt(contentLength, 10) : 0;
@@ -166,9 +189,9 @@ export class OfflineDownloadService {
       // Start the actual download
       await this.downloadFile(item);
     } catch (error) {
-      console.error(`Download failed for ${id}:`, error);
+      console.warn(`Download failed for ${id}:`, error);
       item.status = 'failed';
-      item.error = error instanceof Error ? error.message : 'Download failed';
+      item.error = 'Download failed. Please try again later.';
       item.updatedAt = Date.now();
       this.activeDownloads.delete(id);
       await this.saveDownloads();

@@ -3,10 +3,11 @@ import {
   View,
   StyleSheet,
   Animated,
-  Dimensions,
   StatusBar,
   Easing,
   Pressable,
+  ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,7 +17,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { AuthButton } from '@/components/auth/AuthButton';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 
-const { width, height } = Dimensions.get('window');
+// Dimensions are now read inside the component via useWindowDimensions()
 
 // ─── Animated floating circle (decorative element) ───
 function FloatingCircle({
@@ -166,6 +167,9 @@ export default function AuthWelcome() {
   const { theme, isDark } = useTheme();
   const { isAuthenticated, user, loading } = useAuth();
   const router = useRouter();
+  const { width, height } = useWindowDimensions();
+  // Cap hero height so it never pushes buttons off screen on any device
+  const heroHeight = Math.min(height * 0.35, 280);
 
   // Core entrance animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -302,188 +306,195 @@ export default function AuthWelcome() {
           translucent
         />
 
-        {/* ─── Hero Section ─── */}
-        <View
-          style={[
-            styles.heroSection,
-            { backgroundColor: theme.colors.primary },
-          ]}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
         >
+          {/* ─── Hero Section ─── */}
           <View
             style={[
-              styles.heroOverlay,
-              { backgroundColor: theme.colors.primaryDark },
-            ]}
-          />
-
-          {/* Floating decorative circles */}
-          <FloatingCircle
-            size={180}
-            color={`${theme.colors.primaryLight}22`}
-            top={-40}
-            left={width - 100}
-            delay={200}
-            duration={3500}
-          />
-          <FloatingCircle
-            size={140}
-            color={`${theme.colors.accent}14`}
-            top={height * 0.22}
-            left={-50}
-            delay={600}
-            duration={4000}
-          />
-          <FloatingCircle
-            size={60}
-            color="rgba(255,255,255,0.08)"
-            top={30}
-            left={40}
-            delay={800}
-            duration={2800}
-          />
-          <FloatingCircle
-            size={40}
-            color="rgba(255,255,255,0.06)"
-            top={height * 0.15}
-            left={width * 0.65}
-            delay={1000}
-            duration={3200}
-          />
-
-          {/* Logo / Branding */}
-          <Animated.View
-            style={[
-              styles.logoContainer,
-              {
-                opacity: fadeAnim,
-                transform: [
-                  { scale: logoScale },
-                  { rotate: logoRotateInterpolate },
-                ],
-              },
+              styles.heroSection,
+              { backgroundColor: theme.colors.primary, height: heroHeight },
             ]}
           >
-            {/* Pulsing glow behind logo */}
-            <Animated.View
-              style={[
-                styles.logoGlow,
-                {
-                  backgroundColor: '#FFFFFF',
-                  opacity: logoGlow,
-                },
-              ]}
-            />
             <View
               style={[
-                styles.logoCircle,
-                { backgroundColor: 'rgba(255,255,255,0.15)' },
+                styles.heroOverlay,
+                { backgroundColor: theme.colors.primaryDark },
               ]}
-            >
-              <Ionicons name="heart" size={44} color="#FFFFFF" />
-            </View>
-            <Animated.Text
-              style={[
-                styles.churchName,
-                { letterSpacing: nameSpacing as any },
-              ]}
-            >
-              TRUEVINE
-            </Animated.Text>
-            <Text style={styles.churchSubname}>FELLOWSHIP</Text>
-          </Animated.View>
-        </View>
-
-        {/* ─── Content Section ─── */}
-        <View style={styles.contentSection}>
-          <Animated.View
-            style={[
-              styles.textContainer,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            <Text
-              style={[styles.welcomeTitle, { color: theme.colors.text }]}
-            >
-              Welcome Home
-            </Text>
-            <Text
-              style={[
-                styles.welcomeSubtitle,
-                { color: theme.colors.textSecondary },
-              ]}
-            >
-              Connect with your church family, access sermons, and grow in
-              faith — all in one place.
-            </Text>
-          </Animated.View>
-
-          {/* Feature highlights with staggered entrance */}
-          <Animated.View
-            style={[styles.featuresContainer, { opacity: buttonFade }]}
-          >
-            <View style={styles.featureRow}>
-              <FeatureChip
-                icon="musical-notes"
-                label="Sermons"
-                theme={theme}
-                delay={700}
-              />
-              <FeatureChip
-                icon="book"
-                label="Articles"
-                theme={theme}
-                delay={800}
-              />
-              <FeatureChip
-                icon="people"
-                label="Community"
-                theme={theme}
-                delay={900}
-              />
-            </View>
-          </Animated.View>
-
-          {/* Action Buttons */}
-          <Animated.View
-            style={[
-              styles.buttonsContainer,
-              {
-                opacity: buttonFade,
-                transform: [{ translateY: buttonSlide }],
-              },
-            ]}
-          >
-            <AuthButton
-              title="Sign In"
-              onPress={() => router.push('/auth-signin')}
-              variant="primary"
-              icon="log-in-outline"
             />
-            <View style={styles.buttonSpacer} />
-            <AuthButton
-              title="Create Account"
-              onPress={() => router.push('/auth-signup')}
-              variant="outline"
-              icon="person-add-outline"
-            />
-          </Animated.View>
 
-          {/* Footer */}
-          <Animated.View style={[styles.footer, { opacity: buttonFade }]}>
-            <Text
+            {/* Floating decorative circles */}
+            <FloatingCircle
+              size={160}
+              color={`${theme.colors.primaryLight}22`}
+              top={-30}
+              left={width - 90}
+              delay={200}
+              duration={3500}
+            />
+            <FloatingCircle
+              size={100}
+              color={`${theme.colors.accent}14`}
+              top={heroHeight * 0.5}
+              left={-40}
+              delay={600}
+              duration={4000}
+            />
+            <FloatingCircle
+              size={50}
+              color="rgba(255,255,255,0.08)"
+              top={20}
+              left={30}
+              delay={800}
+              duration={2800}
+            />
+            <FloatingCircle
+              size={35}
+              color="rgba(255,255,255,0.06)"
+              top={heroHeight * 0.3}
+              left={width * 0.65}
+              delay={1000}
+              duration={3200}
+            />
+
+            {/* Logo / Branding */}
+            <Animated.View
               style={[
-                styles.footerText,
-                { color: theme.colors.textTertiary },
+                styles.logoContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [
+                    { scale: logoScale },
+                    { rotate: logoRotateInterpolate },
+                  ],
+                },
               ]}
             >
-              By continuing, you agree to our Terms of Service
-              {'\n'}and Privacy Policy
-            </Text>
-          </Animated.View>
-        </View>
+              {/* Pulsing glow behind logo */}
+              <Animated.View
+                style={[
+                  styles.logoGlow,
+                  {
+                    backgroundColor: '#FFFFFF',
+                    opacity: logoGlow,
+                  },
+                ]}
+              />
+              <View
+                style={[
+                  styles.logoCircle,
+                  { backgroundColor: 'rgba(255,255,255,0.15)' },
+                ]}
+              >
+                <Ionicons name="heart" size={40} color="#FFFFFF" />
+              </View>
+              <Animated.Text
+                style={[
+                  styles.churchName,
+                  { letterSpacing: nameSpacing as any },
+                ]}
+              >
+                TRUEVINE
+              </Animated.Text>
+              <Text style={styles.churchSubname}>FELLOWSHIP</Text>
+            </Animated.View>
+          </View>
+
+          {/* ─── Content Section ─── */}
+          <View style={styles.contentSection}>
+            <Animated.View
+              style={[
+                styles.textContainer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                },
+              ]}
+            >
+              <Text
+                style={[styles.welcomeTitle, { color: theme.colors.text }]}
+              >
+                Welcome Home
+              </Text>
+              <Text
+                style={[
+                  styles.welcomeSubtitle,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                Connect with your church family, access sermons, and grow in
+                faith — all in one place.
+              </Text>
+            </Animated.View>
+
+            {/* Feature highlights with staggered entrance */}
+            <Animated.View
+              style={[styles.featuresContainer, { opacity: buttonFade }]}
+            >
+              <View style={styles.featureRow}>
+                <FeatureChip
+                  icon="musical-notes"
+                  label="Sermons"
+                  theme={theme}
+                  delay={700}
+                />
+                <FeatureChip
+                  icon="book"
+                  label="Articles"
+                  theme={theme}
+                  delay={800}
+                />
+                <FeatureChip
+                  icon="people"
+                  label="Community"
+                  theme={theme}
+                  delay={900}
+                />
+              </View>
+            </Animated.View>
+
+            {/* Action Buttons */}
+            <Animated.View
+              style={[
+                styles.buttonsContainer,
+                {
+                  opacity: buttonFade,
+                  transform: [{ translateY: buttonSlide }],
+                },
+              ]}
+            >
+              <AuthButton
+                title="Sign In"
+                onPress={() => router.push('/auth-signin')}
+                variant="primary"
+                icon="log-in-outline"
+              />
+              <View style={styles.buttonSpacer} />
+              <AuthButton
+                title="Create Account"
+                onPress={() => router.push('/auth-signup')}
+                variant="outline"
+                icon="person-add-outline"
+              />
+            </Animated.View>
+
+            {/* Footer */}
+            <Animated.View style={[styles.footer, { opacity: buttonFade }]}>
+              <Text
+                style={[
+                  styles.footerText,
+                  { color: theme.colors.textTertiary },
+                ]}
+              >
+                By continuing, you agree to our Terms of Service
+                {'\n'}and Privacy Policy
+              </Text>
+            </Animated.View>
+          </View>
+        </ScrollView>
       </View>
     </ErrorBoundary>
   );
@@ -491,6 +502,8 @@ export default function AuthWelcome() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  scrollView: { flex: 1 },
+  scrollContent: { flexGrow: 1 },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -498,7 +511,7 @@ const styles = StyleSheet.create({
   },
   loadingText: { marginTop: 12, fontSize: 15 },
   heroSection: {
-    height: height * 0.38,
+    // height is now set inline via heroHeight variable
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -541,10 +554,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   contentSection: {
-    flex: 1,
     paddingHorizontal: 28,
-    paddingTop: 32,
-    justifyContent: 'space-between',
+    paddingTop: 24,
+    paddingBottom: 16,
+    gap: 20,
   },
   textContainer: { alignItems: 'center' },
   welcomeTitle: {

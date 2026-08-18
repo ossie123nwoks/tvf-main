@@ -122,15 +122,16 @@ export default function ProfileModal({
   const { height: screenHeight } = useWindowDimensions();
   const { theme } = useTheme();
 
-  // Dialog States
-  const [isEditing, setIsEditing] = useState(false);
+  // Navigation State
+  const [currentView, setCurrentView] = useState<'main' | 'edit_profile' | 'change_password'>('main');
+
+  // Form States
   const [editData, setEditData] = useState<UserProfileUpdate>({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     avatarUrl: user?.avatarUrl || '',
   });
 
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordData, setPasswordData] = useState<ChangePasswordRequest>({
     currentPassword: '',
     newPassword: '',
@@ -140,12 +141,17 @@ export default function ProfileModal({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteReason, setDeleteReason] = useState('');
 
+  const handleDismiss = () => {
+    setCurrentView('main');
+    onDismiss();
+  };
+
   const modalMaxHeight = screenHeight * 0.9;
 
   const handleSaveProfile = async () => {
     try {
       await updateProfile(editData);
-      setIsEditing(false);
+      setCurrentView('main');
       Alert.alert('Success', 'Profile updated successfully');
     } catch (error) {
       Alert.alert('Error', 'Failed to update profile');
@@ -159,7 +165,7 @@ export default function ProfileModal({
     }
     try {
       await changePassword(passwordData);
-      setShowPasswordDialog(false);
+      setCurrentView('main');
       setPasswordData({ currentPassword: '', newPassword: '' });
       setConfirmPassword('');
       Alert.alert('Success', 'Password changed successfully');
@@ -191,7 +197,7 @@ export default function ProfileModal({
         style: 'destructive',
         onPress: async () => {
           try {
-            onDismiss();
+            handleDismiss();
             setTimeout(async () => {
               await signOut();
               if (onSignOut) onSignOut();
@@ -231,10 +237,10 @@ export default function ProfileModal({
         visible={visible}
         transparent={true}
         animationType="slide"
-        onRequestClose={onDismiss}
+        onRequestClose={handleDismiss}
       >
         <View style={styles.modalOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={onDismiss} />
+          <Pressable style={StyleSheet.absoluteFill} onPress={handleDismiss} />
 
           <View style={[styles.bottomSheet, { backgroundColor: theme.colors.background, maxHeight: modalMaxHeight, paddingBottom: insets.bottom > 0 ? insets.bottom : theme.spacing.xl }]}>
             {/* Grabber */}
@@ -243,28 +249,30 @@ export default function ProfileModal({
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-              <ProfileHeader user={user} avatarSource={avatarSource} onDismiss={onDismiss} theme={theme} />
+              {currentView === 'main' ? (
+                <>
+                  <ProfileHeader user={user} avatarSource={avatarSource} onDismiss={handleDismiss} theme={theme} />
 
-              <View style={styles.sectionsWrapper}>
-                <ProfileSectionCard title="Account" theme={theme}>
-                  {showEditButton && (
-                    <ProfileActionItem
-                      icon="person-outline"
-                      title="Edit Profile"
-                      subtitle="Update your personal details"
-                      onPress={() => setIsEditing(true)}
-                      theme={theme}
-                    />
-                  )}
-                  <ProfileActionItem
-                    icon="lock-outline"
-                    title="Change Password"
-                    subtitle="Update your security credentials"
-                    onPress={() => setShowPasswordDialog(true)}
-                    theme={theme}
-                    isLast
-                  />
-                </ProfileSectionCard>
+                  <View style={styles.sectionsWrapper}>
+                    <ProfileSectionCard title="Account" theme={theme}>
+                      {showEditButton && (
+                        <ProfileActionItem
+                          icon="person-outline"
+                          title="Edit Profile"
+                          subtitle="Update your personal details"
+                          onPress={() => setCurrentView('edit_profile')}
+                          theme={theme}
+                        />
+                      )}
+                      <ProfileActionItem
+                        icon="lock-outline"
+                        title="Change Password"
+                        subtitle="Update your security credentials"
+                        onPress={() => setCurrentView('change_password')}
+                        theme={theme}
+                        isLast
+                      />
+                    </ProfileSectionCard>
 
                 <ProfileSectionCard title="Content" theme={theme}>
                   <ProfileActionItem
@@ -325,80 +333,84 @@ export default function ProfileModal({
                     />
                   )}
                 </ProfileSectionCard>
-              </View>
+                  </View>
+                </>
+              ) : currentView === 'edit_profile' ? (
+                <View style={{ paddingHorizontal: theme.spacing.lg, paddingVertical: theme.spacing.md }}>
+                  <View style={[styles.inlineHeader, { marginBottom: theme.spacing.xl }]}>
+                    <Pressable onPress={() => setCurrentView('main')} style={{ padding: 8, marginLeft: -8, marginRight: 16 }}>
+                      <MaterialIcons name="arrow-back" size={24} color={theme.colors.text} />
+                    </Pressable>
+                    <Text style={{ ...theme.typography.titleLarge, color: theme.colors.text, fontWeight: '600' }}>Edit Profile</Text>
+                  </View>
+                  
+                  <TextInput
+                    label="First Name"
+                    value={editData.firstName}
+                    onChangeText={text => setEditData({ ...editData, firstName: text })}
+                    style={[styles.dialogInput, { backgroundColor: theme.colors.surface }]}
+                    textColor={theme.colors.text}
+                    activeUnderlineColor={theme.colors.primary}
+                  />
+                  <TextInput
+                    label="Last Name"
+                    value={editData.lastName}
+                    onChangeText={text => setEditData({ ...editData, lastName: text })}
+                    style={[styles.dialogInput, { backgroundColor: theme.colors.surface }]}
+                    textColor={theme.colors.text}
+                    activeUnderlineColor={theme.colors.primary}
+                  />
+                  
+                  <Button mode="contained" onPress={handleSaveProfile} style={{ marginTop: theme.spacing.xl, paddingVertical: 6, borderRadius: 12 }}>
+                    Save Changes
+                  </Button>
+                </View>
+              ) : currentView === 'change_password' ? (
+                <View style={{ paddingHorizontal: theme.spacing.lg, paddingVertical: theme.spacing.md }}>
+                  <View style={[styles.inlineHeader, { marginBottom: theme.spacing.xl }]}>
+                    <Pressable onPress={() => setCurrentView('main')} style={{ padding: 8, marginLeft: -8, marginRight: 16 }}>
+                      <MaterialIcons name="arrow-back" size={24} color={theme.colors.text} />
+                    </Pressable>
+                    <Text style={{ ...theme.typography.titleLarge, color: theme.colors.text, fontWeight: '600' }}>Change Password</Text>
+                  </View>
+                  
+                  <TextInput
+                    label="Current Password"
+                    secureTextEntry
+                    value={passwordData.currentPassword}
+                    onChangeText={txt => setPasswordData(prev => ({ ...prev, currentPassword: txt }))}
+                    style={[styles.dialogInput, { backgroundColor: theme.colors.surface }]}
+                    textColor={theme.colors.text}
+                    activeUnderlineColor={theme.colors.primary}
+                  />
+                  <TextInput
+                    label="New Password"
+                    secureTextEntry
+                    value={passwordData.newPassword}
+                    onChangeText={txt => setPasswordData(prev => ({ ...prev, newPassword: txt }))}
+                    style={[styles.dialogInput, { backgroundColor: theme.colors.surface }]}
+                    textColor={theme.colors.text}
+                    activeUnderlineColor={theme.colors.primary}
+                  />
+                  <TextInput
+                    label="Confirm New Password"
+                    secureTextEntry
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    style={[styles.dialogInput, { backgroundColor: theme.colors.surface }]}
+                    textColor={theme.colors.text}
+                    activeUnderlineColor={theme.colors.primary}
+                  />
+                  
+                  <Button mode="contained" onPress={handleChangePassword} style={{ marginTop: theme.spacing.xl, paddingVertical: 6, borderRadius: 12 }}>
+                    Change Password
+                  </Button>
+                </View>
+              ) : null}
             </ScrollView>
           </View>
         </View>
       </RNModal>
-
-      {/* ─── Edit Profile Dialog ─── */}
-      <Portal>
-        <Dialog visible={isEditing} onDismiss={() => setIsEditing(false)} style={{ backgroundColor: theme.colors.surfaceElevated, borderRadius: theme.borderRadius.lg }}>
-          <Dialog.Title style={{ ...theme.typography.titleLarge, color: theme.colors.text }}>Edit Profile</Dialog.Title>
-          <Dialog.Content>
-            <TextInput
-              label="First Name"
-              value={editData.firstName}
-              onChangeText={text => setEditData({ ...editData, firstName: text })}
-              style={[styles.dialogInput, { backgroundColor: theme.colors.surface }]}
-              textColor={theme.colors.text}
-              activeUnderlineColor={theme.colors.primary}
-            />
-            <TextInput
-              label="Last Name"
-              value={editData.lastName}
-              onChangeText={text => setEditData({ ...editData, lastName: text })}
-              style={[styles.dialogInput, { backgroundColor: theme.colors.surface }]}
-              textColor={theme.colors.text}
-              activeUnderlineColor={theme.colors.primary}
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setIsEditing(false)} textColor={theme.colors.textSecondary}>Cancel</Button>
-            <Button onPress={handleSaveProfile} textColor={theme.colors.primary}>Save</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
-
-      {/* ─── Change Password Dialog ─── */}
-      <Portal>
-        <Dialog visible={showPasswordDialog} onDismiss={() => setShowPasswordDialog(false)} style={{ backgroundColor: theme.colors.surfaceElevated, borderRadius: theme.borderRadius.lg }}>
-          <Dialog.Title style={{ ...theme.typography.titleLarge, color: theme.colors.text }}>Change Password</Dialog.Title>
-          <Dialog.Content>
-            <TextInput
-              label="Current Password"
-              secureTextEntry
-              value={passwordData.currentPassword}
-              onChangeText={txt => setPasswordData(prev => ({ ...prev, currentPassword: txt }))}
-              style={[styles.dialogInput, { backgroundColor: theme.colors.surface }]}
-              textColor={theme.colors.text}
-              activeUnderlineColor={theme.colors.primary}
-            />
-            <TextInput
-              label="New Password"
-              secureTextEntry
-              value={passwordData.newPassword}
-              onChangeText={txt => setPasswordData(prev => ({ ...prev, newPassword: txt }))}
-              style={[styles.dialogInput, { backgroundColor: theme.colors.surface }]}
-              textColor={theme.colors.text}
-              activeUnderlineColor={theme.colors.primary}
-            />
-            <TextInput
-              label="Confirm New Password"
-              secureTextEntry
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              style={[styles.dialogInput, { backgroundColor: theme.colors.surface }]}
-              textColor={theme.colors.text}
-              activeUnderlineColor={theme.colors.primary}
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setShowPasswordDialog(false)} textColor={theme.colors.textSecondary}>Cancel</Button>
-            <Button onPress={handleChangePassword} textColor={theme.colors.primary}>Change</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
 
       {/* ─── Delete Account Dialog ─── */}
       <Portal>
@@ -537,5 +549,9 @@ const styles = StyleSheet.create({
   },
   dialogInput: {
     marginBottom: 16,
+  },
+  inlineHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });

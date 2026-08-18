@@ -20,9 +20,9 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
  *                    TestFlight / App Store upload.
  * ============================================================
  */
-const APP_VERSION = '1.1.0';
-const ANDROID_VERSION_CODE = 2;
-const IOS_BUILD_NUMBER = '2';
+const APP_VERSION = '1.2.0';
+const ANDROID_VERSION_CODE = 3;
+const IOS_BUILD_NUMBER = '3';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -38,6 +38,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     backgroundColor: '#1d3557',
   },
   assetBundlePatterns: ['**/*'],
+  updates: {
+    url: 'https://u.expo.dev/8bfd3384-3d72-45dd-bc91-757f4df9375f',
+  },
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.tvffellowship.app',
@@ -95,11 +98,22 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     'expo-router',
+    'expo-updates',
     'expo-av',
     'expo-notifications',
     'expo-file-system',
     'expo-dev-client',
     'expo-secure-store',
+    [
+      'expo-build-properties',
+      {
+        android: {
+          // Target Android 16 (API 36) — required by Google Play from Aug 2026
+          compileSdkVersion: 36,
+          targetSdkVersion: 36,
+        },
+      },
+    ],
     [
       'expo-media-library',
       {

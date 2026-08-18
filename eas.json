@@ -50,6 +50,11 @@
         "serviceAccountKeyPath": "./play-store-key.json",
         "track": "production",
         "releaseStatus": "draft"
+      },
+      "ios": {
+        "appleId": "YOUR_APPLE_ID@example.com",
+        "ascAppId": "YOUR_APP_STORE_CONNECT_NUMERIC_APP_ID",
+        "appleTeamId": "YOUR_APPLE_TEAM_ID"
       }
     }
   }

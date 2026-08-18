@@ -129,8 +129,8 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    paddingTop: 16,
-    paddingBottom: 32,
+    paddingTop: 8,
+    paddingBottom: 20,
     paddingHorizontal: 24,
   },
   containerCompact: {

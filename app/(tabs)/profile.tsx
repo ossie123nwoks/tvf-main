@@ -17,7 +17,6 @@ import { useTheme } from '@/lib/theme/ThemeProvider';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { UserProfileUpdate, ChangePasswordRequest } from '@/types/user';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { SessionStatus } from '@/components/auth/SessionStatus';
 import { useSavedContent } from '@/lib/hooks/useSavedContent';
 import { useOfflineDownloads } from '@/lib/storage/useOfflineDownloads';
 
@@ -431,24 +430,24 @@ export default function Profile() {
               ) : (
                 <>
                   <View style={profileStyles.row}>
-                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500' }}>First Name</Text>
-                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>{user.firstName}</Text>
+                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500', marginRight: theme.spacing.md }}>First Name</Text>
+                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, flexShrink: 1, textAlign: 'right' }}>{user.firstName}</Text>
                   </View>
                   <View style={profileStyles.row}>
-                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500' }}>Last Name</Text>
-                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>{user.lastName}</Text>
+                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500', marginRight: theme.spacing.md }}>Last Name</Text>
+                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, flexShrink: 1, textAlign: 'right' }}>{user.lastName}</Text>
                   </View>
                   <View style={profileStyles.row}>
-                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500' }}>Email</Text>
-                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>{user.email}</Text>
+                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500', marginRight: theme.spacing.md }}>Email</Text>
+                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, flexShrink: 1, textAlign: 'right' }}>{user.email}</Text>
                   </View>
                   <View style={profileStyles.row}>
-                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500' }}>Role</Text>
-                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>{user.role}</Text>
+                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500', marginRight: theme.spacing.md }}>Role</Text>
+                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, flexShrink: 1, textAlign: 'right' }}>{user.role}</Text>
                   </View>
                   <View style={profileStyles.row}>
-                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500' }}>Email Verified</Text>
-                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>{user.isEmailVerified ? 'Yes' : 'No'}</Text>
+                    <Text style={{ ...theme.typography.bodyLarge, color: theme.colors.text, fontWeight: '500', marginRight: theme.spacing.md }}>Email Verified</Text>
+                    <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary, flexShrink: 1, textAlign: 'right' }}>{user.isEmailVerified ? 'Yes' : 'No'}</Text>
                   </View>
 
                   <Button
@@ -713,8 +712,6 @@ export default function Profile() {
             </Card.Content>
           </Card>
 
-          {/* Session Status */}
-          <SessionStatus showDetails={true} compact={false} />
 
           {/* Account Actions */}
           <Card style={[profileStyles.card, dynamicStyles.card]}>

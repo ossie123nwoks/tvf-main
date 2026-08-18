@@ -263,11 +263,11 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   content: {
-    flex: 1,
     paddingHorizontal: 24,
+    paddingBottom: 16,
   },
   formContainer: {
-    flex: 1,
+    // no flex:1 inside ScrollView — let content size naturally
   },
   errorBanner: {
     flexDirection: 'row',

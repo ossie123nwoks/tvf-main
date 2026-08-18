@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Dimensions, Platform, Image, Pressable } from 'react-native';
+import { View, StyleSheet, Dimensions, Platform, Image, Pressable, Alert } from 'react-native';
 import { Text, ActivityIndicator, IconButton, Button } from 'react-native-paper';
 import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import YoutubePlayer from 'react-native-youtube-iframe';
@@ -32,8 +32,21 @@ const formatTime = (millis: number) => {
 export default function SermonMediaPlayer({ sermon }: SermonMediaPlayerProps) {
   const { theme } = useTheme();
 
-  const hasVideo = !!sermon.video_url && sermon.video_url.trim() !== '';
-  const hasAudio = !!sermon.audio_url && sermon.audio_url.trim() !== '';
+  const isValidUrl = (url?: string | null) => {
+    if (!url) return false;
+    const t = url.trim();
+    if (t === '' || t === 'null' || t === 'undefined') return false;
+    if (!t.startsWith('http://') && !t.startsWith('https://') && !t.startsWith('file://')) return false;
+    // Block known placeholder/example domains that will never resolve
+    try {
+      const parsed = new URL(t);
+      if (parsed.hostname === 'example.com' || parsed.hostname === 'localhost') return false;
+    } catch { /* not a parseable URL */ return false; }
+    return true;
+  };
+
+  const hasVideo = isValidUrl(sermon.video_url);
+  const hasAudio = isValidUrl(sermon.audio_url);
 
   // Default to video if available, else audio
   const [activeMedia, setActiveMedia] = useState<'video' | 'audio'>(hasVideo ? 'video' : 'audio');
@@ -102,21 +115,30 @@ export default function SermonMediaPlayer({ sermon }: SermonMediaPlayerProps) {
   }, [activeMedia]);
 
   const initializeAudio = async () => {
+    // Guard: don't try to load if there's no valid audio URL
+    if (!hasAudio) return;
     try {
-      let audioUri = sermon.audio_url;
-      const isOffline = await isAvailableOffline(sermon.audio_url);
+      const rawUrl = sermon.audio_url!;
+      let audioUri: string = rawUrl;
+      const isOffline = await isAvailableOffline(rawUrl);
       if (isOffline) {
-        const offlinePath = await getOfflinePath(sermon.audio_url);
+        const offlinePath = await getOfflinePath(rawUrl);
         if (offlinePath) audioUri = offlinePath;
       }
       await loadAudio(sermon, audioUri);
     } catch (error) {
-      console.error('[SermonMediaPlayer] initializeAudio error:', error);
+      console.warn('[SermonMediaPlayer] initializeAudio error:', error);
     }
   };
 
   // ── Audio controls — delegate to context ──
-  const handleAudioPlayPause = () => togglePlayPause();
+  const handleAudioPlayPause = () => {
+    if (!hasAudio) {
+      Alert.alert('Audio Coming Soon', 'The audio for this sermon will be available shortly.');
+      return;
+    }
+    togglePlayPause();
+  };
 
   const handleAudioSeek = async (value: number) => {
     if (audioDuration === 0) return;
@@ -216,59 +238,59 @@ export default function SermonMediaPlayer({ sermon }: SermonMediaPlayerProps) {
           {isAudioBuffering && <ActivityIndicator size="small" color={theme.colors.primary} />}
         </View>
 
-        {audioError ? (
-          <View style={styles.errorContainer}>
-            <Text style={{ color: theme.colors.error, ...theme.typography.bodySmall }}>{audioError}</Text>
-            <Button mode="outlined" compact onPress={initializeAudio} style={{ marginTop: 8 }}>Retry</Button>
+        {(!hasAudio || audioError) && (
+          <View style={{ alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16 }}>
+            <MaterialIcons name="music-off" size={24} color={theme.colors.textTertiary} />
+            <Text style={{ ...theme.typography.bodySmall, color: theme.colors.textSecondary, marginTop: 4, textAlign: 'center' }}>
+              Audio coming soon
+            </Text>
           </View>
-        ) : (
-          <>
-            <View style={{ marginTop: theme.spacing.md }}>
-              <View style={styles.timeRow}>
-                <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textTertiary }}>{formatTime(audioPosition)}</Text>
-                <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textTertiary }}>{formatTime(audioDuration)}</Text>
-              </View>
-              <Pressable
-                onPress={event => {
-                  const { locationX } = event.nativeEvent;
-                  const containerWidth = screenWidth - (theme.spacing.md * 2 + theme.spacing.lg * 2);
-                  handleAudioSeek(Math.max(0, Math.min(1, locationX / containerWidth)));
-                }}
-                style={styles.progressWrapper}
-              >
-                <View style={[styles.progressTrack, { backgroundColor: theme.colors.audioProgressBackground, borderRadius: theme.borderRadius.full }]}>
-                  <View style={[styles.progressFill, { backgroundColor: theme.colors.audioProgress, borderRadius: theme.borderRadius.full, width: `${progress * 100}%` }]} />
-                </View>
-              </Pressable>
-            </View>
-
-            <View style={styles.controlsRow}>
-              <IconButton
-                icon="rewind-10"
-                size={28}
-                iconColor={theme.colors.textSecondary}
-                onPress={() => seekTo(Math.max(0, audioPosition - 10000))}
-              />
-              <Pressable
-                style={[styles.playButton, { backgroundColor: theme.colors.primary, borderRadius: theme.borderRadius.full, ...theme.shadows.small }]}
-                onPress={handleAudioPlayPause}
-                disabled={audioLoading}
-              >
-                {audioLoading ? (
-                  <ActivityIndicator size={28} color="#FFF" />
-                ) : (
-                  <MaterialIcons name={isAudioPlaying ? 'pause' : 'play-arrow'} size={32} color="#FFF" />
-                )}
-              </Pressable>
-              <IconButton
-                icon="fast-forward-30"
-                size={28}
-                iconColor={theme.colors.textSecondary}
-                onPress={() => seekTo(Math.min(audioDuration, audioPosition + 30000))}
-              />
-            </View>
-          </>
         )}
+
+        <View style={{ marginTop: theme.spacing.md }}>
+          <View style={styles.timeRow}>
+            <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textTertiary }}>{formatTime(audioPosition)}</Text>
+            <Text style={{ ...theme.typography.labelSmall, color: theme.colors.textTertiary }}>{formatTime(audioDuration)}</Text>
+          </View>
+          <Pressable
+            onPress={event => {
+              const { locationX } = event.nativeEvent;
+              const containerWidth = screenWidth - (theme.spacing.md * 2 + theme.spacing.lg * 2);
+              handleAudioSeek(Math.max(0, Math.min(1, locationX / containerWidth)));
+            }}
+            style={styles.progressWrapper}
+          >
+            <View style={[styles.progressTrack, { backgroundColor: theme.colors.audioProgressBackground, borderRadius: theme.borderRadius.full }]}>
+              <View style={[styles.progressFill, { backgroundColor: theme.colors.audioProgress, borderRadius: theme.borderRadius.full, width: `${progress * 100}%` }]} />
+            </View>
+          </Pressable>
+        </View>
+
+        <View style={styles.controlsRow}>
+          <IconButton
+            icon="rewind-10"
+            size={28}
+            iconColor={theme.colors.textSecondary}
+            onPress={() => seekTo(Math.max(0, audioPosition - 10000))}
+          />
+          <Pressable
+            style={[styles.playButton, { backgroundColor: theme.colors.primary, borderRadius: theme.borderRadius.full, ...theme.shadows.small }]}
+            onPress={handleAudioPlayPause}
+            disabled={audioLoading}
+          >
+            {audioLoading ? (
+              <ActivityIndicator size={28} color="#FFF" />
+            ) : (
+              <MaterialIcons name={isAudioPlaying ? 'pause' : 'play-arrow'} size={32} color="#FFF" />
+            )}
+          </Pressable>
+          <IconButton
+            icon="fast-forward-30"
+            size={28}
+            iconColor={theme.colors.textSecondary}
+            onPress={() => seekTo(Math.min(audioDuration, audioPosition + 30000))}
+          />
+        </View>
       </View>
     );
   };
